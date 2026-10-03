@@ -1,0 +1,14 @@
+{
+  "name": "mediagrid",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/web", "apps/renderer", "packages/*"],
+  "scripts": {
+    "dev": "npm run dev --workspace @mediagrid/web",
+    "build": "npm run build --workspace @mediagrid/web",
+    "typecheck": "npm run typecheck --workspace @mediagrid/web",
+    "test": "npm run test --workspace @mediagrid/web"
+  },
+  "engines": {"node": ">=20"}
+}
+

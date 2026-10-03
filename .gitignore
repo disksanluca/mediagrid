@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.env
+data/
+dist/
+coverage/
+*.db
+*.sqlite3
+*.pyc
+
