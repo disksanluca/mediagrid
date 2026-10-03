@@ -1,6 +1,6 @@
 import type {Channel, Project, SystemStatus} from "./types";
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api/v1";
+const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, {
@@ -23,4 +23,3 @@ export const api = {
   createProject: (body: Record<string, unknown>) => request<Project>("/projects", {method: "POST", body: JSON.stringify(body)}),
   createPlan: (id: string) => request<Record<string, unknown>>(`/projects/${id}/plan`, {method: "POST"}),
 };
-
