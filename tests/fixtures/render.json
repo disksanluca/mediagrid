@@ -1,0 +1,14 @@
+{
+  "title": "MediaGrid Render Test",
+  "format": "vertical",
+  "accent": "#c6ff3d",
+  "scenes": [
+    {
+      "scene_id": "test",
+      "duration": 1,
+      "visual_type": "headline",
+      "transition": "impact",
+      "on_screen_text": "Render determinístico"
+    }
+  ]
+}
