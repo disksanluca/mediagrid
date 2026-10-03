@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --bg: #080b0d;
+  --panel: #0f1417;
+  --panel-2: #151b1e;
+  --line: #253036;
+  --muted: #8d9ba2;
+  --text: #f4f7f8;
+  --lime: #c6ff3d;
+  --cyan: #57d7e8;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 82% -10%, rgba(87, 215, 232, .09), transparent 34rem),
+    radial-gradient(circle at 12% 0%, rgba(198, 255, 61, .06), transparent 28rem),
+    var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+::selection { background: var(--lime); color: #111; }
+
