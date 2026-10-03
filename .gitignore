@@ -11,4 +11,4 @@ coverage/
 *.db
 *.sqlite3
 *.pyc
-
+*.tsbuildinfo

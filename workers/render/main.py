@@ -2,6 +2,7 @@ import argparse
 import json
 import shutil
 import subprocess
+import time
 
 from apps.api.config import get_settings
 from apps.api.database import SessionLocal
@@ -12,11 +13,11 @@ from apps.api.services import claim_next_job, record_event
 def render_one() -> bool:
     settings = get_settings()
     with SessionLocal() as db:
-        job = claim_next_job(db)
+        job = claim_next_job(db, "RENDER")
         if job is None:
             return False
         db.commit()
-        if job.job_type != "RENDER" or not job.project_id:
+        if not job.project_id:
             job.status = JobStatus.FAILED.value
             job.error = "Render worker received an incompatible job"
             db.commit()
@@ -85,8 +86,13 @@ def render_one() -> bool:
 def main() -> None:
     parser = argparse.ArgumentParser(description="MediaGrid render worker")
     parser.add_argument("--once", action="store_true", help="Process at most one queued job")
-    parser.parse_args()
-    render_one()
+    args = parser.parse_args()
+    if args.once:
+        render_one()
+        return
+    while True:
+        if not render_one():
+            time.sleep(2)
 
 
 if __name__ == "__main__":

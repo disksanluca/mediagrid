@@ -146,11 +146,12 @@ def enqueue_job(
     return job
 
 
-def claim_next_job(db: Session) -> Job | None:
+def claim_next_job(db: Session, job_type: str | None = None) -> Job | None:
+    statement = select(Job).where(Job.status == JobStatus.QUEUED.value)
+    if job_type:
+        statement = statement.where(Job.job_type == job_type)
     statement = (
-        select(Job)
-        .where(Job.status == JobStatus.QUEUED.value)
-        .order_by(Job.priority.asc(), Job.created_at.asc())
+        statement.order_by(Job.priority.asc(), Job.created_at.asc())
         .with_for_update(skip_locked=True)
         .limit(1)
     )
