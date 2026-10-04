@@ -41,7 +41,7 @@ def build_local_plan(project: Project, channel: Channel) -> ContentPlan:
         Scene(
             id="hook",
             duration_seconds=scene_duration,
-            narration=f"Você precisa entender isto sobre {topic}.",
+            narration=f"Apresente a pergunta principal sobre {topic}.",
             visual_type="headline",
             visual_query=topic,
             on_screen_text=project.title,
@@ -50,7 +50,7 @@ def build_local_plan(project: Project, channel: Channel) -> ContentPlan:
         Scene(
             id="context",
             duration_seconds=scene_duration,
-            narration=f"Primeiro, vamos colocar {topic} em contexto com informações verificáveis.",
+            narration=f"Explique o contexto de {topic} com fatos que você verificou.",
             visual_type=engine.visual_types[1],
             visual_query=f"{topic} contexto",
             on_screen_text="O contexto",
@@ -59,7 +59,7 @@ def build_local_plan(project: Project, channel: Channel) -> ContentPlan:
         Scene(
             id="evidence",
             duration_seconds=scene_duration,
-            narration="Os dados e as fontes do dossiê sustentam os pontos centrais desta história.",
+            narration="Inclua aqui dados e fontes verificadas antes da publicação.",
             visual_type=engine.visual_types[2],
             visual_query=f"{topic} dados",
             on_screen_text="O que os dados mostram",
@@ -77,7 +77,7 @@ def build_local_plan(project: Project, channel: Channel) -> ContentPlan:
         Scene(
             id="outro",
             duration_seconds=scene_duration,
-            narration="Acompanhe o canal para mais conteúdo pesquisado e explicado com clareza.",
+            narration="Encerre com uma conclusão revisada e um convite para acompanhar o canal.",
             visual_type="outro",
             visual_query="brand outro",
             on_screen_text="Continue acompanhando",

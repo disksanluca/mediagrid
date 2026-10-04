@@ -1,6 +1,5 @@
-import {Dashboard} from "@/components/dashboard";
-import {Sidebar} from "@/components/sidebar";
+import {ControlPanel} from "@/components/control-panel";
 
 export default function Home() {
-  return <><Sidebar/><Dashboard/></>;
+  return <ControlPanel/>;
 }

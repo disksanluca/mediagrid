@@ -63,6 +63,18 @@ class ContentPlan(BaseModel):
     requires_fact_review: bool = True
 
 
+class ProjectPlanUpdate(BaseModel):
+    scenes: list[Scene] = Field(min_length=2)
+    hook: str = Field(min_length=3)
+    angle: str = Field(min_length=3)
+
+
+class ChannelUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=120)
+    brand_profile: dict[str, Any] | None = None
+    editorial_profile: dict[str, Any] | None = None
+
+
 class JobRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">MediaGrid</title>
+  <defs>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#fff"/>
+      <stop offset=".36" stop-color="#bec5cf"/>
+      <stop offset=".65" stop-color="#f4f6f9"/>
+      <stop offset="1" stop-color="#8d97a4"/>
+    </linearGradient>
+  </defs>
+  <path d="M8 12 39 34 69 12 69 40 40 62 22 49 22 95 8 95Z" fill="url(#metal)" stroke="#78818d" stroke-width="2"/>
+  <path d="M119 12 88 34 70 22 70 44 88 58 105 46 105 70 87 84 70 70 70 91 87 105 119 81Z" fill="url(#metal)" stroke="#78818d" stroke-width="2"/>
+  <path d="M31 75h14v14H31zM50 75h14v14H50zM31 94h14v14H31zM50 94h14v14H50z" fill="url(#metal)" stroke="#78818d" stroke-width="1.5"/>
+</svg>

@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_model: str = "llama3.2"
     dry_run: bool = True
+    mediagrid_admin_password: str | None = None
+    mediagrid_session_secret: str | None = None
+    mediagrid_public_url: str | None = None
 
 
 @lru_cache

@@ -4,7 +4,7 @@ import type {RenderProps, RenderScene} from "./types";
 const fallback: RenderProps = {
   title: "MediaGrid",
   format: "vertical",
-  accent: "#c6ff3d",
+  accent: "#c5ccd6",
   scenes: [{scene_id: "intro", duration: 3, visual_type: "headline", transition: "impact", on_screen_text: "MediaGrid"}],
 };
 
@@ -32,4 +32,3 @@ export function MediaGridVideo(input: Partial<RenderProps>) {
     return item;
   })}</AbsoluteFill>;
 }
-

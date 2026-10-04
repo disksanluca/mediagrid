@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mediagrid
+      POSTGRES_USER: mediagrid
+      POSTGRES_PASSWORD: ${MEDIAGRID_DB_PASSWORD:?Set MEDIAGRID_DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mediagrid -d mediagrid"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    shm_size: 1gb
+    environment:
+      MEDIAGRID_MODE: CLOUD
+      ALLOW_PAID_AI: "false"
+      DRY_RUN: "true"
+      MEDIAGRID_ADMIN_PASSWORD: ${MEDIAGRID_ADMIN_PASSWORD:?Set MEDIAGRID_ADMIN_PASSWORD}
+      MEDIAGRID_SESSION_SECRET: ${MEDIAGRID_SESSION_SECRET:?Set MEDIAGRID_SESSION_SECRET}
+      MEDIAGRID_PUBLIC_URL: https://${MEDIAGRID_DOMAIN:?Set MEDIAGRID_DOMAIN}
+      MEDIAGRID_DATA_DIR: /app/data
+      DATABASE_URL: postgresql+psycopg://mediagrid:${MEDIAGRID_DB_PASSWORD}@db:5432/mediagrid
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      MEDIAGRID_DOMAIN: ${MEDIAGRID_DOMAIN:?Set MEDIAGRID_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  postgres_data:
+  app_data:
+  caddy_data:
+  caddy_config:
