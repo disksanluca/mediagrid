@@ -1,6 +1,7 @@
 import json
 import sqlite3
 import zipfile
+from contextlib import closing
 from pathlib import Path
 
 import pytest
@@ -10,9 +11,10 @@ from apps.api.backup import create_backup, restore_backup
 
 def _sample_data(root: Path) -> None:
     (root / "Database").mkdir(parents=True)
-    with sqlite3.connect(root / "Database" / "mediagrid.db") as db:
+    with closing(sqlite3.connect(root / "Database" / "mediagrid.db")) as db:
         db.execute("CREATE TABLE note (value TEXT)")
         db.execute("INSERT INTO note VALUES ('original')")
+        db.commit()
     (root / "assets").mkdir()
     (root / "assets" / "sample.txt").write_text("original", encoding="utf-8")
     (root / "settings.json").write_text('{"setup_complete": true}', encoding="utf-8")
@@ -30,7 +32,7 @@ def test_backup_roundtrip_keeps_previous_data(tmp_path: Path) -> None:
     assert (previous / "assets" / "sample.txt").read_text() == "changed"
     assert (data / "assets" / "sample.txt").read_text() == "original"
     assert json.loads((data / "settings.json").read_text())["setup_complete"] is True
-    with sqlite3.connect(data / "Database" / "mediagrid.db") as db:
+    with closing(sqlite3.connect(data / "Database" / "mediagrid.db")) as db:
         assert db.execute("SELECT value FROM note").fetchone()[0] == "original"
 
 
