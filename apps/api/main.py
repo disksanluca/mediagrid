@@ -32,7 +32,13 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:3000", "http://localhost:3000"],
+    allow_origins=[
+        "http://127.0.0.1:3000",
+        "http://localhost:3000",
+        "http://tauri.localhost",
+        "https://tauri.localhost",
+        "tauri://localhost",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -49,6 +55,9 @@ async def require_login(request: Request, call_next):
             "http://127.0.0.1:3000",
             "http://localhost:8000",
             "http://127.0.0.1:8000",
+            "http://tauri.localhost",
+            "https://tauri.localhost",
+            "tauri://localhost",
         }:
             return JSONResponse({"detail": "Invalid local origin"}, status_code=403)
     public_paths = {"/", "/api/v1/system/health", "/api/v1/auth/login", "/api/v1/auth/session"}

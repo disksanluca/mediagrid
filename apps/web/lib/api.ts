@@ -1,9 +1,16 @@
 import type {Asset, Channel, ContentPlan, Job, Project, SystemStatus} from "./types";
+import {desktopRuntime} from "./desktop";
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
+let baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
+
+async function resolveBaseUrl(): Promise<string> {
+  const runtime = await desktopRuntime();
+  if (runtime) baseUrl = `http://127.0.0.1:${runtime.api_port}/api/v1`;
+  return baseUrl;
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${baseUrl}${path}`, {
+  const response = await fetch(`${await resolveBaseUrl()}${path}`, {
     ...init,
     headers: {"Content-Type": "application/json", ...init?.headers},
     cache: "no-store",
@@ -24,14 +31,14 @@ export const api = {
   jobs: () => request<Job[]>("/jobs"),
   assets: () => request<Asset[]>("/assets"),
   uploadAsset: async (form: FormData) => {
-    const response = await fetch(`${baseUrl}/assets`, {method:"POST", body:form});
+    const response = await fetch(`${await resolveBaseUrl()}/assets`, {method:"POST", body:form});
     if (!response.ok) {const body = (await response.json().catch(()=>null)) as {detail?:string}|null; throw new Error(body?.detail ?? `Erro ${response.status}`);}
     return response.json() as Promise<Asset>;
   },
   assetFile: (id: string) => `${baseUrl}/assets/${id}/file`,
   transcribe: (id: string) => request<{job_id:string;status:string}>(`/assets/${id}/transcribe`, {method:"POST"}),
   transcript: async (id: string) => {
-    const response = await fetch(`${baseUrl}/assets/${id}/transcript`);
+    const response = await fetch(`${await resolveBaseUrl()}/assets/${id}/transcript`);
     if (!response.ok) throw new Error("Transcrição ainda não disponível.");
     return response.text();
   },
