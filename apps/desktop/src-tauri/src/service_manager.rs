@@ -342,7 +342,7 @@ pub fn launch(app: &AppHandle, preferred_port: Option<u16>) -> Result<Processes,
     let deadline = Instant::now() + Duration::from_secs(45);
     while Instant::now() < deadline {
         if api_healthy(port) {
-            let worker = match spawn_logged(
+            let mut worker = match spawn_logged(
                 service_command(app, "worker", port, &data_dir)?,
                 &log_dir.join("worker.log"),
             ) {
@@ -352,6 +352,25 @@ pub fn launch(app: &AppHandle, preferred_port: Option<u16>) -> Result<Processes,
                     return Err(error);
                 }
             };
+            let worker_check = Instant::now() + Duration::from_secs(3);
+            while Instant::now() < worker_check {
+                match worker.try_wait() {
+                    Ok(Some(_)) => {
+                        stop_child(&mut api);
+                        return Err(format!(
+                            "MediaGrid worker stopped during startup. See {}",
+                            log_dir.join("worker.log").display()
+                        ));
+                    }
+                    Err(error) => {
+                        stop_child(&mut worker);
+                        stop_child(&mut api);
+                        return Err(error.to_string());
+                    }
+                    Ok(None) => {}
+                }
+                thread::sleep(Duration::from_millis(250));
+            }
             let runtime_path = data_dir.join("runtime.json");
             let runtime = serde_json::json!({"api_port": port, "data_dir": data_dir});
             if let Err(error) = fs::write(&runtime_path, runtime.to_string()) {

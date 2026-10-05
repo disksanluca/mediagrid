@@ -4,17 +4,20 @@ if (-not $installer) { throw "Instalador NSIS não encontrado." }
 $installDir = Join-Path $env:RUNNER_TEMP "MediaGridSmokeInstall"
 $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP "MediaGridSmokeLocal"
 New-Item -ItemType Directory -Force -Path $env:LOCALAPPDATA | Out-Null
+Write-Host "Instalando $($installer.Name) em $installDir"
 $installerProcess = Start-Process $installer.FullName -ArgumentList @("/S", "/D=$installDir") -PassThru
 if (-not $installerProcess.WaitForExit(120000)) {
   Stop-Process -Id $installerProcess.Id -Force
   throw "Instalador não concluiu em 120 segundos."
 }
 if ($installerProcess.ExitCode -ne 0) { throw "Instalador falhou: $($installerProcess.ExitCode)" }
+Write-Host "Instalador concluiu com código 0."
 $application = Join-Path $installDir "MediaGrid.exe"
 if (-not (Test-Path $application)) { throw "MediaGrid.exe não foi encontrado após instalar." }
 $dataDir = Join-Path $env:LOCALAPPDATA "MediaGrid\Data"
 $runtimeFile = Join-Path $dataDir "runtime.json"
 $applicationProcess = Start-Process $application -PassThru
+Write-Host "Aguardando Core e worker locais."
 try {
   $ready = $false
   for ($attempt = 0; $attempt -lt 120; $attempt++) {
@@ -63,10 +66,12 @@ try {
   [System.IO.File]::WriteAllText((Join-Path $voiceDir "$($project.id).sha256"), $digest)
 
   $queued = Invoke-RestMethod "$api/projects/$($project.id)/render" -Method Post
+  Write-Host "Render enfileirado: $($queued.job_id)"
   $rendered = $false
   for ($attempt = 0; $attempt -lt 300; $attempt++) {
     Start-Sleep -Seconds 1
     $job = Invoke-RestMethod "$api/jobs/$($queued.job_id)"
+    if ($attempt % 30 -eq 0) { Write-Host "Render após ${attempt}s: $($job.status)" }
     if ($job.status -eq "FAILED") { throw "Renderização instalada falhou: $($job.error)" }
     if ($job.status -eq "SUCCEEDED") { $rendered = $true; break }
   }
