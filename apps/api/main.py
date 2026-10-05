@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from . import auth
 from .config import get_settings
 from .migrate import main as migrate
-from .routes import channels, jobs, projects, system
+from .routes import assets, channels, jobs, projects, system
 
 
 @asynccontextmanager
@@ -42,6 +42,15 @@ app.add_middleware(
 @app.middleware("http")
 async def require_login(request: Request, call_next):
     path = request.url.path
+    if get_settings().mediagrid_mode == "LOCAL" and path.startswith("/api/v1/"):
+        origin = request.headers.get("origin")
+        if origin and origin.rstrip("/") not in {
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+        }:
+            return JSONResponse({"detail": "Invalid local origin"}, status_code=403)
     public_paths = {"/", "/api/v1/system/health", "/api/v1/auth/login", "/api/v1/auth/session"}
     if path.startswith("/api/v1/") and path not in public_paths:
         if not auth.is_authenticated(request):
@@ -54,7 +63,14 @@ async def require_login(request: Request, call_next):
     return await call_next(request)
 
 
-for router in (auth.router, channels.router, projects.router, jobs.router, system.router):
+for router in (
+    auth.router,
+    channels.router,
+    projects.router,
+    assets.router,
+    jobs.router,
+    system.router,
+):
     app.include_router(router, prefix="/api/v1")
 
 

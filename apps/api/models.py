@@ -87,6 +87,12 @@ class Project(TimestampMixin, Base):
     channel: Mapped[Channel] = relationship(back_populates="projects")
     jobs: Mapped[list["Job"]] = relationship(back_populates="project")
 
+    @property
+    def voice_ready(self) -> bool:
+        from .local_media import voice_matches
+
+        return voice_matches(self.id, self.script)
+
 
 class Asset(TimestampMixin, Base):
     __tablename__ = "assets"

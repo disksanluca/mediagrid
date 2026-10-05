@@ -39,6 +39,7 @@ class ProjectRead(ProjectCreate):
     script: dict[str, Any] | None
     edl: dict[str, Any] | None
     error: str | None
+    voice_ready: bool
     created_at: datetime
     updated_at: datetime
 
@@ -89,6 +90,19 @@ class JobRead(BaseModel):
     created_at: datetime
 
 
+class AssetRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    name: str
+    media_type: str
+    rights_status: str
+    creator: str | None
+    license_name: str | None
+    commercial_use: bool
+    metadata_json: dict[str, Any]
+    created_at: datetime
+
+
 class SystemStatus(BaseModel):
     mode: str
     paid_ai_allowed: bool
@@ -97,3 +111,5 @@ class SystemStatus(BaseModel):
     ollama: Literal["CONNECTED", "NOT_CONNECTED"]
     dry_run: bool
     engines: list[str]
+    tts: str = "NOT_CONFIGURED"
+    transcription: str = "NOT_CONFIGURED"

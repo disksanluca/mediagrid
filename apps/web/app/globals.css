@@ -40,11 +40,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .hero-actions { display:flex; gap:10px; flex-wrap:wrap; }
 .button { display:inline-flex; align-items:center; justify-content:center; gap:9px; padding:11px 16px; border-radius:10px; border:1px solid #46505c; background:#202731; color:#eef2f8; text-decoration:none; font-size:12px; font-weight:700; white-space:nowrap; transition:background .15s,transform .15s; }
 .button:hover { background:#333d49; transform:translateY(-1px); }
+.button:disabled { opacity:.5; cursor:not-allowed; transform:none; }
 .button.primary { color:#141921; background:linear-gradient(130deg,#f8fafd,#aeb9c9); border-color:#dce2ea; }
 .button.primary:hover { background:#fff; }
 .button.quiet { border-color:transparent; background:transparent; color:#b8c6d7; }
 .button.small { padding:8px 11px; font-size:11px; }
 .button.full { width:100%; }
+.panel-body .button.full + .button.full { margin-top:10px; }
 .section-heading { display:flex; justify-content:space-between; align-items:end; gap:16px; margin:34px 0 16px; }
 .section-heading.no-top { margin-top:0; }
 .section-heading h2 { font-size:18px; margin:0 0 4px; }
@@ -62,6 +64,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .panel-head p { font-size:11px; color:var(--muted); margin:5px 0 0; }
 .panel-body { padding:20px; }
 .row { display:flex; align-items:center; gap:14px; padding:17px 20px; border-bottom:1px solid var(--line); }
+.library-row { flex-wrap:wrap; }
 .row:last-child { border-bottom:0; }
 .row-button { width:100%; background:transparent; color:inherit; text-align:left; }
 .row-button:hover { background:#ffffff08; }
@@ -78,6 +81,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .alert { display:flex; align-items:center; gap:10px; padding:12px 15px; border-radius:10px; background:#48272d; border:1px solid #9a4d56; color:#ffd0d4; margin-bottom:20px; font-size:12px; }
 .field { display:block; margin:0 0 14px; font-size:11px; font-weight:700; color:#acb6c3; }
 .field input,.field textarea,.field select { width:100%; margin-top:7px; padding:11px 12px; background:#0b1015; color:#f2f4f7; border:1px solid #3a444f; border-radius:9px; font-size:13px; }
+.field input[type="checkbox"] { width:auto; margin:0 8px 0 0; padding:0; accent-color:#dce2ea; }
 .field textarea { resize:vertical; }
 .field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 14px; }
 .modal-backdrop { position:fixed; inset:0; z-index:50; background:#000c; display:grid; place-items:center; padding:20px; }

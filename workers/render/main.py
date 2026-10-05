@@ -1,7 +1,9 @@
 import argparse
+import hashlib
 import json
 import re
 import shutil
+import sqlite3
 import subprocess
 import time
 from pathlib import Path
@@ -10,7 +12,8 @@ from sqlalchemy import select
 
 from apps.api.config import get_settings
 from apps.api.database import SessionLocal
-from apps.api.models import Channel, Job, JobStatus, Project, ProjectStatus, now
+from apps.api.local_media import narration_text, synthesize_voice, transcribe_media, voice_matches
+from apps.api.models import Asset, Channel, Job, JobStatus, Project, ProjectStatus, now
 from apps.api.services import claim_next_job, record_event
 
 
@@ -44,7 +47,10 @@ def validate_video(path: Path) -> dict[str, object]:
 def recover_interrupted_jobs() -> None:
     with SessionLocal() as db:
         jobs = db.scalars(
-            select(Job).where(Job.job_type == "RENDER", Job.status == JobStatus.RUNNING.value)
+            select(Job).where(
+                Job.job_type.in_(["RENDER", "VOICE", "TRANSCRIBE"]),
+                Job.status == JobStatus.RUNNING.value,
+            )
         ).all()
         for job in jobs:
             project = db.get(Project, job.project_id) if job.project_id else None
@@ -55,9 +61,9 @@ def recover_interrupted_jobs() -> None:
                     project.status = ProjectStatus.SCRIPTED.value
             else:
                 job.status = JobStatus.FAILED.value
-                job.error = "Render was interrupted and reached the retry limit"
+                job.error = "Local job was interrupted and reached the retry limit"
                 job.finished_at = now()
-                if project:
+                if project and job.job_type == "RENDER":
                     project.status = ProjectStatus.FAILED.value
                     project.error = job.error
         db.commit()
@@ -125,6 +131,39 @@ def render_one() -> bool:
             if browser:
                 command.append(f"--browser-executable={browser}")
             subprocess.run(command, check=True)
+            voice = settings.mediagrid_data_dir / "voice" / f"{project.id}.wav"
+            if voice_matches(project.id, project.script):
+                voiced = temp_dir / f"{job.id}-voiced.mp4"
+                duration = sum(
+                    float(scene["duration_seconds"]) for scene in project.edl["tracks"]["video"]
+                )
+                subprocess.run(
+                    [
+                        "ffmpeg",
+                        "-y",
+                        "-i",
+                        str(output_path),
+                        "-i",
+                        str(voice),
+                        "-map",
+                        "0:v:0",
+                        "-map",
+                        "1:a:0",
+                        "-c:v",
+                        "copy",
+                        "-c:a",
+                        "aac",
+                        "-af",
+                        "apad",
+                        "-t",
+                        str(duration),
+                        str(voiced),
+                    ],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                voiced.replace(output_path)
             video_info = validate_video(output_path)
             job.status = JobStatus.SUCCEEDED.value
             job.progress = 1
@@ -145,16 +184,89 @@ def render_one() -> bool:
         return True
 
 
+def media_one() -> bool:
+    settings = get_settings()
+    with SessionLocal() as db:
+        job = db.scalar(
+            select(Job)
+            .where(
+                Job.status == JobStatus.QUEUED.value,
+                Job.job_type.in_(["VOICE", "TRANSCRIBE"]),
+            )
+            .order_by(Job.priority, Job.created_at)
+            .limit(1)
+        )
+        if job is None:
+            return False
+        job.status = JobStatus.RUNNING.value
+        job.attempt += 1
+        job.started_at = now()
+        db.commit()
+        try:
+            if job.job_type == "VOICE":
+                project = db.get(Project, job.project_id) if job.project_id else None
+                if project is None or not project.script:
+                    raise ValueError("Project or script not found")
+                output = settings.mediagrid_data_dir / "voice" / f"{project.id}.wav"
+                text = narration_text(project.script)
+                synthesize_voice(text, output)
+                output.with_suffix(".sha256").write_text(
+                    hashlib.sha256(text.encode("utf-8")).hexdigest()
+                )
+            else:
+                asset_id = job.payload.get("asset_id")
+                asset = db.get(Asset, asset_id) if asset_id else None
+                if asset is None:
+                    raise ValueError("Asset not found")
+                source = settings.mediagrid_data_dir / "assets" / asset.id
+                if not source.is_file():
+                    raise ValueError("Asset file not found")
+                output = settings.mediagrid_data_dir / "transcripts" / f"{asset.id}.txt"
+                transcribe_media(source, output)
+            job.status = JobStatus.SUCCEEDED.value
+            job.progress = 1
+            job.result = {"output": str(output)}
+            record_event(db, f"{job.job_type}_FINISHED", "job", job.id, after=job.result)
+        except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
+            job.status = JobStatus.FAILED.value
+            job.error = str(exc)
+            record_event(db, f"{job.job_type}_FAILED", "job", job.id, after={"error": job.error})
+        job.finished_at = now()
+        db.commit()
+        return True
+
+
+def backup_local_database() -> None:
+    settings = get_settings()
+    if not settings.database_url.startswith("sqlite:///"):
+        return
+    database = Path(settings.database_url.removeprefix("sqlite:///"))
+    if not database.is_file():
+        return
+    from datetime import date
+
+    folder = settings.mediagrid_data_dir / "backups"
+    folder.mkdir(parents=True, exist_ok=True)
+    target = folder / f"mediagrid-{date.today().isoformat()}.db"
+    if target.is_file():
+        return
+    with sqlite3.connect(database) as source, sqlite3.connect(target) as destination:
+        source.backup(destination)
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="MediaGrid render worker")
+    parser = argparse.ArgumentParser(description="MediaGrid local worker")
     parser.add_argument("--once", action="store_true", help="Process at most one queued job")
     args = parser.parse_args()
     recover_interrupted_jobs()
+    backup_local_database()
     if args.once:
-        render_one()
+        if not media_one():
+            render_one()
         return
     while True:
-        if not render_one():
+        backup_local_database()
+        if not media_one() and not render_one():
             time.sleep(2)
 
 

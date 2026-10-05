@@ -1,4 +1,7 @@
-# Opção gratuita: Oracle Cloud Always Free
+# Arquivo histórico para possível migração futura
+
+A MediaGrid V1 usa apenas o computador Windows e `localhost`. Este roteiro de nuvem não
+faz parte da instalação ou operação da V1.
 
 Uma máquina virtual Ampere A1 da camada Always Free pode executar o MediaGrid em ARM64.
 As regras de gratuidade, a verificação de conta e a disponibilidade variam conforme a

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from ..config import get_settings
 from ..database import get_db
+from ..local_media import voice_matches
 from ..models import Channel, Job, JobStatus, Project, ProjectStatus
 from ..schemas import ContentPlan, ProjectCreate, ProjectPlanUpdate, ProjectRead
 from ..services import create_plan, enqueue_job, record_event
@@ -49,6 +50,9 @@ def plan_project(project_id: str, db: Session = Depends(get_db)) -> ContentPlan:
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
     plan = create_plan(db, project)
+    channel = db.get(Channel, project.channel_id)
+    if channel and (channel.editorial_profile or {}).get("auto_render") is True:
+        enqueue_job(db, project.id, "RENDER", {"edl": project.edl})
     db.commit()
     return plan
 
@@ -119,6 +123,38 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict[str, st
     job = enqueue_job(db, project.id, "RENDER", {"edl": project.edl})
     db.commit()
     return {"job_id": job.id, "status": job.status}
+
+
+@router.post("/{project_id}/voice", status_code=status.HTTP_202_ACCEPTED)
+def queue_voice(project_id: str, db: Session = Depends(get_db)) -> dict[str, str]:
+    project = db.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+    if not project.script:
+        raise HTTPException(409, "Create a plan before generating voice")
+    active = db.scalar(
+        select(Job).where(
+            Job.project_id == project_id,
+            Job.job_type == "VOICE",
+            Job.status.in_([JobStatus.QUEUED.value, JobStatus.RUNNING.value]),
+        )
+    )
+    if active:
+        raise HTTPException(409, "Voice is already queued")
+    job = enqueue_job(db, project.id, "VOICE")
+    db.commit()
+    return {"job_id": job.id, "status": job.status}
+
+
+@router.get("/{project_id}/voice")
+def download_voice(project_id: str, db: Session = Depends(get_db)) -> FileResponse:
+    project = db.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+    output = get_settings().mediagrid_data_dir / "voice" / f"{project_id}.wav"
+    if not voice_matches(project_id, project.script):
+        raise HTTPException(404, "Voice is not available")
+    return FileResponse(output, media_type="audio/wav", filename=f"mediagrid-{project_id}.wav")
 
 
 @router.get("/{project_id}/output")

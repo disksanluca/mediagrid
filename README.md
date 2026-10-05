@@ -1,23 +1,32 @@
 # MediaGrid
 
-MediaGrid is a content production panel for multiple channels. You can create channels and
-projects, edit a five-scene plan, render a text-based MP4, and download it for review.
-Public mode includes an administrator password. The logo in the panel is an original SVG
-inspired by the visual reference supplied for MediaGrid.
+MediaGrid V1 is a local content production panel for Windows. The panel, API, SQLite database,
+worker, renderer, asset library and automations run on the same computer. Open
+**http://localhost:3000** after starting it; this address works only on that computer.
+The panel logo is an original SVG based on the supplied MediaGrid visual reference.
 
 The first pilots are YouTube Football, TikTok Geography and Instagram Music. The core stays
 independent of niches: niches are engines, platforms are connectors, and visual styles are
 template packs.
 
-The current renderer uses text cards. Narration text is stored in the plan but is not yet
-voiced in the video. Research, fact verification, licensed asset sourcing, and direct
-publishing to YouTube, TikTok, or Instagram are not connected yet.
+The renderer uses text cards. Windows offline speech synthesis can add narration to the MP4;
+transcription uses Windows speech recognition or an optional local whisper.cpp model. Research,
+fact verification, licensed asset sourcing, and direct publishing are still manual.
 
-For public deployment with PostgreSQL and HTTPS, see [deploy/README.md](deploy/README.md).
-The [Oracle Always Free guide](deploy/FREE-ORACLE.md) avoids a paid server when a free
-instance is available.
+## Start on Windows
 
-## Start locally
+See [SETUP.md](SETUP.md) for installation and troubleshooting. On Windows, double-click
+`Iniciar-MediaGrid.cmd`. Or, in PowerShell from the project folder:
+
+```powershell
+.\scripts\bootstrap.ps1
+.\scripts\dev.ps1
+```
+
+Keep the PowerShell window open and visit **http://localhost:3000**. The API docs are at
+**http://localhost:8000/docs**. Files and automatic daily SQLite backups live under `data/`.
+
+## Other development systems
 
 ```bash
 cp .env.example .env
@@ -28,14 +37,14 @@ cp .env.example .env
 Open the web app at `http://localhost:3000`. The API documentation is available at
 `http://localhost:8000/docs`.
 
-The default local database is SQLite so a new machine can start without infrastructure.
-Set `DATABASE_URL=postgresql+psycopg://mediagrid:mediagrid@localhost:5432/mediagrid` to use
-PostgreSQL, which is the deployment database.
+The default database is SQLite. A future server migration may use PostgreSQL, but no VPS,
+cloud service or account is required for V1. Paid AI and cloud integrations are off by default.
 
 ## Principles
 
-- Local services are the default; paid AI is opt-in and disabled by default.
-- AI produces validated plans. Deterministic renderers produce media.
+- Local services are the default; paid AI is disabled by default.
+- Ollama on localhost can improve narration in the plan; a built-in plan works without it.
+- The worker renders media, generates local speech, transcribes locally and backs up SQLite.
 - Every external publisher defaults to dry-run.
 - Assets retain rights metadata; unknown or restricted assets require review.
 - Work is persisted as observable, retryable jobs.

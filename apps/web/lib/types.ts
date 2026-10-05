@@ -27,6 +27,7 @@ export interface Project {
   script: Record<string, unknown> | null;
   edl: Record<string, unknown> | null;
   error: string | null;
+  voice_ready: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -64,6 +65,18 @@ export interface Job {
   created_at: string;
 }
 
+export interface Asset {
+  id: string;
+  name: string;
+  media_type: string;
+  rights_status: string;
+  creator: string | null;
+  license_name: string | null;
+  commercial_use: boolean;
+  metadata_json: {size_bytes?: number};
+  created_at: string;
+}
+
 export interface SystemStatus {
   mode: string;
   paid_ai_allowed: boolean;
@@ -72,4 +85,6 @@ export interface SystemStatus {
   ollama: "CONNECTED" | "NOT_CONNECTED";
   dry_run: boolean;
   engines: string[];
+  tts: string;
+  transcription: string;
 }

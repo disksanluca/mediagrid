@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from ..config import get_settings
 from ..engines import ENGINES
+from ..local_media import transcription_available, voice_available
 from ..schemas import SystemStatus
 from ..services import ffmpeg_available, ollama_connected
 
@@ -25,6 +26,8 @@ async def system_status() -> SystemStatus:
         ollama="CONNECTED" if await ollama_connected() else "NOT_CONNECTED",
         dry_run=settings.dry_run,
         engines=list(ENGINES),
+        tts="AVAILABLE" if voice_available() else "NOT_CONFIGURED",
+        transcription="AVAILABLE" if transcription_available() else "NOT_CONFIGURED",
     )
 
 

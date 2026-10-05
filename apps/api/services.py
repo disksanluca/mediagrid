@@ -1,5 +1,8 @@
+import json
+import logging
 import shutil
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 from sqlalchemy import select
@@ -9,6 +12,63 @@ from .config import get_settings
 from .engines import get_engine
 from .models import Channel, Event, Job, JobStatus, Project, ProjectStatus
 from .schemas import ContentPlan, Scene
+
+logger = logging.getLogger(__name__)
+
+
+def local_ollama_url() -> str | None:
+    url = get_settings().ollama_base_url.rstrip("/")
+    parsed = urlparse(url)
+    if parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost", "::1"}:
+        return None
+    return url
+
+
+def enrich_plan_with_local_ai(plan: ContentPlan, topic: str) -> ContentPlan:
+    base_url = local_ollama_url()
+    if base_url is None:
+        return plan
+    prompt = (
+        "Escreva narração em português brasileiro para um vídeo sobre: "
+        + topic[:1000]
+        + ". Responda somente JSON com a chave 'narrations' contendo exatamente "
+        + str(len(plan.scenes))
+        + " textos curtos, um por cena. Não invente fatos, números ou fontes. "
+        + "Use linguagem clara e marque qualquer dado que precise de revisão."
+    )
+    try:
+        with httpx.Client(timeout=httpx.Timeout(90, connect=0.5), trust_env=False) as client:
+            tags = client.get(f"{base_url}/api/tags")
+            tags.raise_for_status()
+            available = {item.get("name") for item in tags.json().get("models", [])}
+            model = get_settings().ollama_model
+            if not any(name == model or (name or "").startswith(f"{model}:") for name in available):
+                return plan
+            response = client.post(
+                f"{base_url}/api/generate",
+                json={
+                    "model": model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "format": "json",
+                },
+            )
+            response.raise_for_status()
+            narrations = json.loads(response.json()["response"])["narrations"]
+            if not isinstance(narrations, list) or len(narrations) != len(plan.scenes):
+                return plan
+            if not all(
+                isinstance(value, str) and 10 <= len(value.strip()) <= 600 for value in narrations
+            ):
+                return plan
+            scenes = [
+                scene.model_copy(update={"narration": text.strip()})
+                for scene, text in zip(plan.scenes, narrations, strict=True)
+            ]
+            return plan.model_copy(update={"hook": scenes[0].narration, "scenes": scenes})
+    except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
+        logger.info("Local Ollama unavailable; using built-in plan: %s", exc)
+        return plan
 
 
 def record_event(
@@ -101,7 +161,7 @@ def create_plan(db: Session, project: Project) -> ContentPlan:
         raise ValueError("Project channel does not exist")
     before = {"status": project.status}
     project.status = ProjectStatus.SCRIPTING.value
-    plan = build_local_plan(project, channel)
+    plan = enrich_plan_with_local_ai(build_local_plan(project, channel), project.topic)
     project.plan = plan.model_dump()
     project.script = {
         "language": channel.language,
@@ -164,9 +224,12 @@ def claim_next_job(db: Session, job_type: str | None = None) -> Job | None:
 
 
 async def ollama_connected() -> bool:
+    base_url = local_ollama_url()
+    if base_url is None:
+        return False
     try:
-        async with httpx.AsyncClient(timeout=0.5) as client:
-            response = await client.get(f"{get_settings().ollama_base_url}/api/tags")
+        async with httpx.AsyncClient(timeout=0.5, trust_env=False) as client:
+            response = await client.get(f"{base_url}/api/tags")
             return response.is_success
     except httpx.HTTPError:
         return False

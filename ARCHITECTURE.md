@@ -14,6 +14,8 @@ Web -> Core API -> Database
         Engines -> Pipeline -> Renderer -> QC -> Review -> Connectors
 ```
 
-SQLite is supported for zero-friction single-user development. PostgreSQL is the deployment
-database and the job reservation implementation uses `FOR UPDATE SKIP LOCKED` there.
-
+V1 runs as a single-user Windows application on loopback. The Next.js panel proxies to
+FastAPI on `127.0.0.1`; SQLite, the worker, library, FFmpeg, Windows speech services and
+optional Ollama/whisper.cpp models are all local. The worker performs automatic daily SQLite
+backups. No external infrastructure is required. The API and storage abstractions allow a
+future server migration, including PostgreSQL, as a separate phase.

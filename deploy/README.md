@@ -1,4 +1,7 @@
-# Public deployment
+# Future server migration (outside V1)
+
+MediaGrid V1 runs only on the user's Windows computer via localhost. This deployment
+material is retained for a possible later phase and is not part of V1 setup.
 
 This stack runs the panel, API, renderer worker, PostgreSQL and HTTPS reverse proxy on a
 Linux server you control. It needs a domain name pointing to that server and inbound ports
