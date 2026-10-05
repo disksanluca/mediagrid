@@ -117,6 +117,30 @@ def run_doctor(db: Session, *, check_internet: bool = False) -> DoctorReport:
                 else "Necessário para vídeo e áudio; instale localmente",
             )
         )
+    settings = get_settings()
+    if settings.mediagrid_renderer_root:
+        for identifier, name, path in (
+            ("node", "Node local", settings.mediagrid_node_path),
+            (
+                "remotion",
+                "Remotion local",
+                settings.mediagrid_renderer_root
+                / "node_modules"
+                / "@remotion"
+                / "cli"
+                / "remotion-cli.js",
+            ),
+            ("browser", "Navegador de render", settings.mediagrid_browser_path),
+        ):
+            ready = path is not None and path.is_file()
+            checks.append(
+                DoctorCheck(
+                    id=identifier,
+                    name=name,
+                    status="READY" if ready else "MISSING",
+                    detail=str(path) if ready else "Arquivo local não encontrado no pacote",
+                )
+            )
     checks.append(_ollama_check())
     comfy_available = False
     try:
@@ -137,8 +161,6 @@ def run_doctor(db: Session, *, check_internet: bool = False) -> DoctorReport:
     for identifier, name, available in (
         ("voice", "Voz offline", voice_available()),
         ("transcription", "Transcrição offline", transcription_available()),
-        ("whisperx", "WhisperX", importlib.util.find_spec("whisperx") is not None),
-        ("chatterbox", "Chatterbox", importlib.util.find_spec("chatterbox") is not None),
     ):
         checks.append(
             DoctorCheck(
@@ -147,6 +169,18 @@ def run_doctor(db: Session, *, check_internet: bool = False) -> DoctorReport:
                 status="READY" if available else "OPTIONAL",
                 detail="Disponível neste computador"
                 if available
+                else "Módulo local opcional não instalado",
+            )
+        )
+    for identifier, name in (("whisperx", "WhisperX"), ("chatterbox", "Chatterbox")):
+        installed = importlib.util.find_spec(identifier) is not None
+        checks.append(
+            DoctorCheck(
+                id=identifier,
+                name=name,
+                status="OPTIONAL",
+                detail="Biblioteca detectada; integração de modelo pendente"
+                if installed
                 else "Módulo local opcional não instalado",
             )
         )

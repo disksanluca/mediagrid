@@ -1,11 +1,13 @@
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import sqlite3
 import subprocess
 import time
+from contextlib import closing
 from pathlib import Path
 
 from sqlalchemy import select
@@ -277,8 +279,16 @@ def backup_local_database() -> None:
     target = folder / f"mediagrid-{date.today().isoformat()}.db"
     if target.is_file():
         return
-    with sqlite3.connect(database) as source, sqlite3.connect(target) as destination:
-        source.backup(destination)
+    temporary = target.with_suffix(".tmp")
+    try:
+        with (
+            closing(sqlite3.connect(database)) as source,
+            closing(sqlite3.connect(temporary)) as destination,
+        ):
+            source.backup(destination)
+        os.replace(temporary, target)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def main() -> None:
