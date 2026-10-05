@@ -25,7 +25,7 @@ def main() -> None:
     elif args.service == "worker":
         from workers.render.main import main as worker_main
 
-        worker_main()
+        worker_main([])
     else:
         from apps.api.backup import create_backup, restore_backup
 

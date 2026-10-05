@@ -291,10 +291,10 @@ def backup_local_database() -> None:
         temporary.unlink(missing_ok=True)
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="MediaGrid local worker")
     parser.add_argument("--once", action="store_true", help="Process at most one queued job")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     recover_interrupted_jobs()
     backup_local_database()
     if args.once:
