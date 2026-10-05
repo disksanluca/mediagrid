@@ -1,4 +1,4 @@
-import type {Asset, Channel, ContentPlan, Job, Project, SystemStatus} from "./types";
+import type {Asset, Channel, ContentPlan, HardwareProfile, Job, Project, SetupState, SystemStatus} from "./types";
 import {desktopRuntime} from "./desktop";
 
 let baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
@@ -43,6 +43,9 @@ export const api = {
     return response.text();
   },
   system: () => request<SystemStatus>("/system"),
+  hardware: () => request<HardwareProfile>("/system/hardware"),
+  setup: () => request<SetupState>("/system/setup"),
+  completeSetup: (profile: HardwareProfile["recommended_profile"]) => request<SetupState>("/system/setup", {method:"POST", body:JSON.stringify({profile})}),
   createChannel: (body: Record<string, unknown>) => request<Channel>("/channels", {method: "POST", body: JSON.stringify(body)}),
   updateChannel: (id: string, body: Record<string, unknown>) => request<Channel>(`/channels/${id}`, {method: "PATCH", body: JSON.stringify(body)}),
   createProject: (body: Record<string, unknown>) => request<Project>("/projects", {method: "POST", body: JSON.stringify(body)}),

@@ -70,6 +70,87 @@ async fn desktop_restart(app: tauri::AppHandle) -> Result<DesktopRuntime, String
         .map_err(|error| error.to_string())?
 }
 
+fn start_services(app: tauri::AppHandle) -> Result<DesktopRuntime, String> {
+    let state = app.state::<DesktopState>();
+    let mut guard = state.processes.lock().map_err(|error| error.to_string())?;
+    if let Some(processes) = guard.as_mut() {
+        if processes.status().core && processes.status().worker {
+            return Ok(processes.runtime());
+        }
+        if let Some(mut stale) = guard.take() {
+            stale.stop();
+        }
+    }
+    let processes = service_manager::launch(&app, None)?;
+    let runtime = processes.runtime();
+    *guard = Some(processes);
+    *state.error.lock().map_err(|error| error.to_string())? = None;
+    Ok(runtime)
+}
+
+#[tauri::command]
+async fn desktop_start(app: tauri::AppHandle) -> Result<DesktopRuntime, String> {
+    tauri::async_runtime::spawn_blocking(move || start_services(app))
+        .await
+        .map_err(|error| error.to_string())?
+}
+
+#[tauri::command]
+async fn desktop_stop(app: tauri::AppHandle) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<DesktopState>();
+        let mut guard = state.processes.lock().map_err(|error| error.to_string())?;
+        if let Some(mut processes) = guard.take() {
+            processes.stop();
+        }
+        Ok(())
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+fn set_data_dir(app: tauri::AppHandle, selected: String) -> Result<DesktopRuntime, String> {
+    let state = app.state::<DesktopState>();
+    let mut guard = state.processes.lock().map_err(|error| error.to_string())?;
+    let previous = service_manager::default_data_dir(&app)?;
+    let port = guard.as_ref().map(|processes| processes.api_port);
+    if let Some(mut processes) = guard.take() {
+        processes.stop();
+    }
+    let result = service_manager::relocate_data_dir(&app, std::path::Path::new(&selected));
+    match result.and_then(|_| service_manager::launch(&app, port)) {
+        Ok(processes) => {
+            let runtime = processes.runtime();
+            *guard = Some(processes);
+            *state.error.lock().map_err(|error| error.to_string())? = None;
+            Ok(runtime)
+        }
+        Err(error) => {
+            let _ = service_manager::restore_data_dir(&app, &previous);
+            match service_manager::launch(&app, port) {
+                Ok(processes) => *guard = Some(processes),
+                Err(recovery_error) => {
+                    *state
+                        .error
+                        .lock()
+                        .map_err(|lock_error| lock_error.to_string())? = Some(recovery_error);
+                }
+            }
+            Err(error)
+        }
+    }
+}
+
+#[tauri::command]
+async fn desktop_set_data_dir(
+    app: tauri::AppHandle,
+    selected: String,
+) -> Result<DesktopRuntime, String> {
+    tauri::async_runtime::spawn_blocking(move || set_data_dir(app, selected))
+        .await
+        .map_err(|error| error.to_string())?
+}
+
 #[tauri::command]
 fn desktop_open_logs(app: tauri::AppHandle) -> Result<(), String> {
     let log_dir = service_manager::default_data_dir(&app)?.join("Logs");
@@ -87,11 +168,15 @@ fn desktop_open_logs(app: tauri::AppHandle) -> Result<(), String> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(DesktopState::default())
         .invoke_handler(tauri::generate_handler![
             desktop_runtime,
             desktop_services,
             desktop_restart,
+            desktop_start,
+            desktop_stop,
+            desktop_set_data_dir,
             desktop_open_logs
         ])
         .setup(|app| {

@@ -1,4 +1,5 @@
 import {invoke, isTauri} from "@tauri-apps/api/core";
+import {open} from "@tauri-apps/plugin-dialog";
 
 export interface DesktopRuntime {
   api_port: number;
@@ -30,6 +31,21 @@ export async function desktopRestart(): Promise<DesktopRuntime> {
   return invoke<DesktopRuntime>("desktop_restart");
 }
 
+export async function desktopStart(): Promise<DesktopRuntime> {
+  return invoke<DesktopRuntime>("desktop_start");
+}
+
+export async function desktopStop(): Promise<void> {
+  return invoke<void>("desktop_stop");
+}
+
 export async function desktopOpenLogs(): Promise<void> {
   return invoke<void>("desktop_open_logs");
+}
+
+export async function desktopChooseDataDir(): Promise<DesktopRuntime | null> {
+  const selected = await open({directory: true, multiple: false, title: "Escolha uma pasta vazia para os dados MediaGrid"});
+  return typeof selected === "string"
+    ? invoke<DesktopRuntime>("desktop_set_data_dir", {selected})
+    : null;
 }

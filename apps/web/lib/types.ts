@@ -88,3 +88,21 @@ export interface SystemStatus {
   tts: string;
   transcription: string;
 }
+
+export interface HardwareProfile {
+  cpu: string;
+  logical_cores: number;
+  ram_gb: number | null;
+  gpu: string | null;
+  vram_gb: number | null;
+  cuda_available: boolean;
+  disk_free_gb: number;
+  windows_version: string | null;
+  recommended_profile: "LIGHT" | "BALANCED" | "QUALITY" | "HIGH_PERFORMANCE";
+}
+
+export interface SetupState {
+  complete: boolean;
+  profile: HardwareProfile["recommended_profile"] | null;
+  data_dir: string;
+}

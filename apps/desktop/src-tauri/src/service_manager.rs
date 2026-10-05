@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
@@ -82,6 +82,49 @@ pub struct DesktopState {
     pub error: Mutex<Option<String>>,
 }
 
+#[derive(Serialize, Deserialize)]
+struct Preferences {
+    data_dir: PathBuf,
+}
+
+fn preferences_path(app: &AppHandle) -> Result<PathBuf, String> {
+    Ok(app
+        .path()
+        .app_config_dir()
+        .map_err(|error| error.to_string())?
+        .join("desktop.json"))
+}
+
+fn saved_data_dir(app: &AppHandle) -> Result<Option<PathBuf>, String> {
+    let path = preferences_path(app)?;
+    if !path.is_file() {
+        return Ok(None);
+    }
+    let content = fs::read(&path).map_err(|error| error.to_string())?;
+    let preferences: Preferences =
+        serde_json::from_slice(&content).map_err(|error| error.to_string())?;
+    Ok(Some(preferences.data_dir))
+}
+
+fn save_data_dir(app: &AppHandle, path: &Path) -> Result<(), String> {
+    let preferences = preferences_path(app)?;
+    fs::create_dir_all(preferences.parent().ok_or("Missing config directory")?)
+        .map_err(|error| error.to_string())?;
+    let temporary = preferences.with_extension("tmp");
+    fs::write(
+        &temporary,
+        serde_json::to_vec_pretty(&Preferences {
+            data_dir: path.to_path_buf(),
+        })
+        .map_err(|error| error.to_string())?,
+    )
+    .map_err(|error| error.to_string())?;
+    if preferences.is_file() {
+        fs::remove_file(&preferences).map_err(|error| error.to_string())?;
+    }
+    fs::rename(temporary, preferences).map_err(|error| error.to_string())
+}
+
 impl Default for DesktopState {
     fn default() -> Self {
         Self {
@@ -92,6 +135,9 @@ impl Default for DesktopState {
 }
 
 pub fn default_data_dir(app: &AppHandle) -> Result<PathBuf, String> {
+    if let Some(saved) = saved_data_dir(app)? {
+        return Ok(saved);
+    }
     let base = match std::env::var_os("LOCALAPPDATA") {
         Some(path) => PathBuf::from(path),
         None => app
@@ -100,6 +146,56 @@ pub fn default_data_dir(app: &AppHandle) -> Result<PathBuf, String> {
             .map_err(|error| error.to_string())?,
     };
     Ok(base.join("MediaGrid").join("Data"))
+}
+
+fn copy_tree(source: &Path, target: &Path) -> Result<(), String> {
+    if !source.is_dir() {
+        return Ok(());
+    }
+    fs::create_dir_all(target).map_err(|error| error.to_string())?;
+    for entry in fs::read_dir(source).map_err(|error| error.to_string())? {
+        let entry = entry.map_err(|error| error.to_string())?;
+        let destination = target.join(entry.file_name());
+        if entry
+            .file_type()
+            .map_err(|error| error.to_string())?
+            .is_dir()
+        {
+            copy_tree(&entry.path(), &destination)?;
+        } else {
+            fs::copy(entry.path(), destination).map_err(|error| error.to_string())?;
+        }
+    }
+    Ok(())
+}
+
+pub fn relocate_data_dir(app: &AppHandle, selected: &Path) -> Result<PathBuf, String> {
+    let previous = default_data_dir(app)?;
+    fs::create_dir_all(selected).map_err(|error| error.to_string())?;
+    let selected = selected.canonicalize().map_err(|error| error.to_string())?;
+    let previous = previous.canonicalize().map_err(|error| error.to_string())?;
+    if selected == previous {
+        return Ok(selected);
+    }
+    if selected.starts_with(&previous) || previous.starts_with(&selected) {
+        return Err(
+            "Choose a separate data folder, not a parent or child of the current folder".into(),
+        );
+    }
+    if fs::read_dir(&selected)
+        .map_err(|error| error.to_string())?
+        .next()
+        .is_some()
+    {
+        return Err("The selected data folder must be empty to avoid overwriting files".into());
+    }
+    copy_tree(&previous, &selected)?;
+    save_data_dir(app, &selected)?;
+    Ok(selected)
+}
+
+pub fn restore_data_dir(app: &AppHandle, previous: &Path) -> Result<(), String> {
+    save_data_dir(app, previous)
 }
 
 fn free_port() -> Result<u16, String> {

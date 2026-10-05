@@ -3,9 +3,9 @@
 import {FormEvent, useCallback, useEffect, useState} from "react";
 import {Activity, ArrowDownToLine, ArrowRight, CircleAlert, Clapperboard, Cpu, Film, FolderOpen, LayoutGrid, LockKeyhole, LogOut, Mic, Plus, Radio, RefreshCw, RotateCcw, Save, Sparkles, Upload} from "lucide-react";
 import {api} from "@/lib/api";
-import {desktopOpenLogs, desktopRestart, desktopServices, runningInDesktop} from "@/lib/desktop";
+import {desktopChooseDataDir, desktopOpenLogs, desktopRestart, desktopServices, desktopStart, desktopStop, runningInDesktop} from "@/lib/desktop";
 import type {DesktopServices} from "@/lib/desktop";
-import type {Asset, Channel, Engine, Job, Project, Scene, SystemStatus} from "@/lib/types";
+import type {Asset, Channel, Engine, HardwareProfile, Job, Project, Scene, SetupState, SystemStatus} from "@/lib/types";
 
 type View = "overview" | "production" | "library" | "channels" | "system";
 type Dialog = "project" | "channel" | null;
@@ -37,6 +37,8 @@ export function ControlPanel() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [startupError, setStartupError] = useState<string | null>(null);
+  const [setup, setSetup] = useState<SetupState | null>(null);
+  const [hardware, setHardware] = useState<HardwareProfile | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -45,6 +47,7 @@ export function ControlPanel() {
     } catch (reason) { setError(message(reason)); }
   }, []);
   useEffect(() => { void api.session().then((value) => {setSession(value); if(value.authenticated) void load();}).catch((reason) => setStartupError(message(reason))); }, [load]);
+  useEffect(() => {if(!session?.authenticated)return;void Promise.all([api.setup(),api.hardware()]).then(([state,profile])=>{setSetup(state);setHardware(profile);}).catch((reason)=>setStartupError(message(reason)));},[session]);
   useEffect(() => { if (!session?.authenticated) return; const interval = setInterval(() => {void load();}, 10000); return () => clearInterval(interval); }, [load,session]);
   const project = projects.find((item) => item.id === selected) ?? null;
   const openProject = (id: string) => {setSelected(id); setView("production");};
@@ -67,8 +70,10 @@ export function ControlPanel() {
     await run(async () => {const created = await api.createProject({channel_id:data.get("channel"),title:data.get("title"),topic:data.get("topic"),format:data.get("format")});await api.createPlan(created.id);setDialog(null);openProject(created.id);});
   }
 
-  if (!session) return startupError?<div className="login-screen"><div className="login-card"><Brand/><h1>Não foi possível iniciar</h1><p>{startupError}</p><button className="button primary full" onClick={()=>void desktopRestart().then(()=>window.location.reload()).catch((reason)=>setStartupError(message(reason)))}>Reiniciar serviços locais</button></div></div>:<div className="loading">Carregando MediaGrid…</div>;
+  if (!session || (session.authenticated && !setup)) return startupError?<div className="login-screen"><div className="login-card"><Brand/><h1>Não foi possível iniciar</h1><p>{startupError}</p>{runningInDesktop()&&<button className="button primary full" onClick={()=>void desktopRestart().then(()=>window.location.reload()).catch((reason)=>setStartupError(message(reason)))}>Reiniciar serviços locais</button>}</div></div>:<div className="loading">Carregando MediaGrid…</div>;
   if (!session.authenticated) return <div className="login-screen"><form onSubmit={handleLogin} className="login-card"><Brand/><h1>Acesse seu estúdio</h1><p>Entre com a senha de administrador para gerenciar seus canais e projetos.</p><Field label="Senha"><input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required/></Field>{error && <Alert text={error}/>}<button className="button primary full" disabled={busy}><LockKeyhole size={16}/> Entrar</button></form></div>;
+  if (!setup) return <div className="loading">Carregando configuração…</div>;
+  if (!setup.complete) return <SetupWizard setup={setup} hardware={hardware} system={system} onComplete={setSetup}/>;
 
   const navigate = (next: View) => {setView(next);setSelected(null);};
   return <div className="app">
@@ -87,6 +92,25 @@ export function ControlPanel() {
     <nav className="mobile-nav" aria-label="Menu móvel">{nav.map(({id,label,Icon})=><button key={id} className={view===id?"active":""} onClick={()=>navigate(id)}><Icon size={19}/>{label}</button>)}</nav>
     {dialog && <div className="modal-backdrop" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget)setDialog(null);}}><form className="modal" onSubmit={dialog==="project"?createProject:createChannel}><div className="eyebrow">{dialog==="project"?"NOVA PRODUÇÃO":"NOVO CANAL"}</div><h2>{dialog==="project"?"Comece uma nova pauta":"Configure um canal"}</h2>{dialog==="project"?<><Field label="Canal"><select name="channel" required>{channels.map((channel)=><option key={channel.id} value={channel.id}>{channel.name}</option>)}</select></Field><Field label="Título"><input name="title" minLength={2} required placeholder="Ex.: O mapa que surpreendeu o mundo"/></Field><Field label="Pauta / briefing"><textarea name="topic" minLength={3} rows={4} required placeholder="Descreva o tema, objetivo e fatos que deseja abordar"/></Field><Field label="Formato"><select name="format"><option value="vertical">Vertical · Reels / Shorts / TikTok</option><option value="horizontal">Horizontal · YouTube</option><option value="square">Quadrado · Card</option><option value="carousel">Carrossel</option></select></Field></>:<><Field label="Nome"><input name="name" minLength={2} required placeholder="Nome do canal"/></Field><Field label="Identificador"><input name="slug" pattern="[a-z0-9]+(-[a-z0-9]+)*" required placeholder="nome-do-canal"/></Field><div className="field-grid"><Field label="Nicho"><input name="niche" required placeholder="Ex.: Futebol"/></Field><Field label="Engine"><select name="engine"><option value="football">Futebol</option><option value="geo">Geografia</option><option value="music">Música</option></select></Field></div></>}<div className="modal-actions"><button className="button" type="button" onClick={()=>setDialog(null)}>Cancelar</button><button className="button primary" disabled={busy} type="submit"><Plus size={15}/> Criar</button></div></form></div>}
   </div>;
+}
+
+function SetupWizard({setup,hardware,system,onComplete}:{setup:SetupState;hardware:HardwareProfile|null;system:SystemStatus|null;onComplete:(value:SetupState)=>void}) {
+  const [dataDir,setDataDir]=useState(setup.data_dir);
+  const [mode,setMode]=useState<"recommended"|"custom">("recommended");
+  const [profile,setProfile]=useState<HardwareProfile["recommended_profile"]>(hardware?.recommended_profile??"LIGHT");
+  const [busy,setBusy]=useState(false);
+  const [error,setError]=useState<string|null>(null);
+  useEffect(()=>{if(hardware)setProfile(hardware.recommended_profile);},[hardware]);
+  const choose=async()=>{setBusy(true);setError(null);try{const runtime=await desktopChooseDataDir();if(runtime)setDataDir(runtime.data_dir);}catch(reason){setError(message(reason));}finally{setBusy(false);}};
+  const finish=async()=>{setBusy(true);setError(null);try{onComplete(await api.completeSetup(mode==="recommended"?(hardware?.recommended_profile??"LIGHT"):profile));}catch(reason){setError(message(reason));}finally{setBusy(false);}};
+  const modules=[
+    {name:"MediaGrid Core",ready:true},
+    {name:"FFmpeg",ready:system?.ffmpeg===true},
+    {name:"IA local (Ollama)",ready:system?.ollama==="CONNECTED"},
+    {name:"Transcrição",ready:system?.transcription==="AVAILABLE"},
+    {name:"Voz local",ready:system?.tts==="AVAILABLE"},
+  ];
+  return <div className="wizard-screen"><div className="wizard-card"><Brand/><div className="eyebrow">PRIMEIRA CONFIGURAÇÃO</div><h1>Seu estúdio começa aqui.</h1><p>Detectamos os recursos deste computador. O MediaGrid funcionará localmente e pode usar módulos opcionais quando estiverem instalados.</p>{error&&<Alert text={error}/>}<div className="wizard-grid"><div className="panel"><div className="panel-head"><div><h3>Computador</h3><p>Perfil calculado com o hardware detectado</p></div><Cpu size={20}/></div><div className="panel-body"><div className="wizard-facts"><span>CPU <strong>{hardware?.cpu??"Verificando…"}</strong></span><span>RAM <strong>{hardware?.ram_gb!=null?`${hardware.ram_gb} GB`:"Não detectada"}</strong></span><span>GPU <strong>{hardware?.gpu??"Não detectada"}</strong></span><span>VRAM <strong>{hardware?.vram_gb!=null?`${hardware.vram_gb} GB`:"Não detectada"}</strong></span><span>Armazenamento livre <strong>{hardware?.disk_free_gb!=null?`${hardware.disk_free_gb} GB`:"Verificando…"}</strong></span><span>CUDA <strong>{hardware?.cuda_available?"Disponível":"Não detectado"}</strong></span></div></div></div><div className="panel"><div className="panel-head"><div><h3>Serviços locais</h3><p>Ausências não impedem abrir o painel</p></div><Activity size={20}/></div><div className="panel-body"><div className="wizard-facts">{modules.map((item)=><span key={item.name}>{item.name}<Badge value={item.ready?"ONLINE":"OFFLINE"}/></span>)}</div></div></div></div><div className="panel wizard-options"><div className="panel-body"><Field label="Pasta dos dados"><div className="wizard-path"><strong>{dataDir}</strong>{runningInDesktop()&&<button className="button small" disabled={busy} onClick={()=>void choose()}>Escolher pasta</button>}</div></Field><div className="field-grid"><Field label="Instalação"><select value={mode} onChange={(event)=>setMode(event.target.value as "recommended"|"custom")}><option value="recommended">Recomendada · {hardware?.recommended_profile??"LIGHT"}</option><option value="custom">Personalizada</option></select></Field>{mode==="custom"&&<Field label="Perfil de desempenho"><select value={profile} onChange={(event)=>setProfile(event.target.value as HardwareProfile["recommended_profile"])}><option value="LIGHT">Light</option><option value="BALANCED">Balanced</option><option value="QUALITY">Quality</option><option value="HIGH_PERFORMANCE">High Performance</option></select></Field>}</div><p className="small-note">Modelos de IA grandes não são baixados automaticamente. Você poderá escolher o que instalar depois.</p><button className="button primary" disabled={busy||!hardware} onClick={()=>void finish()}><Sparkles size={16}/> Abrir MediaGrid</button></div></div></div></div>;
 }
 
 function Overview({channels,projects,jobs,system,onPilots,onCreate,onProject,onNavigate,busy}:{channels:Channel[];projects:Project[];jobs:Job[];system:SystemStatus|null;onPilots:()=>void;onCreate:()=>void;onProject:(id:string)=>void;onNavigate:(view:View)=>void;busy:boolean}) {return <>
@@ -145,8 +169,8 @@ function DesktopServicePanel() {
     return ()=>clearInterval(timer);
   },[]);
   if(!runningInDesktop()) return null;
-  const restart=async()=>{setBusy(true);setError(null);try{await desktopRestart();setServices(await desktopServices());}catch(reason){setError(message(reason));}finally{setBusy(false);}};
-  return <div className="panel desktop-services"><div className="panel-head"><div><h3>Serviços do aplicativo</h3><p>Iniciados e monitorados pelo MediaGrid</p></div></div><div className="panel-body">{error&&<Alert text={error}/>}<div className="service-grid"><span>MediaGrid Core <Badge value={services?.core?"ONLINE":"OFFLINE"}/></span><span>Worker <Badge value={services?.worker?"ONLINE":"OFFLINE"}/></span><span>Banco local <Badge value={services?.database?"ONLINE":"OFFLINE"}/></span><span>Ollama <Badge value={services?.ollama?"ONLINE":"OFFLINE"}/></span></div><div className="editor-actions"><button className="button" disabled={busy} onClick={()=>void restart()}><RotateCcw size={15}/> Reiniciar Core e worker</button><button className="button" onClick={()=>void desktopOpenLogs().catch((reason)=>setError(message(reason)))}>Abrir logs</button></div><p className="small-note">{services?.log_dir}</p></div></div>;
+  const act=async(action:()=>Promise<unknown>)=>{setBusy(true);setError(null);try{await action();setServices(await desktopServices());}catch(reason){setError(message(reason));}finally{setBusy(false);}};
+  return <div className="panel desktop-services"><div className="panel-head"><div><h3>Serviços do aplicativo</h3><p>Iniciados e monitorados pelo MediaGrid</p></div></div><div className="panel-body">{error&&<Alert text={error}/>}<div className="service-grid"><span>MediaGrid Core <Badge value={services?.core?"ONLINE":"OFFLINE"}/></span><span>Worker <Badge value={services?.worker?"ONLINE":"OFFLINE"}/></span><span>Banco local <Badge value={services?.database?"ONLINE":"OFFLINE"}/></span><span>Ollama <Badge value={services?.ollama?"ONLINE":"OFFLINE"}/></span></div><div className="editor-actions"><button className="button" disabled={busy||Boolean(services?.core&&services?.worker)} onClick={()=>void act(desktopStart)}>Iniciar</button><button className="button" disabled={busy||Boolean(!services?.core&&!services?.worker)} onClick={()=>void act(desktopStop)}>Parar</button><button className="button" disabled={busy} onClick={()=>void act(desktopRestart)}><RotateCcw size={15}/> Reiniciar</button><button className="button" onClick={()=>void desktopOpenLogs().catch((reason)=>setError(message(reason)))}>Abrir logs</button></div><p className="small-note">{services?.log_dir}</p></div></div>;
 }
 
 function SystemView({system,jobs,busy,onRun}:{system:SystemStatus|null;jobs:Job[];busy:boolean;onRun:(action:()=>Promise<unknown>)=>Promise<void>}) {return <><div className="section-heading no-top"><div><h2>Estado do sistema local</h2><p>Todos os serviços da V1 executam neste computador.</p></div></div><DesktopServicePanel/><div className="metric-grid"><Metric label="Modo" value={system?.mode??"—"} detail="Acesso por localhost" icon={Activity}/><Metric label="FFmpeg" value={system?.ffmpeg?"Ativo":"Indisponível"} detail="Vídeo local" icon={Film}/><Metric label="Ollama" value={system?.ollama==="CONNECTED"?"Conectado":"Opcional"} detail="IA local" icon={Cpu}/><Metric label="Banco" value={system?.database??"—"} detail="Dados no computador" icon={Radio}/><Metric label="Voz" value={system?.tts==="AVAILABLE"?"Disponível":"Configurar"} detail="Síntese offline" icon={Mic}/><Metric label="Transcrição" value={system?.transcription==="AVAILABLE"?"Disponível":"Configurar"} detail="Reconhecimento offline" icon={Mic}/></div><div className="section-heading"><div><h2>Fila local</h2><p>O worker processa trabalhos e faz backup diário do banco em data/backups.</p></div></div><div className="panel">{jobs.length?jobs.map((job)=><div key={job.id} className="row"><span className="row-icon"><Film size={18}/></span><span className="row-main"><strong>{job.job_type} · {job.project_id?.slice(0,8)}</strong><small>{job.error??new Date(job.created_at).toLocaleString("pt-BR")}</small></span><Badge value={job.status}/>{job.status==="FAILED"&&job.attempt<job.max_attempts&&<button className="button small" disabled={busy} onClick={()=>void onRun(async()=>{await api.retry(job.id);})}><RotateCcw size={14}/> Repetir</button>}</div>):<Empty icon={Activity} text="Nenhum trabalho na fila."/>}</div><p className="small-note footer-note">A publicação em redes sociais permanece manual na V1. Nenhuma conta externa é necessária.</p></>}

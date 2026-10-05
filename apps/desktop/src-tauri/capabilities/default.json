@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "MediaGrid main window",
   "windows": ["main", "splash"],
-  "permissions": ["core:default"]
+  "permissions": ["core:default", "dialog:allow-open"]
 }
