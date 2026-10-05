@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     ollama_model: str = "llama3.2"
     whisper_model_path: Path | None = None
     whisper_cli_path: str = "whisper-cli"
+    mediagrid_renderer_root: Path | None = None
+    mediagrid_node_path: Path | None = None
+    mediagrid_ffmpeg_path: Path | None = None
+    mediagrid_ffprobe_path: Path | None = None
+    mediagrid_browser_path: Path | None = None
     dry_run: bool = True
     mediagrid_admin_password: str | None = None
     mediagrid_session_secret: str | None = None

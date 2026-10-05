@@ -18,9 +18,10 @@ from apps.api.services import claim_next_job, record_event
 
 
 def validate_video(path: Path) -> dict[str, object]:
+    ffprobe = get_settings().mediagrid_ffprobe_path or "ffprobe"
     result = subprocess.run(
         [
-            "ffprobe",
+            str(ffprobe),
             "-v",
             "error",
             "-show_entries",
@@ -116,30 +117,56 @@ def render_one() -> bool:
         project.status = ProjectStatus.RENDERING.value
         db.commit()
         try:
-            command = [
-                "npm",
-                "run",
-                "render",
-                "--workspace",
-                "@mediagrid/renderer",
-                "--",
-                str(output_path),
-                "--props",
-                str(props_path),
-            ]
-            browser = shutil.which("chromium") or shutil.which("google-chrome")
+            renderer_root = settings.mediagrid_renderer_root
+            node = settings.mediagrid_node_path
+            if renderer_root and node:
+                command = [
+                    str(node),
+                    str(renderer_root / "node_modules" / "@remotion" / "cli" / "remotion-cli.js"),
+                    "render",
+                    str(renderer_root / "src" / "index.ts"),
+                    "MediaGridVideo",
+                    str(output_path),
+                    "--props",
+                    str(props_path),
+                ]
+                browser = (
+                    str(settings.mediagrid_browser_path)
+                    if settings.mediagrid_browser_path
+                    else next(
+                        (
+                            str(path)
+                            for path in (renderer_root / "node_modules" / ".remotion").rglob(
+                                "chrome-headless-shell.exe"
+                            )
+                        ),
+                        None,
+                    )
+                )
+            else:
+                command = [
+                    "npm",
+                    "run",
+                    "render",
+                    "--workspace",
+                    "@mediagrid/renderer",
+                    "--",
+                    str(output_path),
+                    "--props",
+                    str(props_path),
+                ]
+                browser = shutil.which("chromium") or shutil.which("google-chrome")
             if browser:
                 command.append(f"--browser-executable={browser}")
-            subprocess.run(command, check=True)
+            subprocess.run(command, check=True, cwd=renderer_root if renderer_root else None)
             voice = settings.mediagrid_data_dir / "voice" / f"{project.id}.wav"
             if voice_matches(project.id, project.script):
                 voiced = temp_dir / f"{job.id}-voiced.mp4"
-                duration = sum(
-                    float(scene["duration_seconds"]) for scene in project.edl["tracks"]["video"]
-                )
+                duration = sum(float(scene["duration"]) for scene in project.edl["tracks"]["video"])
+                ffmpeg = settings.mediagrid_ffmpeg_path or "ffmpeg"
                 subprocess.run(
                     [
-                        "ffmpeg",
+                        str(ffmpeg),
                         "-y",
                         "-i",
                         str(output_path),

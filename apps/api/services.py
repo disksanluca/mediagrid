@@ -236,4 +236,5 @@ async def ollama_connected() -> bool:
 
 
 def ffmpeg_available() -> bool:
-    return shutil.which("ffmpeg") is not None
+    configured = get_settings().mediagrid_ffmpeg_path
+    return configured.is_file() if configured else shutil.which("ffmpeg") is not None

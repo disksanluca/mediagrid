@@ -100,8 +100,9 @@ def transcribe_media(source: Path, output: Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     wav = output.with_suffix(".input.wav")
     try:
+        ffmpeg = get_settings().mediagrid_ffmpeg_path or "ffmpeg"
         subprocess.run(
-            ["ffmpeg", "-y", "-i", str(source), "-ac", "1", "-ar", "16000", str(wav)],
+            [str(ffmpeg), "-y", "-i", str(source), "-ac", "1", "-ar", "16000", str(wav)],
             check=True,
             capture_output=True,
             text=True,

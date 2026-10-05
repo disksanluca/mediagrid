@@ -101,7 +101,12 @@ def run_doctor(db: Session, *, check_internet: bool = False) -> DoctorReport:
         )
     checks.append(_storage_check(get_settings().mediagrid_data_dir))
     for executable in ("ffmpeg", "ffprobe"):
-        available = shutil.which(executable) is not None
+        configured = (
+            get_settings().mediagrid_ffmpeg_path
+            if executable == "ffmpeg"
+            else get_settings().mediagrid_ffprobe_path
+        )
+        available = configured.is_file() if configured else shutil.which(executable) is not None
         checks.append(
             DoctorCheck(
                 id=executable,
