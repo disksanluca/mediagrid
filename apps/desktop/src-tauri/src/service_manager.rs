@@ -240,6 +240,17 @@ fn project_root() -> PathBuf {
         .to_path_buf()
 }
 
+fn node_compatible_path(path: PathBuf) -> PathBuf {
+    let value = path.to_string_lossy();
+    if let Some(network_path) = value.strip_prefix(r"\\?\UNC\") {
+        return PathBuf::from(format!(r"\\{network_path}"));
+    }
+    if let Some(ordinary_path) = value.strip_prefix(r"\\?\") {
+        return PathBuf::from(ordinary_path);
+    }
+    path
+}
+
 fn service_command(
     app: &AppHandle,
     service: &str,
@@ -287,6 +298,7 @@ fn service_command(
             .resource_dir()
             .map_err(|error| error.to_string())?
             .join("runtime");
+        let runtime = node_compatible_path(runtime);
         let node = runtime.join("node.exe");
         let renderer = runtime.join("renderer");
         let renderer_entry = renderer.join("src").join("index.ts");
