@@ -12,6 +12,7 @@ on:
       - "scripts/desktop_service.py"
       - "scripts/build-desktop-sidecar.ps1"
       - "scripts/build-desktop-runtime.ps1"
+      - "scripts/smoke-desktop-windows.ps1"
       - "apps/desktop/runtime/**"
       - "scripts/build-desktop-web.mjs"
       - "package*.json"
@@ -62,3 +63,6 @@ jobs:
           name: mediagrid-desktop-windows-test-build
           path: apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: error
+      - name: Smoke test installed Windows app
+        shell: pwsh
+        run: .\scripts\smoke-desktop-windows.ps1

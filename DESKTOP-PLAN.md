@@ -43,8 +43,9 @@ conta; permanecerão desativadas até estarem realmente integradas.
 
 ## Limitações técnicas verificadas no ambiente de desenvolvimento
 
-Este workspace de desenvolvimento é Linux e não contém Rust, Cargo, PowerShell nem Windows.
-Ele valida os componentes web/Python, mas não executa um `.exe`. A compilação e teste do
-aplicativo instalado devem rodar em Windows, por CI e teste humano numa instalação limpa.
+Este workspace de desenvolvimento é Linux; Rust foi instalado aqui para verificar o alvo
+Windows, mas o `.exe` não pode ser executado neste sistema. A compilação e o teste de
+inicialização do aplicativo instalado rodam em Windows pelo CI. A validação completa de vídeo,
+restauração e uso da interface requer um computador Windows limpo.
 WhisperX, Chatterbox e ComfyUI têm modelos grandes e requisitos de GPU diferentes; não serão
 simulados nem marcados como disponíveis quando estiverem ausentes.

@@ -18,16 +18,23 @@ uv sync --frozen
 npm run dev --workspace @mediagrid/desktop
 ```
 
-O build instalável é `npm run build --workspace @mediagrid/desktop`. O workflow
-`.github/workflows/desktop-windows.yml` executa a compilação em Windows e guarda o artefato
-para testes. Os dados de desenvolvimento ficam em `%LOCALAPPDATA%\MediaGrid\Data`; logs do
-Core e worker em `Logs`. Uma instalação limpa no Windows ainda precisa ser testada antes de
-distribuir o executável ao usuário final.
+Para o build instalável, execute `.\scripts\build-desktop-runtime.ps1` e depois
+`npm run build --workspace @mediagrid/desktop`. O workflow
+`.github/workflows/desktop-windows.yml` compila em Windows, guarda o instalador NSIS e testa
+sua inicialização em instalação isolada. Os dados ficam em `%LOCALAPPDATA%\MediaGrid\Data` por
+padrão; logs do Core e worker em `Logs`. O arquivo `runtime.json` nessa pasta registra a porta
+local ativa enquanto o aplicativo está aberto.
+
+Na aba **Sistema**, é possível exportar um `.mgrid` com banco e configurações e selecionar
+biblioteca, vídeos e modelos locais. A restauração verifica manifesto, checksums e integridade
+do SQLite antes de trocar os dados. O diretório anterior é preservado ao lado do novo.
 
 ## Estado da integração
 
-O painel, a API, o banco e a fila já têm caminhos locais reais. O worker de render ainda chama
-o Remotion pelo ambiente de desenvolvimento; o empacotamento de Node, Remotion, FFmpeg e
-Chromium para instalação limpa é uma etapa pendente. Ollama, WhisperX, Chatterbox e ComfyUI
-continuam opcionais e devem ser detectados antes de mostrar ações de instalação ou início.
+O painel, a API, o banco e a fila já têm caminhos locais reais. O instalador leva Node,
+Remotion, FFmpeg, FFprobe e Chromium para renderizar sem ferramentas de desenvolvimento ou
+download durante o uso. A compilação e o teste de inicialização em Windows são verificações de
+CI; ainda é necessário validar renderização e restauração em um PC Windows limpo. Ollama,
+WhisperX, Chatterbox e ComfyUI continuam opcionais e devem ser detectados antes de mostrar
+ações de instalação ou início.
 Nenhuma funcionalidade ausente deve ser exibida como concluída.
