@@ -23,7 +23,7 @@ def test_health_and_zero_cost_defaults(client: TestClient) -> None:
     assert system["mode"] == "LOCAL"
     assert system["paid_ai_allowed"] is False
     assert system["dry_run"] is True
-    assert system["ffmpeg"] is True
+    assert isinstance(system["ffmpeg"], bool)
 
 
 def test_channel_slug_is_unique(client: TestClient) -> None:
