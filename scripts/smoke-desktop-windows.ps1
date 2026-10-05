@@ -4,7 +4,11 @@ if (-not $installer) { throw "Instalador NSIS não encontrado." }
 $installDir = Join-Path $env:RUNNER_TEMP "MediaGridSmokeInstall"
 $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP "MediaGridSmokeLocal"
 New-Item -ItemType Directory -Force -Path $env:LOCALAPPDATA | Out-Null
-$installerProcess = Start-Process $installer.FullName -ArgumentList @("/S", "/D=$installDir") -Wait -PassThru
+$installerProcess = Start-Process $installer.FullName -ArgumentList @("/S", "/D=$installDir") -PassThru
+if (-not $installerProcess.WaitForExit(120000)) {
+  Stop-Process -Id $installerProcess.Id -Force
+  throw "Instalador não concluiu em 120 segundos."
+}
 if ($installerProcess.ExitCode -ne 0) { throw "Instalador falhou: $($installerProcess.ExitCode)" }
 $application = Join-Path $installDir "MediaGrid.exe"
 if (-not (Test-Path $application)) { throw "MediaGrid.exe não foi encontrado após instalar." }
