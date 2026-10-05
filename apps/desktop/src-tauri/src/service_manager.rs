@@ -239,7 +239,12 @@ fn project_root() -> PathBuf {
         .to_path_buf()
 }
 
-fn service_command(service: &str, port: u16, data_dir: &Path) -> Result<Command, String> {
+fn service_command(
+    app: &AppHandle,
+    service: &str,
+    port: u16,
+    data_dir: &Path,
+) -> Result<Command, String> {
     let mut command = if cfg!(debug_assertions) {
         let mut command = Command::new("uv");
         command.current_dir(project_root());
@@ -275,6 +280,34 @@ fn service_command(service: &str, port: u16, data_dir: &Path) -> Result<Command,
     command.env("DRY_RUN", "true");
     command.env("MEDIAGRID_DATA_DIR", data_dir);
     command.env("DATABASE_URL", database_url);
+    if !cfg!(debug_assertions) {
+        let runtime = app
+            .path()
+            .resource_dir()
+            .map_err(|error| error.to_string())?
+            .join("runtime");
+        let node = runtime.join("node.exe");
+        let renderer = runtime.join("renderer");
+        let renderer_entry = renderer.join("src").join("index.ts");
+        let ffmpeg = runtime.join("bin").join("ffmpeg.exe");
+        let ffprobe = runtime.join("bin").join("ffprobe.exe");
+        let browser_relative = fs::read_to_string(runtime.join("browser-path.txt"))
+            .map_err(|error| format!("Missing local renderer browser path: {error}"))?;
+        let browser = renderer.join(browser_relative.trim());
+        for required in [&node, &renderer_entry, &ffmpeg, &ffprobe, &browser] {
+            if !required.is_file() {
+                return Err(format!(
+                    "Missing desktop runtime file: {}",
+                    required.display()
+                ));
+            }
+        }
+        command.env("MEDIAGRID_NODE_PATH", node);
+        command.env("MEDIAGRID_RENDERER_ROOT", renderer);
+        command.env("MEDIAGRID_FFMPEG_PATH", ffmpeg);
+        command.env("MEDIAGRID_FFPROBE_PATH", ffprobe);
+        command.env("MEDIAGRID_BROWSER_PATH", browser);
+    }
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
@@ -302,14 +335,14 @@ pub fn launch(app: &AppHandle, preferred_port: Option<u16>) -> Result<Processes,
     fs::create_dir_all(&log_dir).map_err(|error| error.to_string())?;
     let port = preferred_port.unwrap_or(free_port()?);
     let mut api = spawn_logged(
-        service_command("api", port, &data_dir)?,
+        service_command(app, "api", port, &data_dir)?,
         &log_dir.join("core.log"),
     )?;
     let deadline = Instant::now() + Duration::from_secs(45);
     while Instant::now() < deadline {
         if api_healthy(port) {
             let worker = match spawn_logged(
-                service_command("worker", port, &data_dir)?,
+                service_command(app, "worker", port, &data_dir)?,
                 &log_dir.join("worker.log"),
             ) {
                 Ok(worker) => worker,

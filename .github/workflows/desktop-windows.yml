@@ -11,6 +11,8 @@ on:
       - "workers/**"
       - "scripts/desktop_service.py"
       - "scripts/build-desktop-sidecar.ps1"
+      - "scripts/build-desktop-runtime.ps1"
+      - "apps/desktop/runtime/**"
       - "scripts/build-desktop-web.mjs"
       - "package*.json"
       - "pyproject.toml"
@@ -35,6 +37,9 @@ jobs:
       - name: Build local Python service
         shell: pwsh
         run: .\scripts\build-desktop-sidecar.ps1
+      - name: Bundle local renderer runtime
+        shell: pwsh
+        run: .\scripts\build-desktop-runtime.ps1
       - name: Build Windows application
         shell: pwsh
         run: |
