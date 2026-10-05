@@ -3,6 +3,8 @@
 import {FormEvent, useCallback, useEffect, useState} from "react";
 import {Activity, ArrowDownToLine, ArrowRight, CircleAlert, Clapperboard, Cpu, Film, FolderOpen, LayoutGrid, LockKeyhole, LogOut, Mic, Plus, Radio, RefreshCw, RotateCcw, Save, Sparkles, Upload} from "lucide-react";
 import {api} from "@/lib/api";
+import {desktopOpenLogs, desktopRestart, desktopServices, runningInDesktop} from "@/lib/desktop";
+import type {DesktopServices} from "@/lib/desktop";
 import type {Asset, Channel, Engine, Job, Project, Scene, SystemStatus} from "@/lib/types";
 
 type View = "overview" | "production" | "library" | "channels" | "system";
@@ -34,6 +36,7 @@ export function ControlPanel() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [startupError, setStartupError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -41,7 +44,7 @@ export function ControlPanel() {
       setChannels(newChannels); setProjects(newProjects); setJobs(newJobs); setSystem(newSystem); setAssets(newAssets); setError(null);
     } catch (reason) { setError(message(reason)); }
   }, []);
-  useEffect(() => { void api.session().then((value) => {setSession(value); if(value.authenticated) void load();}).catch((reason) => setError(message(reason))); }, [load]);
+  useEffect(() => { void api.session().then((value) => {setSession(value); if(value.authenticated) void load();}).catch((reason) => setStartupError(message(reason))); }, [load]);
   useEffect(() => { if (!session?.authenticated) return; const interval = setInterval(() => {void load();}, 10000); return () => clearInterval(interval); }, [load,session]);
   const project = projects.find((item) => item.id === selected) ?? null;
   const openProject = (id: string) => {setSelected(id); setView("production");};
@@ -64,7 +67,7 @@ export function ControlPanel() {
     await run(async () => {const created = await api.createProject({channel_id:data.get("channel"),title:data.get("title"),topic:data.get("topic"),format:data.get("format")});await api.createPlan(created.id);setDialog(null);openProject(created.id);});
   }
 
-  if (!session) return <div className="loading">Carregando MediaGrid…</div>;
+  if (!session) return startupError?<div className="login-screen"><div className="login-card"><Brand/><h1>Não foi possível iniciar</h1><p>{startupError}</p><button className="button primary full" onClick={()=>void desktopRestart().then(()=>window.location.reload()).catch((reason)=>setStartupError(message(reason)))}>Reiniciar serviços locais</button></div></div>:<div className="loading">Carregando MediaGrid…</div>;
   if (!session.authenticated) return <div className="login-screen"><form onSubmit={handleLogin} className="login-card"><Brand/><h1>Acesse seu estúdio</h1><p>Entre com a senha de administrador para gerenciar seus canais e projetos.</p><Field label="Senha"><input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required/></Field>{error && <Alert text={error}/>}<button className="button primary full" disabled={busy}><LockKeyhole size={16}/> Entrar</button></form></div>;
 
   const navigate = (next: View) => {setView(next);setSelected(null);};
@@ -130,10 +133,26 @@ function Channels({channels,busy,onCreate,onPilots,onRun}:{channels:Channel[];bu
   return <><div className="section-heading no-top"><div><h2>Seus canais</h2><p>Configure a identidade visual e editorial de cada operação.</p></div><button className="button primary" onClick={onCreate}><Plus size={16}/> Novo canal</button></div>{!channels.length?<div className="panel empty"><Radio size={24}/>Você ainda não tem canais.<div className="empty-action"><button className="button primary" disabled={busy} onClick={()=>void onPilots()}>Criar os três canais piloto</button></div></div>:<div className="channel-grid">{channels.map((channel)=><div className="panel channel-card" key={channel.id}><div className="channel-icon" style={{borderColor:String(channel.brand_profile.accent??"#69798d")}}><Radio size={23}/></div><div className="eyebrow">{channel.default_engine.toUpperCase()} ENGINE</div><h3>{channel.name}</h3><p>{channel.niche} · {channel.language} · {channel.timezone}</p><div className="channel-card-bottom"><span className="badge green"><span className="live-dot"/> Ativo</span><button className="button small" onClick={()=>startEdit(channel)}>Configurar <ArrowRight size={13}/></button></div></div>)}</div>}{editing&&<div className="modal-backdrop" onMouseDown={(event)=>{if(event.target===event.currentTarget)setEditing(null);}}><form className="modal" onSubmit={(event)=>{event.preventDefault();void onRun(async()=>{await api.updateChannel(editing,{name,brand_profile:{accent},editorial_profile:{tone,auto_render:autoRender}});setEditing(null);});}}><div className="eyebrow">IDENTIDADE DO CANAL</div><h2>Configurar canal</h2><Field label="Nome"><input value={name} minLength={2} onChange={(event)=>setName(event.target.value)} required/></Field><Field label="Tom editorial"><input value={tone} onChange={(event)=>setTone(event.target.value)} placeholder="Ex.: informativo e direto"/></Field><Field label="Cor principal"><input value={accent} onChange={(event)=>setAccent(event.target.value)} pattern="#[0-9a-fA-F]{6}"/></Field><Field label="Automação local"><span><input type="checkbox" checked={autoRender} onChange={(event)=>setAutoRender(event.target.checked)}/> Renderizar automaticamente após gerar o plano</span></Field><div className="modal-actions"><button className="button" type="button" onClick={()=>setEditing(null)}>Cancelar</button><button className="button primary" type="submit" disabled={busy}><Save size={15}/> Salvar</button></div></form></div>}</>;
 }
 
-function SystemView({system,jobs,busy,onRun}:{system:SystemStatus|null;jobs:Job[];busy:boolean;onRun:(action:()=>Promise<unknown>)=>Promise<void>}) {return <><div className="section-heading no-top"><div><h2>Estado do sistema local</h2><p>Todos os serviços da V1 executam neste computador.</p></div></div><div className="metric-grid"><Metric label="Modo" value={system?.mode??"—"} detail="Acesso por localhost" icon={Activity}/><Metric label="FFmpeg" value={system?.ffmpeg?"Ativo":"Indisponível"} detail="Vídeo local" icon={Film}/><Metric label="Ollama" value={system?.ollama==="CONNECTED"?"Conectado":"Opcional"} detail="IA local" icon={Cpu}/><Metric label="Banco" value={system?.database??"—"} detail="Dados no computador" icon={Radio}/><Metric label="Voz" value={system?.tts==="AVAILABLE"?"Disponível":"Configurar"} detail="Síntese offline" icon={Mic}/><Metric label="Transcrição" value={system?.transcription==="AVAILABLE"?"Disponível":"Configurar"} detail="Reconhecimento offline" icon={Mic}/></div><div className="section-heading"><div><h2>Fila local</h2><p>O worker processa trabalhos e faz backup diário do banco em data/backups.</p></div></div><div className="panel">{jobs.length?jobs.map((job)=><div key={job.id} className="row"><span className="row-icon"><Film size={18}/></span><span className="row-main"><strong>{job.job_type} · {job.project_id?.slice(0,8)}</strong><small>{job.error??new Date(job.created_at).toLocaleString("pt-BR")}</small></span><Badge value={job.status}/>{job.status==="FAILED"&&job.attempt<job.max_attempts&&<button className="button small" disabled={busy} onClick={()=>void onRun(async()=>{await api.retry(job.id);})}><RotateCcw size={14}/> Repetir</button>}</div>):<Empty icon={Activity} text="Nenhum trabalho na fila."/>}</div><p className="small-note footer-note">A publicação em redes sociais permanece manual na V1. Nenhuma conta externa é necessária.</p></>}
+function DesktopServicePanel() {
+  const [services,setServices]=useState<DesktopServices|null>(null);
+  const [busy,setBusy]=useState(false);
+  const [error,setError]=useState<string|null>(null);
+  useEffect(()=>{
+    if(!runningInDesktop()) return;
+    const refresh=()=>{void desktopServices().then(setServices).catch((reason)=>setError(message(reason)));};
+    refresh();
+    const timer=setInterval(refresh,5000);
+    return ()=>clearInterval(timer);
+  },[]);
+  if(!runningInDesktop()) return null;
+  const restart=async()=>{setBusy(true);setError(null);try{await desktopRestart();setServices(await desktopServices());}catch(reason){setError(message(reason));}finally{setBusy(false);}};
+  return <div className="panel desktop-services"><div className="panel-head"><div><h3>Serviços do aplicativo</h3><p>Iniciados e monitorados pelo MediaGrid</p></div></div><div className="panel-body">{error&&<Alert text={error}/>}<div className="service-grid"><span>MediaGrid Core <Badge value={services?.core?"ONLINE":"OFFLINE"}/></span><span>Worker <Badge value={services?.worker?"ONLINE":"OFFLINE"}/></span><span>Banco local <Badge value={services?.database?"ONLINE":"OFFLINE"}/></span><span>Ollama <Badge value={services?.ollama?"ONLINE":"OFFLINE"}/></span></div><div className="editor-actions"><button className="button" disabled={busy} onClick={()=>void restart()}><RotateCcw size={15}/> Reiniciar Core e worker</button><button className="button" onClick={()=>void desktopOpenLogs().catch((reason)=>setError(message(reason)))}>Abrir logs</button></div><p className="small-note">{services?.log_dir}</p></div></div>;
+}
+
+function SystemView({system,jobs,busy,onRun}:{system:SystemStatus|null;jobs:Job[];busy:boolean;onRun:(action:()=>Promise<unknown>)=>Promise<void>}) {return <><div className="section-heading no-top"><div><h2>Estado do sistema local</h2><p>Todos os serviços da V1 executam neste computador.</p></div></div><DesktopServicePanel/><div className="metric-grid"><Metric label="Modo" value={system?.mode??"—"} detail="Acesso por localhost" icon={Activity}/><Metric label="FFmpeg" value={system?.ffmpeg?"Ativo":"Indisponível"} detail="Vídeo local" icon={Film}/><Metric label="Ollama" value={system?.ollama==="CONNECTED"?"Conectado":"Opcional"} detail="IA local" icon={Cpu}/><Metric label="Banco" value={system?.database??"—"} detail="Dados no computador" icon={Radio}/><Metric label="Voz" value={system?.tts==="AVAILABLE"?"Disponível":"Configurar"} detail="Síntese offline" icon={Mic}/><Metric label="Transcrição" value={system?.transcription==="AVAILABLE"?"Disponível":"Configurar"} detail="Reconhecimento offline" icon={Mic}/></div><div className="section-heading"><div><h2>Fila local</h2><p>O worker processa trabalhos e faz backup diário do banco em data/backups.</p></div></div><div className="panel">{jobs.length?jobs.map((job)=><div key={job.id} className="row"><span className="row-icon"><Film size={18}/></span><span className="row-main"><strong>{job.job_type} · {job.project_id?.slice(0,8)}</strong><small>{job.error??new Date(job.created_at).toLocaleString("pt-BR")}</small></span><Badge value={job.status}/>{job.status==="FAILED"&&job.attempt<job.max_attempts&&<button className="button small" disabled={busy} onClick={()=>void onRun(async()=>{await api.retry(job.id);})}><RotateCcw size={14}/> Repetir</button>}</div>):<Empty icon={Activity} text="Nenhum trabalho na fila."/>}</div><p className="small-note footer-note">A publicação em redes sociais permanece manual na V1. Nenhuma conta externa é necessária.</p></>}
 
 function Metric({label,value,detail,icon:Icon}:{label:string;value:string;detail:string;icon:typeof Radio}) {return <div className="metric"><div className="metric-top"><span>{label.toUpperCase()}</span><Icon size={17}/></div><strong>{value}</strong><small>{detail}</small></div>}
-function Badge({value}:{value:string}) {return <span className={`badge ${["QC","SUCCEEDED"].includes(value)?"green":["FAILED"].includes(value)?"orange":""}`}>{stateLabels[value]??value}</span>}
+function Badge({value}:{value:string}) {return <span className={`badge ${["QC","SUCCEEDED","ONLINE"].includes(value)?"green":["FAILED","OFFLINE"].includes(value)?"orange":""}`}>{stateLabels[value]??value}</span>}
 function Empty({icon:Icon,text}:{icon:typeof Radio;text:string}) {return <div className="empty"><Icon size={25}/>{text}</div>}
 function Field({label,children}:{label:string;children:React.ReactNode}) {return <label className="field">{label}{children}</label>}
 function Alert({text}:{text:string}) {return <div className="alert"><CircleAlert size={17}/>{text}</div>}

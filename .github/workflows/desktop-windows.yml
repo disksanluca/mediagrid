@@ -1,0 +1,44 @@
+name: Windows desktop build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "apps/desktop/**"
+      - "apps/web/**"
+      - "apps/api/**"
+      - "workers/**"
+      - "scripts/desktop_service.py"
+      - "scripts/build-desktop-sidecar.ps1"
+      - "scripts/build-desktop-web.mjs"
+      - "package*.json"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/desktop-windows.yml"
+
+jobs:
+  desktop:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - run: npm ci
+      - run: uv python install 3.12
+      - run: uv sync --frozen
+      - run: uv run pytest -q
+      - name: Build local Python service
+        shell: pwsh
+        run: .\scripts\build-desktop-sidecar.ps1
+      - name: Build Windows application
+        run: npm run build --workspace @mediagrid/desktop
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mediagrid-desktop-windows-test-build
+          path: apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error

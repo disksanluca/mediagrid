@@ -1,5 +1,8 @@
 node_modules/
 .next/
+apps/web/out/
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/binaries/
 .venv/
 __pycache__/
 .pytest_cache/
@@ -10,6 +13,8 @@ __pycache__/
 !deploy/.env.example
 data/
 dist/
+build/
+mediagrid-service.spec
 coverage/
 *.db
 *.sqlite3

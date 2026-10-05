@@ -1,8 +1,9 @@
 # MediaGrid
 
-MediaGrid V1 is a local content production panel for Windows. The panel, API, SQLite database,
-worker, renderer, asset library and automations run on the same computer. Open
-**http://localhost:3000** after starting it; this address works only on that computer.
+MediaGrid V1 is being built as a local **Windows desktop application**. Tauri hosts the
+React panel in its own window and starts the FastAPI Core and worker on the same computer.
+See [DESKTOP-PLAN.md](DESKTOP-PLAN.md) for the delivery gates. The desktop installer is not
+yet validated on Windows; the existing localhost script remains a development fallback.
 The panel logo is an original SVG based on the supplied MediaGrid visual reference.
 
 The first pilots are YouTube Football, TikTok Geography and Instagram Music. The core stays
@@ -13,7 +14,7 @@ The renderer uses text cards. Windows offline speech synthesis can add narration
 transcription uses Windows speech recognition or an optional local whisper.cpp model. Research,
 fact verification, licensed asset sourcing, and direct publishing are still manual.
 
-## Start on Windows
+## Current development fallback on Windows
 
 See [SETUP.md](SETUP.md) for installation and troubleshooting. On Windows, double-click
 `Iniciar-MediaGrid.cmd`. Or, in PowerShell from the project folder:
