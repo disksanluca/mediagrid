@@ -21,7 +21,8 @@ npm run dev --workspace @mediagrid/desktop
 Para o build instalável, execute `.\scripts\build-desktop-runtime.ps1` e depois
 `npm run build --workspace @mediagrid/desktop`. O workflow
 `.github/workflows/desktop-windows.yml` compila em Windows, guarda o instalador NSIS e testa
-sua inicialização em instalação isolada. Os dados ficam em `%LOCALAPPDATA%\MediaGrid\Data` por
+sua instalação, início de Core/worker e renderização de MP4 com vídeo e áudio em pasta isolada.
+Os dados ficam em `%LOCALAPPDATA%\MediaGrid\Data` por
 padrão; logs do Core e worker em `Logs`. O arquivo `runtime.json` nessa pasta registra a porta
 local ativa enquanto o aplicativo está aberto.
 
@@ -33,8 +34,9 @@ do SQLite antes de trocar os dados. O diretório anterior é preservado ao lado 
 
 O painel, a API, o banco e a fila já têm caminhos locais reais. O instalador leva Node,
 Remotion, FFmpeg, FFprobe e Chromium para renderizar sem ferramentas de desenvolvimento ou
-download durante o uso. A compilação e o teste de inicialização em Windows são verificações de
-CI; ainda é necessário validar renderização e restauração em um PC Windows limpo. Ollama,
+download durante o uso. O teste automatizado de instalação e renderização passou no Windows;
+ainda é necessário validar interface, backup/restauração e modelos opcionais em um PC Windows de
+uso real. Ollama,
 WhisperX, Chatterbox e ComfyUI continuam opcionais e devem ser detectados antes de mostrar
 ações de instalação ou início.
 Nenhuma funcionalidade ausente deve ser exibida como concluída.

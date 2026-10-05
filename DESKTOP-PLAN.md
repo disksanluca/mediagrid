@@ -44,8 +44,8 @@ conta; permanecerão desativadas até estarem realmente integradas.
 ## Limitações técnicas verificadas no ambiente de desenvolvimento
 
 Este workspace de desenvolvimento é Linux; Rust foi instalado aqui para verificar o alvo
-Windows, mas o `.exe` não pode ser executado neste sistema. A compilação e o teste de
-inicialização do aplicativo instalado rodam em Windows pelo CI. A validação completa de vídeo,
-restauração e uso da interface requer um computador Windows limpo.
+Windows, mas o `.exe` não pode ser executado neste sistema. O CI Windows já instalou o pacote,
+iniciou Core/SQLite/worker e renderizou um MP4 com vídeo e áudio. A validação visual da interface,
+restauração de backup e uso dos modelos opcionais ainda requer um computador Windows de uso real.
 WhisperX, Chatterbox e ComfyUI têm modelos grandes e requisitos de GPU diferentes; não serão
 simulados nem marcados como disponíveis quando estiverem ausentes.

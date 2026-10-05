@@ -2,8 +2,10 @@
 
 MediaGrid V1 is being built as a local **Windows desktop application**. Tauri hosts the
 React panel in its own window and starts the FastAPI Core and worker on the same computer.
-See [DESKTOP-PLAN.md](DESKTOP-PLAN.md) for the delivery gates. The desktop installer is not
-yet validated on Windows; the existing localhost script remains a development fallback.
+See [DESKTOP-PLAN.md](DESKTOP-PLAN.md) for the delivery gates. The Windows CI installs the
+desktop package and renders a short MP4 with video and audio. A hands-on check on a clean
+Windows PC remains required before treating this as a finished V1. The localhost script
+remains a development fallback.
 The panel logo is an original SVG based on the supplied MediaGrid visual reference.
 
 The first pilots are YouTube Football, TikTok Geography and Instagram Music. The core stays
