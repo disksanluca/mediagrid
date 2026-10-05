@@ -137,7 +137,7 @@ impl Default for DesktopState {
 
 pub fn default_data_dir(app: &AppHandle) -> Result<PathBuf, String> {
     if let Some(saved) = saved_data_dir(app)? {
-        return Ok(saved);
+        return Ok(node_compatible_path(saved));
     }
     let base = match std::env::var_os("LOCALAPPDATA") {
         Some(path) => PathBuf::from(path),
@@ -146,7 +146,7 @@ pub fn default_data_dir(app: &AppHandle) -> Result<PathBuf, String> {
             .app_local_data_dir()
             .map_err(|error| error.to_string())?,
     };
-    Ok(base.join("MediaGrid").join("Data"))
+    Ok(node_compatible_path(base.join("MediaGrid").join("Data")))
 }
 
 fn copy_tree(source: &Path, target: &Path) -> Result<(), String> {
@@ -173,8 +173,10 @@ fn copy_tree(source: &Path, target: &Path) -> Result<(), String> {
 pub fn relocate_data_dir(app: &AppHandle, selected: &Path) -> Result<PathBuf, String> {
     let previous = default_data_dir(app)?;
     fs::create_dir_all(selected).map_err(|error| error.to_string())?;
-    let selected = selected.canonicalize().map_err(|error| error.to_string())?;
-    let previous = previous.canonicalize().map_err(|error| error.to_string())?;
+    let selected =
+        node_compatible_path(selected.canonicalize().map_err(|error| error.to_string())?);
+    let previous =
+        node_compatible_path(previous.canonicalize().map_err(|error| error.to_string())?);
     if selected == previous {
         return Ok(selected);
     }
