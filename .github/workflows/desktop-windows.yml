@@ -83,4 +83,18 @@ jobs:
           if-no-files-found: error
       - name: Smoke test installed Windows app
         shell: pwsh
-        run: .\scripts\smoke-desktop-windows.ps1
+        run: |
+          & cmd /c "pwsh -NoProfile -File .\scripts\smoke-desktop-windows.ps1 > desktop-smoke.log 2>&1"
+          $smokeExitCode = $LASTEXITCODE
+          Get-Content desktop-smoke.log -Tail 100
+          if ($smokeExitCode -ne 0) {
+            $summary = (Get-Content desktop-smoke.log -Tail 35) -join ' | '
+            Write-Output "::error title=Installed app smoke test failed::$summary"
+            exit $smokeExitCode
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mediagrid-desktop-smoke-log
+          path: desktop-smoke.log
+          if-no-files-found: ignore
