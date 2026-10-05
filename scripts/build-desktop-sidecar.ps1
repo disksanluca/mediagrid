@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $projectRoot
 
-uv run --with pyinstaller pyinstaller --noconfirm --clean --onefile --name mediagrid-service --paths . --collect-submodules apps --collect-submodules workers scripts/desktop_service.py
+uv run --with pyinstaller pyinstaller --noconfirm --clean --onefile --name mediagrid-service --paths . --collect-submodules apps --collect-submodules workers --add-data "scripts/speak.ps1:scripts" --add-data "scripts/transcribe.ps1:scripts" scripts/desktop_service.py
 if ($LASTEXITCODE -ne 0) { throw "Falha ao empacotar o serviço local." }
 
 $targetDir = Join-Path $projectRoot "apps\desktop\src-tauri\binaries"

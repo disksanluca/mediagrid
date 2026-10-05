@@ -11,6 +11,8 @@ on:
       - "workers/**"
       - "scripts/desktop_service.py"
       - "scripts/build-desktop-sidecar.ps1"
+      - "scripts/speak.ps1"
+      - "scripts/transcribe.ps1"
       - "scripts/build-desktop-runtime.ps1"
       - "scripts/smoke-desktop-windows.ps1"
       - "apps/desktop/runtime/**"
