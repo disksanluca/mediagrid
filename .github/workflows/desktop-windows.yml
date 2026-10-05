@@ -36,7 +36,22 @@ jobs:
         shell: pwsh
         run: .\scripts\build-desktop-sidecar.ps1
       - name: Build Windows application
-        run: npm run build --workspace @mediagrid/desktop
+        shell: pwsh
+        run: |
+          & cmd /c "npm run build --workspace @mediagrid/desktop > desktop-build.log 2>&1"
+          $buildExitCode = $LASTEXITCODE
+          Get-Content desktop-build.log -Tail 100
+          if ($buildExitCode -ne 0) {
+            $summary = (Get-Content desktop-build.log -Tail 25) -join ' | '
+            Write-Output "::error title=Desktop build failed::$summary"
+            exit $buildExitCode
+          }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mediagrid-desktop-build-log
+          path: desktop-build.log
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         with:
           name: mediagrid-desktop-windows-test-build
