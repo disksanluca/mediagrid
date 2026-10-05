@@ -1,10 +1,13 @@
 import json
 from typing import Literal
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from ..config import get_settings
+from ..database import get_db
+from ..doctor import DoctorReport, run_doctor
 from ..engines import ENGINES
 from ..hardware import HardwareProfile, profile_hardware
 from ..local_media import transcription_available, voice_available
@@ -44,6 +47,11 @@ def health() -> dict[str, str]:
 @router.get("/hardware", response_model=HardwareProfile)
 def hardware_profile() -> HardwareProfile:
     return profile_hardware()
+
+
+@router.get("/doctor", response_model=DoctorReport)
+def system_doctor(internet: bool = False, db: Session = Depends(get_db)) -> DoctorReport:
+    return run_doctor(db, check_internet=internet)
 
 
 class SetupState(BaseModel):

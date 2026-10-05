@@ -106,3 +106,8 @@ export interface SetupState {
   profile: HardwareProfile["recommended_profile"] | null;
   data_dir: string;
 }
+
+export interface DoctorReport {
+  checked_at: string;
+  checks: Array<{id:string;name:string;status:string;detail:string}>;
+}

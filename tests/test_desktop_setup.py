@@ -22,7 +22,10 @@ def test_first_run_setup_is_saved_in_local_data(
         hardware = client.get("/api/v1/system/hardware")
         assert hardware.status_code == 200
         assert hardware.json()["recommended_profile"] in {
-            "LIGHT", "BALANCED", "QUALITY", "HIGH_PERFORMANCE"
+            "LIGHT",
+            "BALANCED",
+            "QUALITY",
+            "HIGH_PERFORMANCE",
         }
         initial = client.get("/api/v1/system/setup").json()
         assert initial["complete"] is False
@@ -34,3 +37,13 @@ def test_first_run_setup_is_saved_in_local_data(
         assert client.get("/api/v1/system/setup").json()["profile"] == "LIGHT"
     finally:
         get_settings.cache_clear()
+
+
+def test_system_doctor_reports_real_local_checks(client: TestClient) -> None:
+    response = client.get("/api/v1/system/doctor")
+    assert response.status_code == 200
+    checks = {check["id"]: check for check in response.json()["checks"]}
+    assert checks["database"]["status"] == "READY"
+    assert checks["storage"]["status"] == "READY"
+    assert checks["ffmpeg"]["status"] in {"READY", "MISSING"}
+    assert checks["ollama"]["status"] in {"READY", "OPTIONAL", "MISSING"}

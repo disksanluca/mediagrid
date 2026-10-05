@@ -4,6 +4,7 @@ O código Tauri está em `apps/desktop`. O painel Next.js é exportado estaticam
 `apps/web/out`. Na execução desktop, o Tauri inicia o Core e o worker por processos locais;
 o painel recebe a porta interna via comando Tauri. Splash, ícone e bandeja do sistema já
 integram a estrutura da janela. O fechamento normal do aplicativo encerra os processos.
+O diagnóstico técnico também pode ser executado com `uv run python -m apps.api.doctor`.
 
 ## Build de desenvolvimento Windows
 
