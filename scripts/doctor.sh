@@ -6,6 +6,4 @@ check npm --version
 check python3 --version
 check uv --version
 check ffmpeg -version
-check psql --version
 if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then echo "OK  Ollama"; else echo "INFO Ollama not running (local fallback active)"; fi
-
