@@ -1,5 +1,5 @@
 import {invoke, isTauri} from "@tauri-apps/api/core";
-import {open} from "@tauri-apps/plugin-dialog";
+import {open, save} from "@tauri-apps/plugin-dialog";
 
 export interface DesktopRuntime {
   api_port: number;
@@ -48,4 +48,23 @@ export async function desktopChooseDataDir(): Promise<DesktopRuntime | null> {
   return typeof selected === "string"
     ? invoke<DesktopRuntime>("desktop_set_data_dir", {selected})
     : null;
+}
+
+export async function desktopCreateBackup(options: {assets: boolean; renders: boolean; models: boolean}): Promise<string | null> {
+  const date = new Date().toISOString().slice(0, 10);
+  const path = await save({title: "Salvar backup MediaGrid", defaultPath: `MediaGrid-${date}.mgrid`, filters: [{name: "Backup MediaGrid", extensions: ["mgrid"]}]});
+  if (!path) return null;
+  await invoke<void>("desktop_backup", {
+    path,
+    includeAssets: options.assets,
+    includeRenders: options.renders,
+    includeModels: options.models,
+  });
+  return path;
+}
+
+export async function desktopRestoreBackup(): Promise<string | null | undefined> {
+  const path = await open({title: "Escolher backup MediaGrid", multiple: false, filters: [{name: "Backup MediaGrid", extensions: ["mgrid"]}]});
+  if (typeof path !== "string") return undefined;
+  return invoke<string | null>("desktop_restore", {path});
 }

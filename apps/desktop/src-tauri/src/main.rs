@@ -166,6 +166,83 @@ fn desktop_open_logs(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+fn data_operation(
+    app: tauri::AppHandle,
+    operation: &str,
+    path: String,
+    include_assets: bool,
+    include_renders: bool,
+    include_models: bool,
+) -> Result<String, String> {
+    let state = app.state::<DesktopState>();
+    let mut guard = state.processes.lock().map_err(|error| error.to_string())?;
+    let port = guard.as_ref().map(|processes| processes.api_port);
+    if let Some(mut processes) = guard.take() {
+        processes.stop();
+    }
+    let result = service_manager::run_data_operation(
+        &app,
+        operation,
+        std::path::Path::new(&path),
+        include_assets,
+        include_renders,
+        include_models,
+    );
+    if let Some(port) = port {
+        match service_manager::launch(&app, Some(port)) {
+            Ok(processes) => {
+                *guard = Some(processes);
+                *state.error.lock().map_err(|error| error.to_string())? = None;
+            }
+            Err(error) => {
+                *state
+                    .error
+                    .lock()
+                    .map_err(|lock_error| lock_error.to_string())? = Some(error.clone());
+                return Err(format!(
+                    "Serviços não reiniciaram após {operation}: {error}"
+                ));
+            }
+        }
+    }
+    result
+}
+
+#[tauri::command]
+async fn desktop_backup(
+    app: tauri::AppHandle,
+    path: String,
+    include_assets: bool,
+    include_renders: bool,
+    include_models: bool,
+) -> Result<(), String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        data_operation(
+            app,
+            "backup",
+            path,
+            include_assets,
+            include_renders,
+            include_models,
+        )
+        .map(|_| ())
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
+#[tauri::command]
+async fn desktop_restore(app: tauri::AppHandle, path: String) -> Result<Option<String>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let output = data_operation(app, "restore", path, false, false, false)?;
+        let value: serde_json::Value =
+            serde_json::from_str(&output).map_err(|error| error.to_string())?;
+        Ok(value["previous"].as_str().map(String::from))
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -177,7 +254,9 @@ fn main() {
             desktop_start,
             desktop_stop,
             desktop_set_data_dir,
-            desktop_open_logs
+            desktop_open_logs,
+            desktop_backup,
+            desktop_restore
         ])
         .setup(|app| {
             let show = MenuItem::with_id(app, "show", "Abrir MediaGrid", true, None::<&str>)?;

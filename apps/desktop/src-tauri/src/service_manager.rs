@@ -37,6 +37,7 @@ impl Processes {
     pub fn stop(&mut self) {
         stop_child(&mut self.worker);
         stop_child(&mut self.api);
+        let _ = fs::remove_file(self.data_dir.join("runtime.json"));
     }
 
     pub fn status(&mut self) -> DesktopServices {
@@ -351,6 +352,14 @@ pub fn launch(app: &AppHandle, preferred_port: Option<u16>) -> Result<Processes,
                     return Err(error);
                 }
             };
+            let runtime_path = data_dir.join("runtime.json");
+            let runtime = serde_json::json!({"api_port": port, "data_dir": data_dir});
+            if let Err(error) = fs::write(&runtime_path, runtime.to_string()) {
+                let mut worker = worker;
+                stop_child(&mut worker);
+                stop_child(&mut api);
+                return Err(format!("Cannot write desktop runtime file: {error}"));
+            }
             return Ok(Processes {
                 api,
                 worker,
@@ -372,6 +381,33 @@ pub fn launch(app: &AppHandle, preferred_port: Option<u16>) -> Result<Processes,
         "MediaGrid Core did not start in 45 seconds. See {}",
         log_dir.join("core.log").display()
     ))
+}
+
+pub fn run_data_operation(
+    app: &AppHandle,
+    operation: &str,
+    path: &Path,
+    include_assets: bool,
+    include_renders: bool,
+    include_models: bool,
+) -> Result<String, String> {
+    let data_dir = default_data_dir(app)?;
+    let mut command = service_command(app, operation, 0, &data_dir)?;
+    command.arg("--path").arg(path);
+    if include_assets {
+        command.arg("--include-assets");
+    }
+    if include_renders {
+        command.arg("--include-renders");
+    }
+    if include_models {
+        command.arg("--include-models");
+    }
+    let output = command.output().map_err(|error| error.to_string())?;
+    if !output.status.success() {
+        return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
+    }
+    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
 }
 
 fn stop_child(child: &mut Child) {
