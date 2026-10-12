@@ -2,7 +2,7 @@ export interface RenderScene {
   scene_id: string;
   duration: number;
   visual_type: string;
-  transition: string;
+  transition: "impact" | "slide" | "cut" | "zoom" | "fade";
   on_screen_text?: string;
 }
 
