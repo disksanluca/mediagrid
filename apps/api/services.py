@@ -110,7 +110,7 @@ def build_local_plan(project: Project, channel: Channel) -> ContentPlan:
         Scene(
             id="context",
             duration_seconds=scene_duration,
-            narration=f"Explique o contexto de {topic} com fatos que você verificou.",
+            narration=f"{engine.scene_guidance[0]} Tema: {topic}.",
             visual_type=engine.visual_types[1],
             visual_query=f"{topic} contexto",
             on_screen_text="O contexto",
@@ -119,7 +119,7 @@ def build_local_plan(project: Project, channel: Channel) -> ContentPlan:
         Scene(
             id="evidence",
             duration_seconds=scene_duration,
-            narration="Inclua aqui dados e fontes verificadas antes da publicação.",
+            narration=engine.scene_guidance[1],
             visual_type=engine.visual_types[2],
             visual_query=f"{topic} dados",
             on_screen_text="O que os dados mostram",
@@ -128,7 +128,7 @@ def build_local_plan(project: Project, channel: Channel) -> ContentPlan:
         Scene(
             id="meaning",
             duration_seconds=scene_duration,
-            narration="O mais importante é o que isso muda para quem acompanha o assunto.",
+            narration=engine.scene_guidance[2],
             visual_type=engine.visual_types[3],
             visual_query=f"{topic} impacto",
             on_screen_text="Por que isso importa",
@@ -148,10 +148,11 @@ def build_local_plan(project: Project, channel: Channel) -> ContentPlan:
         project_id=project.id,
         engine=engine.id,
         hook=scenes[0].narration,
-        angle=f"Explicar {topic} com clareza e contexto",
+        angle=f"Explicar {topic} com tom {engine.default_tone}",
         target_duration_seconds=duration,
         scenes=scenes,
         requires_fact_review=engine.requires_fact_review,
+        review_checks=list(engine.review_checks),
     )
 
 

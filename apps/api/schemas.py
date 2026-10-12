@@ -1,14 +1,14 @@
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
 class ChannelCreate(BaseModel):
     name: str = Field(min_length=2, max_length=120)
     slug: str = Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
     niche: str
-    default_engine: Literal["football", "geo", "music"]
+    default_engine: Literal["football", "geo", "music", "clips", "politics", "trends"]
     language: str = "pt-BR"
     timezone: str = "America/Sao_Paulo"
     autopilot_level: Literal["MANUAL", "ASSISTED", "AUTO_DRAFT"] = "ASSISTED"
@@ -51,7 +51,7 @@ class Scene(BaseModel):
     visual_type: Literal["headline", "stat", "map", "image", "quote", "outro"]
     visual_query: str
     on_screen_text: str
-    transition: str = "cut"
+    transition: Literal["impact", "slide", "cut", "zoom", "fade"] = "cut"
 
 
 class ContentPlan(BaseModel):
@@ -62,12 +62,20 @@ class ContentPlan(BaseModel):
     target_duration_seconds: int
     scenes: list[Scene] = Field(min_length=2)
     requires_fact_review: bool = True
+    review_checks: list[str] = Field(default_factory=list)
 
 
 class ProjectPlanUpdate(BaseModel):
     scenes: list[Scene] = Field(min_length=2)
     hook: str = Field(min_length=3)
     angle: str = Field(min_length=3)
+
+
+class ProjectReview(BaseModel):
+    source_urls: list[HttpUrl] = Field(min_length=1)
+    facts_confirmed: bool
+    rights_confirmed: bool
+    notes: str = Field(min_length=3, max_length=2000)
 
 
 class ChannelUpdate(BaseModel):
