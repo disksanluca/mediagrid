@@ -16,6 +16,19 @@ The renderer uses text cards. Windows offline speech synthesis can add narration
 transcription uses Windows speech recognition or an optional local whisper.cpp model. Research,
 fact verification, licensed asset sourcing, and direct publishing are still manual.
 
+## Creating a useful first script
+
+Create a channel, then a project. In **Pauta / briefing**, enter three to five concrete
+statements on separate lines (20–300 characters each). The local plan copies those statements
+into editable scene narration without adding facts. Review and save the script in the Editor,
+generate local voice if available, then render and review the MP4. A short topic instead
+produces an editorial outline. Voice and render stay blocked until the narration of every
+outline scene has been edited and saved.
+The Editor identifies whether the plan came from the brief, local AI, or manual edits.
+The app does not independently research or verify the statements; review sources and media
+rights before approving the manual export. Uploaded library assets are not yet placed in
+rendered scenes.
+
 ## Current development fallback on Windows
 
 See [SETUP.md](SETUP.md) for installation and troubleshooting. On Windows, double-click

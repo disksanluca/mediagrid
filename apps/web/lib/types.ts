@@ -45,6 +45,7 @@ export interface Scene {
 export interface ContentPlan {
   project_id: string;
   engine: string;
+  origin?: "OUTLINE" | "BRIEF_BASED" | "LOCAL_AI" | "MANUAL";
   hook: string;
   angle: string;
   target_duration_seconds: number;

@@ -46,7 +46,14 @@ def test_voice_job_is_queued_and_failed_cleanly_without_windows(
         json={"channel_id": channel["id"], "title": "Mapa", "topic": "Mapa do mundo"},
     ).json()
     assert client.post(f"/api/v1/projects/{project['id']}/voice").status_code == 409
-    client.post(f"/api/v1/projects/{project['id']}/plan")
+    plan = client.post(f"/api/v1/projects/{project['id']}/plan").json()
+    assert client.post(f"/api/v1/projects/{project['id']}/voice").status_code == 409
+    for index, scene in enumerate(plan["scenes"]):
+        scene["narration"] = f"Cena {index + 1} revisada para gerar voz."
+    client.put(
+        f"/api/v1/projects/{project['id']}/plan",
+        json={"hook": plan["hook"], "angle": plan["angle"], "scenes": plan["scenes"]},
+    )
     queued = client.post(f"/api/v1/projects/{project['id']}/voice")
     assert queued.status_code == 202
     monkeypatch.setattr(
@@ -80,6 +87,19 @@ def test_ollama_is_restricted_to_loopback(monkeypatch) -> None:
 def test_local_database_backup(client: TestClient) -> None:
     backup_local_database()
     assert list((Path("data") / "backups").glob("mediagrid-*.db"))
+
+
+def test_backup_file_lock_does_not_stop_worker(
+    client: TestClient, monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(get_settings(), "mediagrid_data_dir", tmp_path)
+
+    def locked_destination(*_args: object) -> None:
+        raise PermissionError("backup destination is locked")
+
+    monkeypatch.setattr("workers.render.main.os.replace", locked_destination)
+    backup_local_database()
+    assert not list((tmp_path / "backups").iterdir())
 
 
 def test_voice_is_invalidated_when_script_changes(client: TestClient) -> None:

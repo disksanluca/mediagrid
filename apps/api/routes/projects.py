@@ -15,7 +15,7 @@ from ..engines import get_engine
 from ..local_media import voice_matches
 from ..models import Channel, Job, JobStatus, Project, ProjectStatus
 from ..schemas import ContentPlan, ProjectCreate, ProjectPlanUpdate, ProjectRead, ProjectReview
-from ..services import create_plan, enqueue_job, record_event
+from ..services import build_local_plan, create_plan, enqueue_job, record_event
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -58,7 +58,11 @@ def plan_project(project_id: str, db: Session = Depends(get_db)) -> ContentPlan:
         raise HTTPException(status_code=404, detail="Project not found")
     plan = create_plan(db, project)
     channel = db.get(Channel, project.channel_id)
-    if channel and (channel.editorial_profile or {}).get("auto_render") is True:
+    if (
+        channel
+        and plan.origin != "OUTLINE"
+        and (channel.editorial_profile or {}).get("auto_render") is True
+    ):
         enqueue_job(db, project.id, "RENDER", {"edl": project.edl})
     db.commit()
     return plan
@@ -74,9 +78,18 @@ def update_plan(
     channel = db.get(Channel, project.channel_id)
     if channel is None:
         raise HTTPException(status_code=404, detail="Channel not found")
+    original_narrations = {
+        scene.id: scene.narration.strip()
+        for scene in build_local_plan(project, channel).scenes
+    }
+    still_outline = (project.plan or {}).get("origin") == "OUTLINE" and any(
+        scene.narration.strip() == original_narrations.get(scene.id)
+        for scene in payload.scenes
+    )
     plan = ContentPlan(
         project_id=project.id,
         engine=channel.default_engine,
+        origin="OUTLINE" if still_outline else "MANUAL",
         hook=payload.hook,
         angle=payload.angle,
         target_duration_seconds=round(sum(scene.duration_seconds for scene in payload.scenes)),
@@ -119,6 +132,11 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict[str, st
         raise HTTPException(status_code=404, detail="Project not found")
     if not project.edl:
         raise HTTPException(status_code=409, detail="Create a validated plan before rendering")
+    if (project.plan or {}).get("origin") == "OUTLINE":
+        raise HTTPException(
+            status_code=409,
+            detail="O plano ainda é um esboço. Revise e salve a narração antes do render.",
+        )
     active = db.scalars(
         select(Job).where(
             Job.project_id == project_id,
@@ -146,6 +164,8 @@ def queue_voice(project_id: str, db: Session = Depends(get_db)) -> dict[str, str
         raise HTTPException(404, "Project not found")
     if not project.script:
         raise HTTPException(409, "Create a plan before generating voice")
+    if (project.plan or {}).get("origin") == "OUTLINE":
+        raise HTTPException(409, "Revise e salve a narração antes de gerar a voz.")
     active = db.scalar(
         select(Job).where(
             Job.project_id == project_id,

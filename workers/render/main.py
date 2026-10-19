@@ -1,6 +1,7 @@
 import argparse
 import hashlib
 import json
+import logging
 import os
 import re
 import shutil
@@ -9,6 +10,7 @@ import subprocess
 import time
 from contextlib import closing
 from pathlib import Path
+from uuid import uuid4
 
 from sqlalchemy import select
 
@@ -17,6 +19,8 @@ from apps.api.database import SessionLocal
 from apps.api.local_media import narration_text, synthesize_voice, transcribe_media, voice_matches
 from apps.api.models import Asset, Channel, Job, JobStatus, Project, ProjectStatus, now
 from apps.api.services import claim_next_job, record_event
+
+logger = logging.getLogger(__name__)
 
 
 def validate_video(path: Path) -> dict[str, object]:
@@ -279,16 +283,24 @@ def backup_local_database() -> None:
     target = folder / f"mediagrid-{date.today().isoformat()}.db"
     if target.is_file():
         return
-    temporary = target.with_suffix(".tmp")
+    # Separate workers may start together. A shared .tmp path can lock and kill
+    # the worker before it has a chance to process queued renders.
+    temporary = folder / f".{target.stem}.{uuid4().hex}.tmp"
     try:
         with (
             closing(sqlite3.connect(database)) as source,
             closing(sqlite3.connect(temporary)) as destination,
         ):
             source.backup(destination)
-        os.replace(temporary, target)
+        if not target.is_file():
+            os.replace(temporary, target)
+    except OSError:
+        logger.exception("Daily database backup failed; the worker will retry later")
     finally:
-        temporary.unlink(missing_ok=True)
+        try:
+            temporary.unlink(missing_ok=True)
+        except OSError:
+            logger.warning("Could not remove temporary backup %s", temporary, exc_info=True)
 
 
 def main(argv: list[str] | None = None) -> None:

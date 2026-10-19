@@ -65,7 +65,9 @@ def enrich_plan_with_local_ai(plan: ContentPlan, topic: str) -> ContentPlan:
                 scene.model_copy(update={"narration": text.strip()})
                 for scene, text in zip(plan.scenes, narrations, strict=True)
             ]
-            return plan.model_copy(update={"hook": scenes[0].narration, "scenes": scenes})
+            return plan.model_copy(
+                update={"hook": scenes[0].narration, "scenes": scenes, "origin": "LOCAL_AI"}
+            )
     except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
         logger.info("Local Ollama unavailable; using built-in plan: %s", exc)
         return plan
@@ -95,6 +97,36 @@ def build_local_plan(project: Project, channel: Channel) -> ContentPlan:
     engine = get_engine(channel.default_engine)
     is_vertical = project.format == "vertical"
     duration = 45 if is_vertical else 180
+    brief_lines = [line.strip().lstrip("-• ").strip() for line in project.topic.splitlines()]
+    brief_lines = [line for line in brief_lines if line]
+    if 3 <= len(brief_lines) <= 5 and all(20 <= len(line) <= 300 for line in brief_lines):
+        transitions = ("impact", "slide", "cut", "zoom", "fade")
+        scenes = [
+            Scene(
+                id=f"brief-{index + 1}",
+                duration_seconds=max(5, min(60, round(len(line.split()) / 2.2 + 2))),
+                narration=line,
+                visual_type=engine.visual_types[index % len(engine.visual_types)],
+                visual_query=project.title,
+                on_screen_text=line[:77] + ("…" if len(line) > 77 else ""),
+                transition=transitions[index],
+            )
+            for index, line in enumerate(brief_lines)
+        ]
+        return ContentPlan(
+            project_id=project.id,
+            engine=engine.id,
+            origin="BRIEF_BASED",
+            hook=scenes[0].narration,
+            angle=(
+                "Roteiro baseado no briefing fornecido; "
+                "confirme fatos e direitos antes de publicar."
+            ),
+            target_duration_seconds=round(sum(scene.duration_seconds for scene in scenes)),
+            scenes=scenes,
+            requires_fact_review=True,
+            review_checks=list(engine.review_checks),
+        )
     scene_duration = duration / 5
     topic = project.topic.strip()
     scenes = [
@@ -162,7 +194,9 @@ def create_plan(db: Session, project: Project) -> ContentPlan:
         raise ValueError("Project channel does not exist")
     before = {"status": project.status}
     project.status = ProjectStatus.SCRIPTING.value
-    plan = enrich_plan_with_local_ai(build_local_plan(project, channel), project.topic)
+    plan = build_local_plan(project, channel)
+    if plan.origin == "OUTLINE":
+        plan = enrich_plan_with_local_ai(plan, project.topic)
     project.plan = plan.model_dump()
     project.script = {
         "language": channel.language,

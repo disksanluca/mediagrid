@@ -57,6 +57,7 @@ class Scene(BaseModel):
 class ContentPlan(BaseModel):
     project_id: str
     engine: str
+    origin: Literal["OUTLINE", "BRIEF_BASED", "LOCAL_AI", "MANUAL"] = "OUTLINE"
     hook: str
     angle: str
     target_duration_seconds: int

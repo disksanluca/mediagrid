@@ -66,6 +66,8 @@ def test_manual_export_requires_review_and_is_revoked_after_edit(
     assert manifest["platform_status"] == "not_published"
     assert manifest["approved_review"]["source_urls"] == ["https://example.org/documento"]
 
+    for index, scene in enumerate(plan["scenes"]):
+        scene["narration"] = f"Cena {index + 1} revisada com o documento oficial."
     changed = client.put(
         f"/api/v1/projects/{project_id}/plan",
         json={"scenes": plan["scenes"], "hook": plan["hook"], "angle": plan["angle"]},

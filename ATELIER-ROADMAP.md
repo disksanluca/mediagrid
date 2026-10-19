@@ -34,3 +34,20 @@ vindo do Core local e do SQLite.
 
 O sistema permanece local por padrão, sem VPS obrigatória. Downloads de modelos e APIs de
 terceiros são opcionais. O ZIP de entrega manual não publica automaticamente.
+
+## Correções em andamento após uso real
+
+- O instalador encontrado no computador de teste é de 5 de outubro de 2026 e antecede esta
+  branch. É necessário instalar o próximo build para validar as alterações de interface e fluxo.
+- O plano de um tema curto continua sendo apenas uma estrutura editorial. Um briefing com três
+  a cinco linhas concretas agora gera narrações editáveis a partir do texto fornecido, sem
+  acrescentar fatos. A origem do plano fica identificada como `OUTLINE`, `BRIEF_BASED`,
+  `LOCAL_AI` ou `MANUAL`. Voz e render ficam bloqueados para esboços até que todas as narrações
+  tenham sido revisadas e salvas.
+- O Editor permite retomar um projeto criado mesmo se a primeira geração do plano falhar.
+  Alterações não salvas bloqueiam a geração de voz e o render.
+- Um erro de bloqueio no backup diário foi visto no log do Windows. Os arquivos temporários
+  agora têm nomes únicos e uma falha de backup não encerra o worker; ele tenta de novo depois.
+- Ainda faltam pesquisa com fontes, mídia real por cena, roteiro de IA local com revisão,
+  publicação oficial e validação manual do novo instalador. Esses itens impedem declarar a
+  versão desktop como produto completo.
