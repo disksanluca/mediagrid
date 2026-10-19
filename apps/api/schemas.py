@@ -57,13 +57,14 @@ class Scene(BaseModel):
 class ContentPlan(BaseModel):
     project_id: str
     engine: str
-    origin: Literal["OUTLINE", "BRIEF_BASED", "LOCAL_AI", "MANUAL"] = "OUTLINE"
+    origin: Literal["OUTLINE", "BRIEF_BASED", "OFFICIAL_SOURCE", "LOCAL_AI", "MANUAL"] = "OUTLINE"
     hook: str
     angle: str
     target_duration_seconds: int
     scenes: list[Scene] = Field(min_length=2)
     requires_fact_review: bool = True
     review_checks: list[str] = Field(default_factory=list)
+    source_refs: list[dict[str, str]] = Field(default_factory=list)
 
 
 class ProjectPlanUpdate(BaseModel):

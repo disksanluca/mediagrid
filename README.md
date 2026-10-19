@@ -13,8 +13,10 @@ independent of niches: niches are engines, platforms are connectors, and visual 
 template packs.
 
 The renderer uses text cards. Windows offline speech synthesis can add narration to the MP4;
-transcription uses Windows speech recognition or an optional local whisper.cpp model. Research,
-fact verification, licensed asset sourcing, and direct publishing are still manual.
+transcription uses Windows speech recognition or an optional local whisper.cpp model. The
+Politics Radar can read public Câmara dos Deputados PL records with no account or API key.
+Other research, fact verification, licensed asset sourcing, and direct publishing are still
+manual.
 
 ## Creating a useful first script
 
@@ -24,10 +26,15 @@ into editable scene narration without adding facts. Review and save the script i
 generate local voice if available, then render and review the MP4. A short topic instead
 produces an editorial outline. Voice and render stay blocked until the narration of every
 outline scene has been edited and saved.
-The Editor identifies whether the plan came from the brief, local AI, or manual edits.
-The app does not independently research or verify the statements; review sources and media
-rights before approving the manual export. Uploaded library assets are not yet placed in
-rendered scenes.
+The Editor identifies whether the plan came from the brief, an official source, local AI,
+or manual edits. For a Politics channel, open **Radar**, search Câmara PLs by year and
+optional ementa term, inspect the source link, and choose **Criar roteiro**. MediaGrid
+fetches the selected PL again, stores the official source URL and retrieval time in the
+project plan, and creates an editable vertical script from the identifier, ementa, and last
+recorded status. The API is online and may be unavailable; the saved project remains local.
+The source is evidence to review, not proof that a proposal became law. Check the current
+tramitação, context, and media rights before approving the manual export. Uploaded library
+assets are not yet placed in rendered scenes.
 
 ## Current development fallback on Windows
 

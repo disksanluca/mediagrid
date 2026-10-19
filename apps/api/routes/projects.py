@@ -95,7 +95,9 @@ def update_plan(
         target_duration_seconds=round(sum(scene.duration_seconds for scene in payload.scenes)),
         scenes=payload.scenes,
         requires_fact_review=True,
-        review_checks=list(get_engine(channel.default_engine).review_checks),
+        review_checks=(project.plan or {}).get("review_checks")
+        or list(get_engine(channel.default_engine).review_checks),
+        source_refs=(project.plan or {}).get("source_refs", []),
     )
     project.plan = plan.model_dump()
     project.script = {"language": channel.language, "segments": [s.narration for s in plan.scenes]}
