@@ -1,4 +1,4 @@
-import type {Asset, Channel, ContentPlan, DoctorReport, HardwareProfile, Job, Project, SetupState, SystemStatus} from "./types";
+import type {Asset, Channel, ContentPlan, DoctorReport, HardwareProfile, Job, OfficialProposal, Project, SetupState, SystemStatus} from "./types";
 import {desktopRuntime} from "./desktop";
 
 let baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
@@ -50,6 +50,8 @@ export const api = {
   createChannel: (body: Record<string, unknown>) => request<Channel>("/channels", {method: "POST", body: JSON.stringify(body)}),
   updateChannel: (id: string, body: Record<string, unknown>) => request<Channel>(`/channels/${id}`, {method: "PATCH", body: JSON.stringify(body)}),
   createProject: (body: Record<string, unknown>) => request<Project>("/projects", {method: "POST", body: JSON.stringify(body)}),
+  politicsProposals: (query: string, year: number) => request<OfficialProposal[]>(`/politics/proposals?query=${encodeURIComponent(query)}&year=${year}`),
+  importPoliticsProposal: (channelId: string, proposalId: number) => request<Project>("/politics/projects", {method:"POST", body:JSON.stringify({channel_id:channelId,proposal_id:proposalId})}),
   createPlan: (id: string) => request<ContentPlan>(`/projects/${id}/plan`, {method: "POST"}),
   updatePlan: (id: string, body: Record<string, unknown>) => request<Project>(`/projects/${id}/plan`, {method: "PUT", body: JSON.stringify(body)}),
   render: (id: string) => request<{job_id: string; status: string}>(`/projects/${id}/render`, {method: "POST"}),
@@ -57,4 +59,6 @@ export const api = {
   voiceFile: (id: string) => `${baseUrl}/projects/${id}/voice`,
   retry: (id: string) => request<Job>(`/jobs/${id}/retry`, {method: "POST"}),
   output: (id: string) => `${baseUrl}/projects/${id}/output`,
+  approveReview: (id: string, body: {source_urls:string[];facts_confirmed:boolean;rights_confirmed:boolean;notes:string}) => request<Project>(`/projects/${id}/review`, {method:"POST", body:JSON.stringify(body)}),
+  exportPackage: (id: string) => `${baseUrl}/projects/${id}/export`,
 };

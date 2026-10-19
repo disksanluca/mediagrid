@@ -1,4 +1,4 @@
-export type Engine = "football" | "geo" | "music";
+export type Engine = "football" | "geo" | "music" | "clips" | "politics" | "trends";
 
 export interface Channel {
   id: string;
@@ -39,17 +39,31 @@ export interface Scene {
   visual_type: "headline" | "stat" | "map" | "image" | "quote" | "outro";
   visual_query: string;
   on_screen_text: string;
-  transition: string;
+  transition: "impact" | "slide" | "cut" | "zoom" | "fade";
 }
 
 export interface ContentPlan {
   project_id: string;
   engine: string;
+  origin?: "OUTLINE" | "BRIEF_BASED" | "OFFICIAL_SOURCE" | "LOCAL_AI" | "MANUAL";
   hook: string;
   angle: string;
   target_duration_seconds: number;
   scenes: Scene[];
   requires_fact_review: boolean;
+  review_checks: string[];
+  source_refs?: Array<{title:string;url:string;api_url?:string;fetched_at:string}>;
+  review?: {approved_at:string;source_urls:string[];facts_confirmed:boolean;rights_confirmed:boolean;notes:string};
+}
+
+export interface OfficialProposal {
+  id: number;
+  number: number;
+  year: number;
+  summary: string;
+  presented_at: string;
+  source_url: string;
+  api_url: string;
 }
 
 export interface Job {

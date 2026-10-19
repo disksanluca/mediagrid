@@ -1,14 +1,17 @@
 import argparse
 import hashlib
 import json
+import logging
 import os
 import re
 import shutil
 import sqlite3
 import subprocess
 import time
+import wave
 from contextlib import closing
 from pathlib import Path
+from uuid import uuid4
 
 from sqlalchemy import select
 
@@ -17,6 +20,36 @@ from apps.api.database import SessionLocal
 from apps.api.local_media import narration_text, synthesize_voice, transcribe_media, voice_matches
 from apps.api.models import Asset, Channel, Job, JobStatus, Project, ProjectStatus, now
 from apps.api.services import claim_next_job, record_event
+
+logger = logging.getLogger(__name__)
+
+
+def fit_video_to_voice(
+    video: list[dict], audio: list[dict], voice: Path | None
+) -> tuple[list[dict], float]:
+    """Keep every narration audible when local TTS runs longer than estimates."""
+    tracks = [item.copy() for item in video]
+    planned = sum(float(item["duration"]) for item in tracks)
+    if voice is None:
+        return tracks, planned
+    try:
+        with wave.open(str(voice), "rb") as wav:
+            voice_seconds = wav.getnframes() / wav.getframerate()
+    except (OSError, wave.Error, ZeroDivisionError) as exc:
+        raise ValueError("Generated voice is not a readable WAV") from exc
+    required = voice_seconds + 1.0
+    if required > planned:
+        weights = [
+            max(1, len(str(item.get("text", "")).split())) for item in audio
+        ]
+        if len(weights) != len(tracks):
+            raise ValueError("Voice and video scene counts do not match")
+        total_weight = sum(weights)
+        for item, weight in zip(tracks, weights, strict=True):
+            item["duration"] = (
+                float(item["duration"]) + (required - planned) * weight / total_weight
+            )
+    return tracks, sum(float(item["duration"]) for item in tracks)
 
 
 def validate_video(path: Path) -> dict[str, object]:
@@ -106,13 +139,30 @@ def render_one() -> bool:
             else "#c5ccd6"
         )
         captions = {item["scene_id"]: item["text"] for item in project.edl["tracks"]["captions"]}
+        voice = settings.mediagrid_data_dir / "voice" / f"{project.id}.wav"
+        valid_voice = voice if voice_matches(project.id, project.script) else None
+        try:
+            video_tracks, render_duration = fit_video_to_voice(
+                project.edl["tracks"]["video"], project.edl["tracks"]["audio"], valid_voice
+            )
+        except ValueError as exc:
+            job.status = JobStatus.FAILED.value
+            job.error = str(exc)
+            project.status = ProjectStatus.FAILED.value
+            db.commit()
+            return True
         props = {
             "title": project.title,
             "format": project.format,
             "accent": accent,
+            "source_label": (
+                "Fonte: Câmara dos Deputados"
+                if (project.plan or {}).get("origin") == "OFFICIAL_SOURCE"
+                else None
+            ),
             "scenes": [
                 dict(item, on_screen_text=captions.get(item["scene_id"]))
-                for item in project.edl["tracks"]["video"]
+                for item in video_tracks
             ],
         }
         props_path.write_text(json.dumps(props, ensure_ascii=False), encoding="utf-8")
@@ -161,10 +211,8 @@ def render_one() -> bool:
             if browser:
                 command.append(f"--browser-executable={browser}")
             subprocess.run(command, check=True, cwd=renderer_root if renderer_root else None)
-            voice = settings.mediagrid_data_dir / "voice" / f"{project.id}.wav"
-            if voice_matches(project.id, project.script):
+            if valid_voice is not None:
                 voiced = temp_dir / f"{job.id}-voiced.mp4"
-                duration = sum(float(scene["duration"]) for scene in project.edl["tracks"]["video"])
                 ffmpeg = settings.mediagrid_ffmpeg_path or "ffmpeg"
                 subprocess.run(
                     [
@@ -185,7 +233,7 @@ def render_one() -> bool:
                         "-af",
                         "apad",
                         "-t",
-                        str(duration),
+                        str(render_duration),
                         str(voiced),
                     ],
                     check=True,
@@ -279,16 +327,24 @@ def backup_local_database() -> None:
     target = folder / f"mediagrid-{date.today().isoformat()}.db"
     if target.is_file():
         return
-    temporary = target.with_suffix(".tmp")
+    # Separate workers may start together. A shared .tmp path can lock and kill
+    # the worker before it has a chance to process queued renders.
+    temporary = folder / f".{target.stem}.{uuid4().hex}.tmp"
     try:
         with (
             closing(sqlite3.connect(database)) as source,
             closing(sqlite3.connect(temporary)) as destination,
         ):
             source.backup(destination)
-        os.replace(temporary, target)
+        if not target.is_file():
+            os.replace(temporary, target)
+    except OSError:
+        logger.exception("Daily database backup failed; the worker will retry later")
     finally:
-        temporary.unlink(missing_ok=True)
+        try:
+            temporary.unlink(missing_ok=True)
+        except OSError:
+            logger.warning("Could not remove temporary backup %s", temporary, exc_info=True)
 
 
 def main(argv: list[str] | None = None) -> None:

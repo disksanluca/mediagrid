@@ -65,6 +65,20 @@ def test_project_generates_validated_plan_and_edl(client: TestClient) -> None:
     assert project["status"] == "SCRIPTED"
     assert len(project["edl"]["tracks"]["video"]) == 5
 
+    assert plan["origin"] == "OUTLINE"
+    assert client.post(f"/api/v1/projects/{project_id}/render").status_code == 409
+    plan["scenes"][0]["on_screen_text"] = "Novo título"
+    partial = client.put(
+        f"/api/v1/projects/{project_id}/plan",
+        json={"hook": plan["hook"], "angle": plan["angle"], "scenes": plan["scenes"]},
+    ).json()
+    assert partial["plan"]["origin"] == "OUTLINE"
+    for index, scene in enumerate(plan["scenes"]):
+        scene["narration"] = f"Cena {index + 1} revisada com fonte oficial antes do render."
+    assert client.put(
+        f"/api/v1/projects/{project_id}/plan",
+        json={"hook": plan["hook"], "angle": plan["angle"], "scenes": plan["scenes"]},
+    ).status_code == 200
     render = client.post(f"/api/v1/projects/{project_id}/render")
     assert render.status_code == 202
     jobs = client.get("/api/v1/jobs").json()

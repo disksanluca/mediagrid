@@ -29,6 +29,8 @@ def test_plan_can_be_edited_and_render_only_queued_once(client: TestClient) -> N
     project_id = created.json()["id"]
     plan = client.post(f"/api/v1/projects/{project_id}/plan").json()
     plan["scenes"][0]["on_screen_text"] = "Nova abertura"
+    for index, scene in enumerate(plan["scenes"]):
+        scene["narration"] = f"Cena {index + 1} revisada pela equipe editorial."
     updated = client.put(
         f"/api/v1/projects/{project_id}/plan",
         json={"hook": "Abertura revisada", "angle": plan["angle"], "scenes": plan["scenes"]},
@@ -36,9 +38,39 @@ def test_plan_can_be_edited_and_render_only_queued_once(client: TestClient) -> N
     assert updated.status_code == 200
     assert updated.json()["plan"]["scenes"][0]["on_screen_text"] == "Nova abertura"
     assert updated.json()["edl"]["tracks"]["captions"][0]["text"] == "Nova abertura"
+    assert updated.json()["plan"]["origin"] == "MANUAL"
     assert client.post(f"/api/v1/projects/{project_id}/render").status_code == 202
     assert client.post(f"/api/v1/projects/{project_id}/render").status_code == 409
+    assert client.post(f"/api/v1/projects/{project_id}/voice").status_code == 409
     assert client.get(f"/api/v1/projects/{project_id}/output").status_code == 404
+
+
+def test_multiline_brief_becomes_editable_narration_without_invented_facts(
+    client: TestClient,
+) -> None:
+    channel = client.post(
+        "/api/v1/channels",
+        json={"name": "Canal Geo", "slug": "canal-geo", "niche": "Geo", "default_engine": "geo"},
+    ).json()
+    facts = [
+        "O município publicou um novo mapa de áreas verdes em seu portal.",
+        "O documento informa a data de coleta de cada camada geográfica.",
+        "A equipe editorial deve conferir os limites antes da publicação.",
+    ]
+    project = client.post(
+        "/api/v1/projects",
+        json={
+            "channel_id": channel["id"],
+            "title": "Mapa de áreas verdes",
+            "topic": "\n".join(f"- {fact}" for fact in facts),
+        },
+    ).json()
+    plan = client.post(f"/api/v1/projects/{project['id']}/plan").json()
+    assert plan["origin"] == "BRIEF_BASED"
+    assert [scene["narration"] for scene in plan["scenes"]] == facts
+    stored = client.get(f"/api/v1/projects/{project['id']}").json()
+    assert stored["script"]["segments"] == facts
+    assert len(stored["edl"]["tracks"]["video"]) == 3
 
 
 def test_public_mode_requires_login_and_cookie(monkeypatch, client: TestClient) -> None:
@@ -82,7 +114,13 @@ def test_interrupted_render_is_recovered(client: TestClient) -> None:
         "/api/v1/projects",
         json={"channel_id": channel["id"], "title": "Mapa", "topic": "Mapa do mundo"},
     ).json()
-    client.post(f"/api/v1/projects/{project['id']}/plan")
+    plan = client.post(f"/api/v1/projects/{project['id']}/plan").json()
+    for index, scene in enumerate(plan["scenes"]):
+        scene["narration"] = f"Cena {index + 1} conferida pelo editor."
+    client.put(
+        f"/api/v1/projects/{project['id']}/plan",
+        json={"hook": plan["hook"], "angle": plan["angle"], "scenes": plan["scenes"]},
+    )
     queued = client.post(f"/api/v1/projects/{project['id']}/render").json()
     with SessionLocal() as db:
         job = db.get(Job, queued["job_id"])

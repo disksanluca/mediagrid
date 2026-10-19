@@ -36,8 +36,10 @@ def windows_speech_features() -> tuple[bool, bool]:
                 "Add-Type -AssemblyName System.Speech; "
                 "$v=New-Object System.Speech.Synthesis.SpeechSynthesizer; "
                 "try { Write-Output $v.GetInstalledVoices().Count } finally { $v.Dispose() }; "
-                "Write-Output "
-                "([System.Speech.Recognition.SpeechRecognitionEngine]::InstalledRecognizers().Count)",
+                "try { Write-Output "
+                "([System.Speech.Recognition.SpeechRecognitionEngine]::"
+                "InstalledRecognizers().Count) "
+                "} catch { Write-Output 0 }",
             ],
             check=True,
             capture_output=True,
