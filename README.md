@@ -35,6 +35,9 @@ recorded status. The API is online and may be unavailable; the saved project rem
 The source is evidence to review, not proof that a proposal became law. Check the current
 tramitação, context, and media rights before approving the manual export. Uploaded library
 assets are not yet placed in rendered scenes.
+When a generated WAV lasts longer than the estimated scene times, the renderer extends the
+video scenes to keep the full narration audible. Generating a new voice or render after review
+invalidates the old approval until the new video is reviewed.
 
 ## Current development fallback on Windows
 

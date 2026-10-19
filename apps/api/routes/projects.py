@@ -148,12 +148,18 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict[str, st
     ).first()
     if active:
         raise HTTPException(status_code=409, detail="Render is already queued or running")
-    if project.status == ProjectStatus.APPROVED.value:
+    if project.status in {ProjectStatus.QC.value, ProjectStatus.APPROVED.value}:
+        was_approved = project.status == ProjectStatus.APPROVED.value
         project.plan = {
             key: value for key, value in (project.plan or {}).items() if key != "review"
         }
         project.status = ProjectStatus.SCRIPTED.value
-        record_event(db, "PROJECT_APPROVAL_REVOKED", "project", project.id)
+        record_event(
+            db,
+            "PROJECT_APPROVAL_REVOKED" if was_approved else "PROJECT_OUTPUT_INVALIDATED",
+            "project",
+            project.id,
+        )
     job = enqueue_job(db, project.id, "RENDER", {"edl": project.edl})
     db.commit()
     return {"job_id": job.id, "status": job.status}
@@ -177,6 +183,18 @@ def queue_voice(project_id: str, db: Session = Depends(get_db)) -> dict[str, str
     )
     if active:
         raise HTTPException(409, "Voice is already queued")
+    if project.status in {ProjectStatus.QC.value, ProjectStatus.APPROVED.value}:
+        was_approved = project.status == ProjectStatus.APPROVED.value
+        project.plan = {
+            key: value for key, value in (project.plan or {}).items() if key != "review"
+        }
+        project.status = ProjectStatus.SCRIPTED.value
+        record_event(
+            db,
+            "PROJECT_APPROVAL_REVOKED" if was_approved else "PROJECT_OUTPUT_INVALIDATED",
+            "project",
+            project.id,
+        )
     job = enqueue_job(db, project.id, "VOICE")
     db.commit()
     return {"job_id": job.id, "status": job.status}

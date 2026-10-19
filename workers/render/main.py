@@ -8,6 +8,7 @@ import shutil
 import sqlite3
 import subprocess
 import time
+import wave
 from contextlib import closing
 from pathlib import Path
 from uuid import uuid4
@@ -21,6 +22,34 @@ from apps.api.models import Asset, Channel, Job, JobStatus, Project, ProjectStat
 from apps.api.services import claim_next_job, record_event
 
 logger = logging.getLogger(__name__)
+
+
+def fit_video_to_voice(
+    video: list[dict], audio: list[dict], voice: Path | None
+) -> tuple[list[dict], float]:
+    """Keep every narration audible when local TTS runs longer than estimates."""
+    tracks = [item.copy() for item in video]
+    planned = sum(float(item["duration"]) for item in tracks)
+    if voice is None:
+        return tracks, planned
+    try:
+        with wave.open(str(voice), "rb") as wav:
+            voice_seconds = wav.getnframes() / wav.getframerate()
+    except (OSError, wave.Error, ZeroDivisionError) as exc:
+        raise ValueError("Generated voice is not a readable WAV") from exc
+    required = voice_seconds + 1.0
+    if required > planned:
+        weights = [
+            max(1, len(str(item.get("text", "")).split())) for item in audio
+        ]
+        if len(weights) != len(tracks):
+            raise ValueError("Voice and video scene counts do not match")
+        total_weight = sum(weights)
+        for item, weight in zip(tracks, weights, strict=True):
+            item["duration"] = (
+                float(item["duration"]) + (required - planned) * weight / total_weight
+            )
+    return tracks, sum(float(item["duration"]) for item in tracks)
 
 
 def validate_video(path: Path) -> dict[str, object]:
@@ -110,13 +139,25 @@ def render_one() -> bool:
             else "#c5ccd6"
         )
         captions = {item["scene_id"]: item["text"] for item in project.edl["tracks"]["captions"]}
+        voice = settings.mediagrid_data_dir / "voice" / f"{project.id}.wav"
+        valid_voice = voice if voice_matches(project.id, project.script) else None
+        try:
+            video_tracks, render_duration = fit_video_to_voice(
+                project.edl["tracks"]["video"], project.edl["tracks"]["audio"], valid_voice
+            )
+        except ValueError as exc:
+            job.status = JobStatus.FAILED.value
+            job.error = str(exc)
+            project.status = ProjectStatus.FAILED.value
+            db.commit()
+            return True
         props = {
             "title": project.title,
             "format": project.format,
             "accent": accent,
             "scenes": [
                 dict(item, on_screen_text=captions.get(item["scene_id"]))
-                for item in project.edl["tracks"]["video"]
+                for item in video_tracks
             ],
         }
         props_path.write_text(json.dumps(props, ensure_ascii=False), encoding="utf-8")
@@ -165,10 +206,8 @@ def render_one() -> bool:
             if browser:
                 command.append(f"--browser-executable={browser}")
             subprocess.run(command, check=True, cwd=renderer_root if renderer_root else None)
-            voice = settings.mediagrid_data_dir / "voice" / f"{project.id}.wav"
-            if voice_matches(project.id, project.script):
+            if valid_voice is not None:
                 voiced = temp_dir / f"{job.id}-voiced.mp4"
-                duration = sum(float(scene["duration"]) for scene in project.edl["tracks"]["video"])
                 ffmpeg = settings.mediagrid_ffmpeg_path or "ffmpeg"
                 subprocess.run(
                     [
@@ -189,7 +228,7 @@ def render_one() -> bool:
                         "-af",
                         "apad",
                         "-t",
-                        str(duration),
+                        str(render_duration),
                         str(voiced),
                     ],
                     check=True,
