@@ -41,6 +41,7 @@ def test_plan_can_be_edited_and_render_only_queued_once(client: TestClient) -> N
     assert updated.json()["plan"]["origin"] == "MANUAL"
     assert client.post(f"/api/v1/projects/{project_id}/render").status_code == 202
     assert client.post(f"/api/v1/projects/{project_id}/render").status_code == 409
+    assert client.post(f"/api/v1/projects/{project_id}/voice").status_code == 409
     assert client.get(f"/api/v1/projects/{project_id}/output").status_code == 404
 
 

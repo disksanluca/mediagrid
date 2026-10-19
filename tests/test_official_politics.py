@@ -72,7 +72,7 @@ def test_official_politics_creates_editable_sourced_plan(
     assert updated.json()["plan"]["origin"] == "MANUAL"
     assert updated.json()["plan"]["source_refs"] == plan["source_refs"]
     assert client.post(f"/api/v1/projects/{project['id']}/voice").status_code == 202
-    assert client.post(f"/api/v1/projects/{project['id']}/render").status_code == 202
+    assert client.post(f"/api/v1/projects/{project['id']}/render").status_code == 409
 
 
 def test_official_politics_rejects_wrong_channel_and_offline_source(

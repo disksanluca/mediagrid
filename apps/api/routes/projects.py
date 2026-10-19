@@ -148,6 +148,15 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict[str, st
     ).first()
     if active:
         raise HTTPException(status_code=409, detail="Render is already queued or running")
+    active_voice = db.scalar(
+        select(Job).where(
+            Job.project_id == project_id,
+            Job.job_type == "VOICE",
+            Job.status.in_([JobStatus.QUEUED.value, JobStatus.RUNNING.value]),
+        )
+    )
+    if active_voice:
+        raise HTTPException(409, "Aguarde a geração da nova voz antes de renderizar.")
     if project.status in {ProjectStatus.QC.value, ProjectStatus.APPROVED.value}:
         was_approved = project.status == ProjectStatus.APPROVED.value
         project.plan = {
@@ -183,6 +192,15 @@ def queue_voice(project_id: str, db: Session = Depends(get_db)) -> dict[str, str
     )
     if active:
         raise HTTPException(409, "Voice is already queued")
+    active_render = db.scalar(
+        select(Job).where(
+            Job.project_id == project_id,
+            Job.job_type == "RENDER",
+            Job.status.in_([JobStatus.QUEUED.value, JobStatus.RUNNING.value]),
+        )
+    )
+    if active_render:
+        raise HTTPException(409, "Aguarde o render atual antes de gerar uma nova voz.")
     if project.status in {ProjectStatus.QC.value, ProjectStatus.APPROVED.value}:
         was_approved = project.status == ProjectStatus.APPROVED.value
         project.plan = {

@@ -79,6 +79,7 @@ def test_new_voice_revokes_approval_and_hides_stale_output(
         },
     ).status_code == 200
     assert client.post(f"/api/v1/projects/{project_id}/voice").status_code == 202
+    assert client.post(f"/api/v1/projects/{project_id}/render").status_code == 409
     refreshed = client.get(f"/api/v1/projects/{project_id}").json()
     assert refreshed["status"] == "SCRIPTED"
     assert "review" not in refreshed["plan"]
