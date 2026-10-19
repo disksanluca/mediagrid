@@ -53,7 +53,9 @@ terceiros são opcionais. O ZIP de entrega manual não publica automaticamente.
   Política para Instagram produziu MP4 vertical de 31 segundos com áudio e vídeo.
 - O roteiro oficial testado tinha 35 segundos estimados, enquanto a fala sintetizada durou
   45 segundos. O render agora alonga as cenas conforme a fala e acrescenta margem final para
-  evitar corte. Nova voz ou novo render invalida o vídeo e a aprovação anteriores.
+  evitar corte. Nova voz ou novo render invalida o vídeo e a aprovação anteriores. O vídeo de
+  Política exibe a fonte institucional, usa textos curtos sem cortar palavras e não mostra
+  rótulos internos do renderizador.
 - O Radar consulta os Dados Abertos da Câmara (`GET /proposicoes` e `GET /proposicoes/{id}`)
   para projetos de lei. Documentação oficial consultada em 19/10/2026: API v2, Swagger
   0.4.344, publicado em 18/08/2026. Consulta HTTPS sem chave, com limite local de 10 itens,

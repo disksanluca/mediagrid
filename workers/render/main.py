@@ -155,6 +155,11 @@ def render_one() -> bool:
             "title": project.title,
             "format": project.format,
             "accent": accent,
+            "source_label": (
+                "Fonte: Câmara dos Deputados"
+                if (project.plan or {}).get("origin") == "OFFICIAL_SOURCE"
+                else None
+            ),
             "scenes": [
                 dict(item, on_screen_text=captions.get(item["scene_id"]))
                 for item in video_tracks

@@ -11,6 +11,18 @@ from .services import record_event
 BASE_URL = "https://dadosabertos.camara.leg.br/api/v2"
 
 
+def short_caption(text: str, limit: int = 60) -> str:
+    clean = " ".join(text.split())
+    if len(clean) <= limit:
+        return clean
+    return clean[:limit].rsplit(" ", 1)[0].rstrip(" ,.;:") + "…"
+
+
+def summary_headline(text: str) -> str:
+    first_clause = " ".join(text.split()).split(",", 1)[0].rstrip(" .;:")
+    return first_clause if 20 <= len(first_clause) <= 70 else short_caption(text)
+
+
 def official_client() -> httpx.Client:
     return httpx.Client(timeout=httpx.Timeout(15, connect=5), follow_redirects=False)
 
@@ -123,7 +135,9 @@ def build_politics_plan(
                 narration=narration,
                 visual_type="quote",
                 visual_query=label,
-                on_screen_text=excerpt[:77] + ("…" if len(excerpt) > 77 else ""),
+                on_screen_text=(
+                    summary_headline(excerpt) if index == 0 else short_caption(excerpt)
+                ),
                 transition="slide",
             )
         )
@@ -134,7 +148,13 @@ def build_politics_plan(
             narration=close,
             visual_type="outro",
             visual_query=label,
-            on_screen_text="Acompanhe a tramitação",
+            on_screen_text=(
+                short_caption(status_text)
+                if isinstance(status_text, str)
+                and 0 < len(status_text.strip()) <= 300
+                and status_date
+                else "Confira a tramitação"
+            ),
             transition="fade",
         )
     )

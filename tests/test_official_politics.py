@@ -94,3 +94,16 @@ def test_official_politics_rejects_wrong_channel_and_offline_source(
     response = client.get("/api/v1/politics/proposals", params={"year": 2026})
     assert response.status_code == 503
     assert client.get("/api/v1/projects").json() == []
+
+
+def test_caption_shortening_keeps_whole_words() -> None:
+    result = official_politics.short_caption(
+        "Institui diretrizes para investimentos importantes em infraestrutura", 42
+    )
+    assert result == "Institui diretrizes para investimentos…"
+    assert (
+        official_politics.summary_headline(
+            "Institui a Lei Amapá Tucuju, estabelece diretrizes para investimentos"
+        )
+        == "Institui a Lei Amapá Tucuju"
+    )
