@@ -1,0 +1,15 @@
+/* Premium v3 tokens. Font files and OFL notices are bundled for offline Tauri use. */
+@font-face { font-family:"Space Grotesk"; src:url("/fonts/spacegrotesk-SpaceGrotesk-wght.ttf") format("truetype"); font-weight:300 700; font-display:swap; }
+@font-face { font-family:"DM Sans"; src:url("/fonts/dmsans-DMSans-opsz-wght.ttf") format("truetype"); font-weight:100 1000; font-display:swap; }
+@font-face { font-family:"IBM Plex Mono"; src:url("/fonts/ibmplexmono-IBMPlexMono-Regular.ttf") format("truetype"); font-weight:400; font-display:swap; }
+@font-face { font-family:"IBM Plex Mono"; src:url("/fonts/ibmplexmono-IBMPlexMono-Medium.ttf") format("truetype"); font-weight:500; font-display:swap; }
+@font-face { font-family:"IBM Plex Mono"; src:url("/fonts/ibmplexmono-IBMPlexMono-SemiBold.ttf") format("truetype"); font-weight:600; font-display:swap; }
+:root {
+  --bg:#0b0e0c; --base:#111613; --panel:#151a17; --panel2:#1b211d;
+  --line:#2a302b; --line2:#414c41; --text:#f1f3ed; --muted:#a0a8a0;
+  --dim:#657065; --accent:#d0e5bc; --green:#d0e5bc; --gold:#dac59b;
+  --blue:#a9c9d7; --red:#de9c91;
+  --font-display:"Space Grotesk",system-ui,sans-serif;
+  --font-ui:"DM Sans",system-ui,sans-serif;
+  --font-meta:"IBM Plex Mono",ui-monospace,monospace;
+}

@@ -1,5 +1,8 @@
 # MediaGrid
 
+O [plano e a auditoria do Atelier Premium v3](docs/ATELIER-PREMIUM-V3.md)
+documentam a branch visual atual e seus limites funcionais.
+
 MediaGrid V1 is being built as a local **Windows desktop application**. Tauri hosts the
 React panel in its own window and starts the FastAPI Core and worker on the same computer.
 See [DESKTOP-PLAN.md](DESKTOP-PLAN.md) for the delivery gates. The Windows CI installs the
