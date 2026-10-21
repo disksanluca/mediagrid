@@ -31,7 +31,8 @@ implementadas.
 - Studio usa canal, projeto, plano, cenas, status e MP4 do Core. Quando o MP4
   ainda não existe, apresenta uma **prévia editorial**, identificada como tal,
   sem arte conceitual ou vídeo fictício. A faixa de cenas seleciona cenas reais;
-  edição continua no Editor persistido.
+  edição continua no Editor persistido. Planos `OUTLINE` aparecem como
+  **Estrutura a completar**, sem sugerir um roteiro finalizado.
 - Splash e cor de fundo Tauri seguem a nova paleta. APIs, banco e renderer não
   foram alterados nesta fatia; nenhuma migração é necessária.
 
@@ -60,8 +61,10 @@ da aplicação.
    persistência reais.
 3. Radar, Network e Insights: adaptar composição visual, preservando dados
    oficiais e estados vazios. Conectores externos continuam não conectados.
-4. Windows: gerar NSIS da branch, instalar em máquina limpa, verificar abertura,
-   serviços, render com áudio, backup e restauração antes de integrar à `main`.
+4. Windows: o [CI da primeira etapa](https://github.com/disksanluca/mediagrid/actions/runs/39552495101)
+   compilou NSIS, instalou o app no runner, iniciou Core/SQLite/worker e gerou
+   MP4 com vídeo e áudio. Ainda faltam backup/restauração e teste humano em
+   outra máquina Windows antes de integrar à `main`.
 
 Não há VPS obrigatória. Nenhum merge, publicação direta ou integração paga faz
 parte desta etapa.
