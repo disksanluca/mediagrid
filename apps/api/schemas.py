@@ -52,6 +52,7 @@ class Scene(BaseModel):
     visual_query: str
     on_screen_text: str
     transition: Literal["impact", "slide", "cut", "zoom", "fade"] = "cut"
+    asset_id: str | None = None
 
 
 class ContentPlan(BaseModel):
@@ -111,6 +112,13 @@ class AssetRead(BaseModel):
     commercial_use: bool
     metadata_json: dict[str, Any]
     created_at: datetime
+
+
+class AssetRightsUpdate(BaseModel):
+    rights_status: Literal["UNKNOWN", "OWNED", "LICENSED", "RESTRICTED"]
+    creator: str | None = Field(default=None, max_length=240)
+    license_name: str | None = Field(default=None, max_length=120)
+    commercial_use: bool = False
 
 
 class SystemStatus(BaseModel):

@@ -13,7 +13,7 @@ conteúdo ou de funcionalidades de produção.
 | React / Next | Sete ambientes, login, SetupWizard, formulários reais, editor, atalhos e modais | Shell antigo não correspondia ao v3; Settings não existia na navegação |
 | FastAPI / SQLite | Autenticação local, canais, projetos, planos, assets, jobs, revisão e backup | Mudança futura de schema exige migrações versionadas |
 | Workers | Fila local, voz/transcrição opcionais, render e backup | Recuperação após reiniciar o instalador atualizado precisa de verificação |
-| Remotion / FFmpeg | Cinco transições (`impact`, `slide`, `cut`, `zoom`, `fade`) e MP4 com áudio | Seis artes conceituais do kit não correspondem a seis presets implementados; mídia de arquivo por cena e timeline multifaixa faltam |
+| Remotion / FFmpeg | Cinco transições (`impact`, `slide`, `cut`, `zoom`, `fade`) e MP4 com áudio | Seis artes conceituais do kit não correspondem a seis presets implementados; timeline multifaixa falta |
 | Motores | Football, Music, Geo, Clips, Politics e Trends; Politics consulta PLs oficiais da Câmara | Fontes para os demais motores e checagem automática de alegações faltam |
 | Entrega | Revisão humana e pacote ZIP para publicação manual | Publicação direta e métricas de plataformas ainda não conectadas |
 
@@ -68,3 +68,32 @@ da aplicação.
 
 Não há VPS obrigatória. Nenhum merge, publicação direta ou integração paga faz
 parte desta etapa.
+
+## Etapa funcional: mídia real por cena (21 de outubro de 2026)
+
+- O Editor grava `asset_id` em cada cena do plano e do EDL. JPEG, PNG, WebP e
+  MP4 importados na Biblioteca podem ser selecionados; a tela de texto continua
+  disponível. A interface permite corrigir status de direitos, criador, licença
+  e permissão comercial de arquivos já importados.
+- A API rejeita mídia inexistente, ausente, restrita ou de direitos desconhecidos;
+  mídia licenciada exige nome de licença. A fila verifica novamente os direitos
+  antes de renderizar. O worker confere SHA-256, copia apenas os arquivos usados
+  para uma pasta temporária isolada e passa essa pasta ao Remotion. Imagens cobrem
+  o quadro; vídeos ficam sem áudio e repetem conforme a duração da cena. A pasta
+  temporária é removida no fim do trabalho.
+- Não houve alteração de schema SQLite: a associação fica nos campos JSON
+  existentes `plan` e `edl`. Projetos antigos sem `asset_id` continuam com as
+  cenas de texto. O render pode falhar se um arquivo importado não for de fato
+  decodificável no formato declarado; a falha fica visível no job.
+- Verificado localmente: 39 testes Python passaram, Ruff passou, typechecks Web
+  e Renderer passaram, build Next passou. Um render real de quatro segundos em
+  1080×1920 usou uma imagem vermelha e um MP4 verde; a leitura de pixels confirmou
+  as cores em cenas diferentes. O smoke do instalador Windows foi ampliado para
+  importar e renderizar esses dois tipos de mídia no CI. Esse smoke ainda precisa
+  de execução na nova revisão, e o aplicativo instalado no PC do usuário continua
+  na versão anterior.
+
+Próxima validação: executar o instalador no CI com imagem, clipe e voz; verificar
+o fluxo de um roteiro de Política com fonte oficial, revisão e exportação, e só
+então considerar a atualização da instalação local. Publicação direta e fontes
+dos demais motores permanecem sem integração real.

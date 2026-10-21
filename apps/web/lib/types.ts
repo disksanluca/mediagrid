@@ -40,6 +40,7 @@ export interface Scene {
   visual_query: string;
   on_screen_text: string;
   transition: "impact" | "slide" | "cut" | "zoom" | "fade";
+  asset_id?: string | null;
 }
 
 export interface ContentPlan {

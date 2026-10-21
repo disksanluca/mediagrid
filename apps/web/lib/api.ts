@@ -36,6 +36,7 @@ export const api = {
     return response.json() as Promise<Asset>;
   },
   assetFile: (id: string) => `${baseUrl}/assets/${id}/file`,
+  updateAssetRights: (id: string, body: {rights_status:string;creator:string|null;license_name:string|null;commercial_use:boolean}) => request<Asset>(`/assets/${id}/rights`, {method:"PATCH",body:JSON.stringify(body)}),
   transcribe: (id: string) => request<{job_id:string;status:string}>(`/assets/${id}/transcribe`, {method:"POST"}),
   transcript: async (id: string) => {
     const response = await fetch(`${await resolveBaseUrl()}/assets/${id}/transcript`);

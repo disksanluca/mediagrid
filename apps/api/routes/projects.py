@@ -14,6 +14,7 @@ from ..database import get_db
 from ..engines import get_engine
 from ..local_media import voice_matches
 from ..models import Channel, Job, JobStatus, Project, ProjectStatus
+from ..scene_media import validate_scene_assets
 from ..schemas import ContentPlan, ProjectCreate, ProjectPlanUpdate, ProjectRead, ProjectReview
 from ..services import build_local_plan, create_plan, enqueue_job, record_event
 
@@ -78,6 +79,7 @@ def update_plan(
     channel = db.get(Channel, project.channel_id)
     if channel is None:
         raise HTTPException(status_code=404, detail="Channel not found")
+    validate_scene_assets(db, payload.scenes)
     original_narrations = {
         scene.id: scene.narration.strip()
         for scene in build_local_plan(project, channel).scenes
@@ -111,6 +113,7 @@ def update_plan(
                     "duration": s.duration_seconds,
                     "visual_type": s.visual_type,
                     "transition": s.transition,
+                    "asset_id": s.asset_id,
                 }
                 for s in plan.scenes
             ],
@@ -139,6 +142,7 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict[str, st
             status_code=409,
             detail="O plano ainda é um esboço. Revise e salve a narração antes do render.",
         )
+    validate_scene_assets(db, project.edl["tracks"]["video"])
     active = db.scalars(
         select(Job).where(
             Job.project_id == project_id,

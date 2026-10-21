@@ -46,16 +46,27 @@ try {
   $channel = Invoke-RestMethod "$api/channels" -Method Post -ContentType "application/json" -Body $channelBody
   $projectBody = @{channel_id=$channel.id;title="Vídeo de teste";topic="Renderização local no Windows";format="vertical"} | ConvertTo-Json -Compress
   $project = Invoke-RestMethod "$api/projects" -Method Post -ContentType "application/json" -Body $projectBody
-  $scenes = @(
-    @{id="intro";duration_seconds=0.5;narration="A";visual_type="headline";visual_query="";on_screen_text="MediaGrid";transition="cut"},
-    @{id="end";duration_seconds=0.5;narration="B";visual_type="outro";visual_query="";on_screen_text="Teste local";transition="cut"}
-  )
-  $planBody = @{hook="Teste local";angle="Validação do instalador";scenes=$scenes} | ConvertTo-Json -Depth 10 -Compress
-  Invoke-RestMethod "$api/projects/$($project.id)/plan" -Method Put -ContentType "application/json" -Body $planBody | Out-Null
 
   $ffmpeg = Get-ChildItem $installDir -Filter "ffmpeg.exe" -Recurse | Select-Object -First 1
   $ffprobe = Get-ChildItem $installDir -Filter "ffprobe.exe" -Recurse | Select-Object -First 1
   if (-not $ffmpeg -or -not $ffprobe) { throw "FFmpeg portátil não encontrado na instalação." }
+  $sourceImage = Join-Path $env:RUNNER_TEMP "mediagrid-scene.png"
+  $sourceVideo = Join-Path $env:RUNNER_TEMP "mediagrid-scene.mp4"
+  & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "color=c=red:s=320x180:d=1" -frames:v 1 -update 1 $sourceImage
+  if ($LASTEXITCODE -ne 0) { throw "FFmpeg portátil não gerou a imagem de teste." }
+  & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "color=c=green:s=320x180:d=2" -c:v libx264 -pix_fmt yuv420p $sourceVideo
+  if ($LASTEXITCODE -ne 0) { throw "FFmpeg portátil não gerou o clipe de teste." }
+  $imageAsset = (& curl.exe -sS -f -F "file=@$sourceImage;type=image/png" -F "rights_status=OWNED" "$api/assets" | ConvertFrom-Json)
+  if ($LASTEXITCODE -ne 0 -or -not $imageAsset.id) { throw "Upload da imagem na instalação falhou." }
+  $videoAsset = (& curl.exe -sS -f -F "file=@$sourceVideo;type=video/mp4" -F "rights_status=OWNED" "$api/assets" | ConvertFrom-Json)
+  if ($LASTEXITCODE -ne 0 -or -not $videoAsset.id) { throw "Upload do clipe na instalação falhou." }
+  $scenes = @(
+    @{id="intro";duration_seconds=0.5;narration="A";visual_type="image";visual_query="";on_screen_text="MediaGrid";transition="cut";asset_id=$imageAsset.id},
+    @{id="end";duration_seconds=0.5;narration="B";visual_type="image";visual_query="";on_screen_text="Teste local";transition="cut";asset_id=$videoAsset.id}
+  )
+  $planBody = @{hook="Teste local";angle="Validação do instalador";scenes=$scenes} | ConvertTo-Json -Depth 10 -Compress
+  Invoke-RestMethod "$api/projects/$($project.id)/plan" -Method Put -ContentType "application/json" -Body $planBody | Out-Null
+
   $voiceDir = Join-Path $dataDir "voice"
   New-Item -ItemType Directory -Force -Path $voiceDir | Out-Null
   $voicePath = Join-Path $voiceDir "$($project.id).wav"
@@ -80,7 +91,18 @@ try {
   if (-not (Test-Path $video)) { throw "MP4 não foi criado pela instalação." }
   $streamTypes = @(& $ffprobe.FullName -v error -show_entries stream=codec_type -of csv=p=0 $video | ForEach-Object { $_.Trim() })
   if ($streamTypes -notcontains "video" -or $streamTypes -notcontains "audio") { throw "MP4 instalado está sem vídeo ou áudio." }
-  Write-Host "Remotion e FFmpeg instalados geraram MP4 com vídeo e áudio."
+  $firstPixel = Join-Path $env:RUNNER_TEMP "mediagrid-first.rgb"
+  $secondPixel = Join-Path $env:RUNNER_TEMP "mediagrid-second.rgb"
+  & $ffmpeg.FullName -hide_banner -loglevel error -y -ss 0.5 -i $video -frames:v 1 -vf "crop=2:2:900:1000" -pix_fmt rgb24 -f rawvideo $firstPixel
+  if ($LASTEXITCODE -ne 0) { throw "Não foi possível ler pixels da primeira cena." }
+  & $ffmpeg.FullName -hide_banner -loglevel error -y -ss 1.5 -i $video -frames:v 1 -vf "crop=2:2:900:1000" -pix_fmt rgb24 -f rawvideo $secondPixel
+  if ($LASTEXITCODE -ne 0) { throw "Não foi possível ler pixels da segunda cena." }
+  $red = [System.IO.File]::ReadAllBytes($firstPixel)
+  $green = [System.IO.File]::ReadAllBytes($secondPixel)
+  if ($red[0] -le 2 * $red[1] -or $green[1] -le 2 * $green[0]) {
+    throw "A imagem ou o clipe importado não apareceu no MP4 final."
+  }
+  Write-Host "Remotion e FFmpeg instalados geraram MP4 com imagem, clipe e áudio."
 } catch {
   Get-ChildItem (Join-Path $dataDir "Logs") -ErrorAction SilentlyContinue | ForEach-Object { Get-Content $_.FullName -Tail 40 }
   throw
