@@ -146,6 +146,48 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   de edição completa da composição no desktop empacotado. O contrato v2
   completo não está implementado.
 
+## Marco 2 — ingestão longa local (prova técnica)
+
+- MP4 de até 20 GiB usa sessão persistida em SQLite, partes de até 8 MiB e
+  `Upload-Offset`. A biblioteca guarda o ID da sessão no navegador e, ao
+  selecionar novamente o mesmo arquivo, consulta o deslocamento real antes de
+  retomar. Repetir uma parte idêntica não duplica bytes; parte divergente ou
+  fora de ordem retorna `409`. Outros formatos conservam a importação anterior
+  de até 500 MB.
+- A API registra direitos, criador/licença, URL de origem opcional, tamanho, SHA-256 do original,
+  duração, dimensões, FPS e codecs após FFprobe. Hash declarado incompatível
+  ou MP4 inválido impede a criação do asset. Duplicação por hash reutiliza o
+  asset já registrado e seus direitos, sem sobrescrevê-los.
+- O job `PROXY` roda no worker local e publica MP4 H.264/AAC de 640 px a
+  12 fps após verificar o hash do original. Seu progresso vem do FFmpeg, não
+  de um temporizador fictício. Uma forma de onda PNG é criada quando há áudio.
+  A API entrega proxy/onda somente se o hash do artefato confere. A biblioteca
+  mostra estado, duração e links reais. O editor usa o proxy para scrubbing,
+  mantendo o original como fonte do render.
+- Migração `0003_upload_sessions` cria `upload_sessions`; o rollback até
+  `0001_legacy` remove apenas as tabelas novas. `data/uploads` e
+  `data/proxies` são criadas pelo bootstrap. Nenhuma variável nova é necessária
+  em `.env.example`; a importação usa `MEDIAGRID_DATA_DIR`, FFmpeg e FFprobe
+  já configurados.
+- `uv run pytest -q tests`: **60 passed**, 1 aviso de depreciação
+  Starlette/httpx. `uv run ruff check .`: passou. TypeScript do web e renderer:
+  passou. `node node_modules/next/dist/bin/next build apps/web`: passou.
+- `uv run python scripts/prove_long_ingest.py` criou uma prova isolada com MP4
+  sintético de 90 s em `data/rea-proof/20261022T234942Z-ingest`. Houve
+  interrupção/reconexão entre partes, rejeição de trim além da fonte, salvamento na timeline e prévia pela
+  API. O arquivo guardado reteve SHA-256
+  `35414f624af521665782b638a34e38be70d979d393c4009aa11d6be76c9297f5`;
+  proxy SHA-256
+  `863070c71ffe4bcb65e2c72b6ef9450ae9c973fd2f0b0018811eb296684b2632`.
+  FFprobe do proxy: H.264/AAC, 640×360, 90,166667 s. Frame de 12 s foi
+  inspecionado; o proxy apareceu na biblioteca e no editor local.
+- **Limites:** a prova sintética valida transporte, integridade, worker e
+  interface, não qualidade editorial. Ainda falta teste com vídeo longo
+  autorizado pelo usuário, avaliação auditiva completa, recuperação no
+  instalador Windows e comportamento de espaço em disco quase esgotado.
+  Sem mídia autorizada, cortes e Football Edit permanecem bloqueados para
+  aceite criativo. Nenhum deploy, publicação ou custo de API paga ocorreu.
+
 ## Ordem restante e gates
 
 1. Fechar Marco 1: validação visual/auditiva no desktop empacotado.

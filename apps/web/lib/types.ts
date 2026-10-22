@@ -132,10 +132,11 @@ export interface Asset {
   name: string;
   media_type: string;
   rights_status: string;
+  source_url: string | null;
   creator: string | null;
   license_name: string | null;
   commercial_use: boolean;
-  metadata_json: {size_bytes?: number};
+  metadata_json: {size_bytes?: number;duration_ms?:number;video_codec?:string;audio_codec?:string|null;proxy_sha256?:string;proxy_duration_ms?:number;waveform_sha256?:string|null;waveform_status?:string;ingest_status?:string};
   created_at: string;
 }
 

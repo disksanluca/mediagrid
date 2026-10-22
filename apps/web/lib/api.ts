@@ -1,6 +1,21 @@
 import type {Asset, Channel, ContentPlan, DoctorReport, GeoMunicipality, HardwareProfile, Job, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimelineResponse} from "./types";
 import {desktopRuntime} from "./desktop";
 
+export interface UploadState {
+  id: string;
+  name: string;
+  size_bytes: number;
+  received_bytes: number;
+  status: "OPEN" | "COMPLETE" | "FAILED";
+  asset_id: string | null;
+  error: string | null;
+  rights_status: string;
+  creator: string | null;
+  source_url: string | null;
+  license_name: string | null;
+  commercial_use: boolean;
+}
+
 let baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 
 function errorMessage(detail: unknown, status: number): string {
@@ -40,13 +55,26 @@ export const api = {
   projects: () => request<Project[]>("/projects"),
   jobs: () => request<Job[]>("/jobs"),
   assets: () => request<Asset[]>("/assets"),
+  createUpload: (body: {name:string;media_type:string;size_bytes:number;rights_status:string;creator:string|null;source_url:string|null;license_name:string|null;commercial_use:boolean}) =>
+    request<UploadState>("/assets/uploads", {method:"POST", body:JSON.stringify(body)}),
+  uploadState: (id: string) => request<UploadState>(`/assets/uploads/${id}`),
+  uploadChunk: async (id: string, offset: number, chunk: Blob) => {
+    const response = await fetch(`${await resolveBaseUrl()}/assets/uploads/${id}`, {
+      method:"PUT", headers:{"Upload-Offset":String(offset),"Content-Type":"application/octet-stream"}, body:chunk,
+    });
+    if (!response.ok) {const body=(await response.json().catch(()=>null)) as {detail?:unknown}|null;throw new Error(errorMessage(body?.detail,response.status));}
+    return response.json() as Promise<UploadState>;
+  },
+  completeUpload: (id: string) => request<{upload:UploadState;asset_id:string;proxy_job_id:string|null}>(`/assets/uploads/${id}/complete`, {method:"POST"}),
   uploadAsset: async (form: FormData) => {
     const response = await fetch(`${await resolveBaseUrl()}/assets`, {method:"POST", body:form});
     if (!response.ok) {const body = (await response.json().catch(()=>null)) as {detail?:unknown}|null; throw new Error(errorMessage(body?.detail,response.status));}
     return response.json() as Promise<Asset>;
   },
   assetFile: (id: string) => `${baseUrl}/assets/${id}/file`,
-  updateAssetRights: (id: string, body: {rights_status:string;creator:string|null;license_name:string|null;commercial_use:boolean}) => request<Asset>(`/assets/${id}/rights`, {method:"PATCH",body:JSON.stringify(body)}),
+  assetProxy: (id: string) => `${baseUrl}/assets/${id}/proxy`,
+  assetWaveform: (id: string) => `${baseUrl}/assets/${id}/waveform`,
+  updateAssetRights: (id: string, body: {rights_status:string;creator:string|null;source_url?:string|null;license_name:string|null;commercial_use:boolean}) => request<Asset>(`/assets/${id}/rights`, {method:"PATCH",body:JSON.stringify(body)}),
   transcribe: (id: string) => request<{job_id:string;status:string}>(`/assets/${id}/transcribe`, {method:"POST"}),
   transcript: async (id: string) => {
     const response = await fetch(`${await resolveBaseUrl()}/assets/${id}/transcript`);

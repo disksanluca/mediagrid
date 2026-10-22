@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Job, JobStatus
+from ..models import Asset, Job, JobStatus
 from ..schemas import JobRead
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
@@ -37,6 +37,12 @@ def retry_job(job_id: str, db: Session = Depends(get_db)) -> Job:
     job.status = JobStatus.QUEUED.value
     job.error = None
     job.progress = 0
+    if job.job_type == "PROXY":
+        asset = db.get(Asset, job.payload.get("asset_id"))
+        if asset:
+            asset.metadata_json = {
+                **(asset.metadata_json or {}), "ingest_status": "PROXY_QUEUED",
+            }
     db.commit()
     db.refresh(job)
     return job

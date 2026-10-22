@@ -32,6 +32,7 @@ from apps.api.render_plan import fit_video_to_voice, render_props
 from apps.api.render_plan import source_label as source_label
 from apps.api.scene_media import stage_scene_assets, stage_sound_assets
 from apps.api.services import claim_next_job, record_event
+from workers.render.proxy import build_proxy
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,7 @@ def recover_interrupted_jobs() -> None:
     with SessionLocal() as db:
         jobs = db.scalars(
             select(Job).where(
-                Job.job_type.in_(["RENDER", "VOICE", "TRANSCRIBE"]),
+                Job.job_type.in_(["RENDER", "VOICE", "TRANSCRIBE", "PROXY"]),
                 Job.status == JobStatus.RUNNING.value,
             )
         ).all()
@@ -369,7 +370,7 @@ def media_one() -> bool:
             select(Job)
             .where(
                 Job.status == JobStatus.QUEUED.value,
-                Job.job_type.in_(["VOICE", "TRANSCRIBE"]),
+                Job.job_type.in_(["VOICE", "TRANSCRIBE", "PROXY"]),
             )
             .order_by(Job.priority, Job.created_at)
             .limit(1)
@@ -391,6 +392,13 @@ def media_one() -> bool:
                 output.with_suffix(".sha256").write_text(
                     hashlib.sha256(text.encode("utf-8")).hexdigest()
                 )
+            elif job.job_type == "PROXY":
+                asset_id = job.payload.get("asset_id")
+                asset = db.get(Asset, asset_id) if asset_id else None
+                if asset is None:
+                    raise ValueError("Proxy asset not found")
+                job.result = build_proxy(db, job, asset)
+                output = settings.mediagrid_data_dir / "proxies" / f"{asset.id}.mp4"
             else:
                 asset_id = job.payload.get("asset_id")
                 asset = db.get(Asset, asset_id) if asset_id else None
@@ -403,11 +411,18 @@ def media_one() -> bool:
                 transcribe_media(source, output)
             job.status = JobStatus.SUCCEEDED.value
             job.progress = 1
-            job.result = {"output": str(output)}
+            job.result = {**(job.result or {}), "output": str(output)}
             record_event(db, f"{job.job_type}_FINISHED", "job", job.id, after=job.result)
         except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
             job.status = JobStatus.FAILED.value
             job.error = str(exc)
+            if job.job_type == "PROXY":
+                failed_asset = db.get(Asset, job.payload.get("asset_id"))
+                if failed_asset:
+                    failed_asset.metadata_json = {
+                        **(failed_asset.metadata_json or {}),
+                        "ingest_status": "FAILED",
+                    }
             record_event(db, f"{job.job_type}_FAILED", "job", job.id, after={"error": job.error})
         job.finished_at = now()
         db.commit()
