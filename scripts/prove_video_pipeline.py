@@ -74,6 +74,10 @@ def main() -> None:
         "--synthetic-sound", action="store_true",
         help="Mix an original looped test tone with local narration",
     )
+    parser.add_argument(
+        "--synthetic-video-layer", action="store_true",
+        help="Overlay an original one-second synthetic MP4 on a scene",
+    )
     args = parser.parse_args()
     run_dir = (args.output / datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")).resolve()
     run_dir.mkdir(parents=True, exist_ok=False)
@@ -136,7 +140,10 @@ def main() -> None:
         if plan["origin"] != "BRIEF_BASED" or len(plan["scenes"]) != 4:
             raise RuntimeError("Brief was not converted into the expected editable scenes")
         edl_v2_revision = None
-        if args.edl_v2_roundtrip or args.kinetic_title or args.synthetic_sound:
+        if (
+            args.edl_v2_roundtrip or args.kinetic_title
+            or args.synthetic_sound or args.synthetic_video_layer
+        ):
             timeline = checked(client.get(f"/api/v1/projects/{project_id}/edl-v2"))
             if args.kinetic_title:
                 timeline["edl"]["tracks"].append({
@@ -170,6 +177,30 @@ def main() -> None:
                         "preset": "sound_v1",
                         "params": {"gain": 0.12, "fade_in_ms": 500,
                                    "fade_out_ms": 500, "loop": True},
+                    }],
+                })
+            if args.synthetic_video_layer:
+                synthetic_mp4 = run_dir / "original-test-cutaway.mp4"
+                subprocess.run([
+                    ffmpeg, "-y", "-f", "lavfi", "-i",
+                    "testsrc2=size=640x360:rate=30", "-t", "1",
+                    "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                    "-an", str(synthetic_mp4),
+                ], check=True, capture_output=True)
+                asset = checked(client.post(
+                    "/api/v1/assets",
+                    files={"file": (
+                        "original-test-cutaway.mp4", synthetic_mp4.read_bytes(), "video/mp4"
+                    )},
+                    data={"rights_status": "OWNED", "creator": "MediaGrid technical proof"},
+                ))
+                timeline["edl"]["tracks"].append({
+                    "id": "proof-cutaways", "kind": "video", "items": [{
+                        "id": "proof-cutaway", "start_ms": 4000, "duration_ms": 1000,
+                        "z_index": 5, "source_asset_id": asset["id"],
+                        "source_in_ms": 0, "source_out_ms": 1000,
+                        "preset": "video_overlay_v1",
+                        "params": {"focus_x": 0.5, "focus_y": 0.5, "opacity": 1},
                     }],
                 })
             edl_v2_revision = checked(
@@ -240,9 +271,8 @@ def main() -> None:
             raise RuntimeError("Render job MP4 hash does not match its artifact")
         if render_result["result"].get("edl_sha256") != edl_sha256:
             raise RuntimeError("Render job EDL hash does not match its project")
-        if (args.kinetic_title or args.synthetic_sound) and not render_result["result"].get(
-            "revision_sha256"
-        ):
+        has_v2_layer = args.kinetic_title or args.synthetic_sound or args.synthetic_video_layer
+        if has_v2_layer and not render_result["result"].get("revision_sha256"):
             raise RuntimeError("Layer render did not record its EDL v2 revision")
         evidence = {
             "project_id": project_id,
@@ -254,6 +284,7 @@ def main() -> None:
             "caption_mode": "one visual text card per scene; word timing not implemented",
             "kinetic_title": args.kinetic_title,
             "synthetic_sound": args.synthetic_sound,
+            "synthetic_video_layer": args.synthetic_video_layer,
             "revision_sha256": render_result["result"].get("revision_sha256"),
             "jobs": [
                 {"type": job.job_type, "status": job.status, "attempt": job.attempt}

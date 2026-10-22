@@ -181,6 +181,7 @@ def render_one() -> bool:
         queued_v2 = (job.payload or {}).get("edl_v2")
         overlays = []
         sounds = []
+        video_layers = []
         revision_sha256 = None
         if queued_v2 is not None:
             current = db.scalar(
@@ -191,7 +192,9 @@ def render_one() -> bool:
             )
             try:
                 canonical = EDLV2.model_validate(queued_v2)
-                base, overlays, sounds = scene_projection(canonical, project.format)
+                base, overlays, sounds, video_layers = scene_projection(
+                    canonical, project.format
+                )
                 if not current or current.edl != queued_v2 or base != project.edl:
                     raise ValueError("Timeline revision changed after this render was queued")
                 revision_sha256 = current.sha256
@@ -261,10 +264,26 @@ def render_one() -> bool:
                 }
                 for item in sounds
             ]
+        if video_layers:
+            props["video_layers"] = [
+                {
+                    "id": item.id, "start_ms": item.start_ms,
+                    "duration_ms": item.duration_ms,
+                    "z_index": item.z_index,
+                    "source_asset_id": item.source_asset_id,
+                    "source_in_ms": item.source_in_ms,
+                    "source_out_ms": item.source_out_ms,
+                    **item.params,
+                }
+                for item in video_layers
+            ]
         project.status = ProjectStatus.RENDERING.value
         db.commit()
         try:
-            staged = stage_scene_assets(db, video_tracks, public_dir)
+            staged = stage_scene_assets(db, [
+                *video_tracks,
+                *({"asset_id": item.source_asset_id} for item in video_layers),
+            ], public_dir)
             for media in staged.values():
                 if media["media_kind"] == "video":
                     info = validate_video(public_dir / media["media_file"])
@@ -279,6 +298,14 @@ def render_one() -> bool:
                         raise ValueError(
                             "Trecho do clipe fora da duração do MP4. Ajuste início e fim no Editor."
                         )
+            for item in props.get("video_layers", []):
+                media = staged[item["source_asset_id"]]
+                if media["media_kind"] != "video":
+                    raise ValueError("Video layer asset is not an MP4")
+                item["media_file"] = media["media_file"]
+                duration = float(media["media_duration"])
+                if item["source_out_ms"] / 1000 > duration + 0.05:
+                    raise ValueError("Video layer source interval exceeds the MP4")
             if sounds:
                 staged_sounds = stage_sound_assets(
                     db, {item.source_asset_id for item in sounds}, public_dir
@@ -317,7 +344,8 @@ def render_one() -> bool:
                     str(cli),
                     "render",
                     str(renderer_root / "src" / "index.ts"),
-                    "MediaGridTimelineV2" if overlays or sounds else "MediaGridVideo",
+                    "MediaGridTimelineV2" if overlays or sounds or video_layers
+                    else "MediaGridVideo",
                     str(output_path),
                     "--props",
                     str(props_path),
@@ -339,7 +367,7 @@ def render_one() -> bool:
                 command = [
                     "npm",
                     "run",
-                    "render:v2" if overlays or sounds else "render",
+                    "render:v2" if overlays or sounds or video_layers else "render",
                     "--workspace",
                     "@mediagrid/renderer",
                     "--",

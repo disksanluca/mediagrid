@@ -31,7 +31,7 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   descartável, iniciar API/worker, renderizar e testar exportação e backup.
   Isso não equivale a atualizar o PC do usuário.
 
-## Marco 1 — cenas, título animado e som local; vídeo livre pendente
+## Marco 1 — cenas, título animado, som e clipe local
 
 - Alembic `1.20.0` instalado pelo `uv.lock`, com baseline `0001_legacy` e revisão
   `0002_revisions`. O bootstrap valida todas as tabelas/colunas legadas antes
@@ -53,16 +53,18 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   ganho, fades, loop, início e duração. O worker confere hash e duração do
   arquivo, e mistura o som com a narração no MP4. O contrato
   valida texto, cor, posição, escala, opacidade, intervalos e keyframes; não
-  aceita HTML ou presets arbitrários. Vídeo livre, velocidade e outros
-  keyframes continuam recusados. `GET/PUT
+  aceita HTML ou presets arbitrários. Uma trilha extra `video` aceita MP4
+  próprio/licenciado em `video_overlay_v1`, com início, duração, recorte de
+  origem, foco e opacidade; velocidade diferente de 1 e outros keyframes
+  continuam recusados. `GET/PUT
   /projects/{id}/edl-v2` expõe a revisão, hash da projeção legada e bloqueia
   edições concorrentes com `409`. O Editor v1 também avança a revisão e verifica
   hash. Regenerar o plano avança a revisão. Editar durante render ativo é recusado.
 - O Editor React mostra as trilhas persistidas e a forma de onda decodificada
   do WAV real, com audição local. Continua editando cenas reais; título, duração,
   narração, mídia e ordem são salvos na API. Também adiciona, edita e remove
-  títulos animados com três keyframes, adiciona/edita/remove música e efeitos
-  da Biblioteca e persiste a revisão via API. A edição de cena preserva
+  títulos animados com três keyframes, adiciona/edita/remove música, efeitos
+  e clipes MP4 da Biblioteca e persiste a revisão via API. A edição de cena preserva
   camadas válidas; alterações invalidam o vídeo anterior.
   O MP4 renderizado é a prévia fiel do subconjunto v2 implementado.
 - Uma revisão invalida o estado de aprovação/saída. A revisão humana registra
@@ -72,7 +74,7 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   `FAILED` com evento `RENDER_STALE` se a timeline mudou após a fila. Um render
   concluído registra SHA-256 do EDL e do MP4 em `job.result`; teste de integração
   cobre o caso de job obsoleto sem iniciar Remotion.
-- `uv run pytest -q`: **54 passaram**, um aviso Starlette/httpx.
+- `uv run pytest -q`: **56 passaram**, um aviso Starlette/httpx.
   `uv run ruff
   check .` e TypeScript do Web passaram. `uv run python
   scripts/prove_video_pipeline.py --edl-v2-roundtrip` salvou revisão **2**,
@@ -115,15 +117,26 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   ainda não foi realizada. O navegador exibiu música/SFX persistidos; editar
   um SFX avançou revisão 4→5. A correção de recarga automática preservou a
   alteração por mais de 10 s; criar outro SFX pela UI avançou revisão 5→6.
-- **Ainda pendente para concluir o Marco 1:** camadas de vídeo livres no EDL,
-  preview antes do render, QA auditivo integral e teste
+- A prova combinada `--edl-v2-roundtrip --kinetic-title --synthetic-sound
+  --synthetic-video-layer` importou um MP4 de padrão sintético original, salvou
+  a trilha `video` sem transformá-la em cena e renderizou
+  `data/rea-proof/20261022T232523Z/renders/7ca95a43-7336-457e-9c30-f1ea9bf54b6f.mp4`:
+  31 s, 1080×1920, H.264/AAC, SHA-256
+  `38862ebd38b2d0fe518350ff0c5215fa530799ffbee601589d8647da70424c88`.
+  Os jobs VOICE/RENDER terminaram `SUCCEEDED`; o projeto ficou em `QC`, sem
+  aprovação/publicação. O quadro de 4,5 s foi inspecionado e mostra o clipe
+  sintético sobre a cena. Este é um teste de composição, não uma peça editorial.
+  Na interface local, o clipe apareceu na trilha e no formulário; sua opacidade
+  foi alterada de 1 para 0,5 e salva na revisão 2→3, invalidando a saída antiga.
+- **Ainda pendente para concluir o Marco 1:** preview antes do render, QA
+  auditivo integral e teste
   de edição completa da composição no desktop empacotado. O contrato v2
   completo não está implementado.
 
 ## Ordem restante e gates
 
-1. Fechar Marco 1: vídeo livre em trilha, preview antes do
-   render e validação visual/auditiva. Manter a projeção estrita enquanto o
+1. Fechar Marco 1: preview antes do render e validação visual/auditiva.
+   Manter a projeção estrita enquanto o
    renderer v2 não suportar os novos elementos.
 2. Ingestão longa com hash, probe, direitos, proxy e retomada.
 3. Voz humana/local, ASR por palavra e captions corrigíveis.
@@ -147,7 +160,8 @@ final. A migração atual só cria/remove tabela nova, sem alterar colunas SQLit
 existentes. Remotion instalado `4.0.532`; composição e sequenciamento foram
 conferidos na [documentação oficial](https://www.remotion.dev/docs/composition)
 e no [guia de timing](https://www.remotion.dev/docs/timing) em 22/10/2026.
-A API de [áudio do Remotion](https://www.remotion.dev/docs/html5-audio) e o
+A API de [áudio do Remotion](https://www.remotion.dev/docs/html5-audio), a de
+[OffthreadVideo](https://www.remotion.dev/docs/offthreadvideo) e o
 filtro [amix do FFmpeg](https://ffmpeg.org/ffmpeg-filters.html#amix) também
 foram consultados nesta data. O código usa `Audio` do pacote `remotion` já
 fixado, com render local; a documentação atual recomenda `@remotion/media`

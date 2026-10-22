@@ -20,6 +20,7 @@ export interface RenderProps {
   scenes: RenderScene[];
   overlays?: RenderOverlay[];
   sounds?: RenderSound[];
+  video_layers?: RenderVideoLayer[];
 }
 
 export interface RenderOverlay {
@@ -49,5 +50,18 @@ export interface RenderSound {
   fade_in_ms: number;
   fade_out_ms: number;
   loop: boolean;
+}
+
+export interface RenderVideoLayer {
+  id: string;
+  start_ms: number;
+  duration_ms: number;
+  z_index: number;
+  media_file: string;
+  source_in_ms: number;
+  source_out_ms: number;
+  focus_x: number;
+  focus_y: number;
+  opacity: number;
 }
 

@@ -1,6 +1,6 @@
-import {AbsoluteFill, Audio, interpolate, Sequence, staticFile, useCurrentFrame, useVideoConfig} from "remotion";
+import {AbsoluteFill, Audio, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig} from "remotion";
 import {MediaGridVideo} from "./video";
-import type {RenderOverlay, RenderProps, RenderSound} from "./types";
+import type {RenderOverlay, RenderProps, RenderSound, RenderVideoLayer} from "./types";
 
 function KineticTitle({item}: {item: RenderOverlay}) {
   const frame = useCurrentFrame();
@@ -37,11 +37,26 @@ function SoundItem({item}: {item: RenderSound}) {
   />;
 }
 
+function VideoLayer({item}: {item: RenderVideoLayer}) {
+  const {fps} = useVideoConfig();
+  return <AbsoluteFill style={{pointerEvents:"none",opacity:item.opacity}}>
+    <OffthreadVideo muted src={staticFile(item.media_file)}
+      trimBefore={Math.round(item.source_in_ms * fps / 1000)}
+      style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:`${item.focus_x*100}% ${item.focus_y*100}%`}}
+    />
+  </AbsoluteFill>;
+}
+
 export function MediaGridTimelineV2(input: Partial<RenderProps>) {
-  const props: RenderProps = {title:"MediaGrid",format:"vertical",accent:"#dcf769",scenes:[],overlays:[],sounds:[],...input};
+  const props: RenderProps = {title:"MediaGrid",format:"vertical",accent:"#dcf769",scenes:[],overlays:[],sounds:[],video_layers:[],...input};
   const {fps} = useVideoConfig();
   return <AbsoluteFill>
     <MediaGridVideo {...props}/>
+    {[...(props.video_layers ?? [])].sort((a,b)=>a.z_index-b.z_index).map((item)=><Sequence
+      key={item.id}
+      from={Math.round(item.start_ms * fps / 1000)}
+      durationInFrames={Math.max(1,Math.round(item.duration_ms * fps / 1000))}
+    ><VideoLayer item={item}/></Sequence>)}
     {(props.overlays ?? []).map((item) => <Sequence
       key={item.id}
       from={Math.round(item.start_ms * fps / 1000)}

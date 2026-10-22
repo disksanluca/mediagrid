@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from apps.api.database import SessionLocal
-from apps.api.edl_v2 import EDLV2, from_legacy, to_legacy
+from apps.api.edl_v2 import EDLV2, from_legacy, scene_projection, to_legacy
 from apps.api.models import Job
 
 
@@ -110,6 +110,25 @@ def test_overlay_rejects_unknown_preset_and_invalid_keyframes() -> None:
     overlay["preset"] = "kinetic_title_v1"
     overlay["params"]["keyframes"][1]["at_ms"] = 1010
     with pytest.raises(ValidationError, match="within the item"):
+        EDLV2.model_validate(converted)
+
+
+def test_free_video_layer_keeps_scene_projection_and_requires_local_source() -> None:
+    converted = from_legacy(sample_edl(), None).model_dump()
+    layer = {
+        "id": "cutaway-1", "start_ms": 1000, "duration_ms": 1000,
+        "z_index": 5, "source_asset_id": "mp4-1",
+        "source_in_ms": 2000, "source_out_ms": 3000,
+        "preset": "video_overlay_v1",
+        "params": {"focus_x": 0.5, "focus_y": 0.4, "opacity": 1},
+    }
+    converted["tracks"].append({"id": "cutaways", "kind": "video", "items": [layer]})
+    edl = EDLV2.model_validate(converted)
+    projected, titles, sounds, videos = scene_projection(edl, "vertical")
+    assert projected == to_legacy(from_legacy(sample_edl(), None), "vertical")
+    assert not titles and not sounds and videos[0].source_in_ms == 2000
+    layer["source_out_ms"] = 3500
+    with pytest.raises(ValidationError, match="source range and timeline duration"):
         EDLV2.model_validate(converted)
 
 
@@ -302,3 +321,45 @@ def test_sound_track_requires_rights_and_reaches_render_job(client: TestClient) 
     with SessionLocal() as db:
         job = db.get(Job, queued.json()["job_id"])
         assert job and job.payload["edl_v2"]["tracks"][3]["items"][0]["id"] == "sound-1"
+
+
+def test_video_layer_is_saved_without_becoming_a_scene(client: TestClient) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Corte local", "slug": "corte-local", "niche": "clips",
+        "default_engine": "clips",
+    }).json()
+    project = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Camada de vídeo",
+        "topic": (
+            "Primeira frase concreta para a abertura do vídeo.\n"
+            "Segunda frase concreta para a parte central.\n"
+            "Terceira frase concreta para o encerramento."
+        ),
+    }).json()
+    project_id = project["id"]
+    assert client.post(f"/api/v1/projects/{project_id}/plan").status_code == 200
+    asset = client.post("/api/v1/assets", files={
+        "file": ("clip.mp4", b"contract-test-placeholder", "video/mp4"),
+    }, data={"rights_status": "OWNED"})
+    assert asset.status_code == 201, asset.text
+    current = client.get(f"/api/v1/projects/{project_id}/edl-v2").json()
+    current["edl"]["tracks"].append({
+        "id": "cutaways", "kind": "video", "items": [{
+            "id": "cutaway-1", "start_ms": 0, "duration_ms": 1000,
+            "z_index": 5, "source_asset_id": asset.json()["id"],
+            "source_in_ms": 0, "source_out_ms": 1000,
+            "preset": "video_overlay_v1",
+            "params": {"focus_x": 0.5, "focus_y": 0.5, "opacity": 1},
+        }],
+    })
+    saved = client.put(f"/api/v1/projects/{project_id}/edl-v2", json={
+        "expected_revision": current["revision"],
+        "expected_legacy_sha256": current["legacy_sha256"],
+        "edl": current["edl"],
+    })
+    assert saved.status_code == 200, saved.text
+    legacy = client.get(f"/api/v1/projects/{project_id}").json()["edl"]
+    assert len(legacy["tracks"]["video"]) == 3
+    revised = client.get(f"/api/v1/projects/{project_id}/edl-v2").json()
+    assert revised["renderer"] == "timeline-v2"
+    assert revised["edl"]["tracks"][-1]["items"][0]["id"] == "cutaway-1"

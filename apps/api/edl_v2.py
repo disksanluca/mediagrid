@@ -114,6 +114,24 @@ def validate_sound(item: TimelineItem) -> SoundSpec:
     return spec
 
 
+class VideoLayerSpec(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    focus_x: float = Field(ge=0, le=1)
+    focus_y: float = Field(ge=0, le=1)
+    opacity: float = Field(gt=0, le=1)
+
+
+def validate_video_layer(item: TimelineItem) -> VideoLayerSpec:
+    if (
+        item.preset != "video_overlay_v1" or not item.source_asset_id
+        or item.source_in_ms is None or item.source_out_ms is None
+        or item.speed != 1 or item.z_index < 1
+    ):
+        raise ValueError("Video layers need a local MP4, source range and z-index")
+    return VideoLayerSpec.model_validate(item.params)
+
+
 class EDLV2(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -140,6 +158,8 @@ class EDLV2(BaseModel):
                     validate_sound(item)
                 if track.kind == "caption":
                     validate_overlay(item)
+                if track.kind == "video" and track.id != "picture":
+                    validate_video_layer(item)
         return self
 
 
@@ -291,7 +311,7 @@ def to_legacy(edl: EDLV2, format_: str) -> dict[str, Any]:
 
 def scene_projection(
     edl: EDLV2, format_: str
-) -> tuple[dict[str, Any], list[TimelineItem], list[TimelineItem]]:
+) -> tuple[dict[str, Any], list[TimelineItem], list[TimelineItem], list[TimelineItem]]:
     """Project scenes to v1 while retaining supported visual and sound layers."""
     overlays = [
         item for track in edl.tracks if track.kind == "caption" for item in track.items
@@ -300,10 +320,16 @@ def scene_projection(
         item for track in edl.tracks if track.kind in {"music", "sfx"}
         for item in track.items
     ]
+    video_layers = [
+        item for track in edl.tracks
+        if track.kind == "video" and track.id != "picture"
+        for item in track.items
+    ]
     base = edl.model_copy(update={
         "tracks": [
             track for track in edl.tracks
             if track.kind not in {"caption", "music", "sfx"}
+            and not (track.kind == "video" and track.id != "picture")
         ],
     })
-    return to_legacy(base, format_), overlays, sounds
+    return to_legacy(base, format_), overlays, sounds, video_layers

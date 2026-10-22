@@ -354,3 +354,6 @@ body:has(.atelier-app) { background:var(--bg); }
 .sound-controls {display:grid;gap:12px;padding-top:20px;border-top:1px solid var(--line)}
 .sound-controls h4 {margin:0;font-size:14px}
 .sound-controls audio {width:100%;max-width:560px}
+.video-layer-controls {display:grid;gap:12px;padding-top:20px;border-top:1px solid var(--line)}
+.video-layer-controls h4 {margin:0;font-size:14px}
+.video-layer-controls video {display:block;width:min(100%,360px);max-height:300px;background:#090d0b;border-radius:8px}
