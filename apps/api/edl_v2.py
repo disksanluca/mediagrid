@@ -41,10 +41,9 @@ class TimelineItem(BaseModel):
             if not self.source_asset_id or self.source_out_ms <= self.source_in_ms:
                 raise ValueError("source range needs an asset and positive span")
             source_duration = (self.source_out_ms - self.source_in_ms) / self.speed
-            if self.params.get("loop") is True:
-                if source_duration > self.duration_ms + 1000 / 24:
-                    raise ValueError("loop source exceeds timeline duration")
-            elif abs(source_duration - self.duration_ms) > 1000 / 24:
+            if self.params.get("loop") is not True and (
+                abs(source_duration - self.duration_ms) > 1000 / 24
+            ):
                 raise ValueError("source range and timeline duration differ")
         return self
 

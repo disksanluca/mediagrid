@@ -172,6 +172,14 @@ def main() -> None:
             raise RuntimeError("Project/EDL was not persisted")
         if len(stored.edl["tracks"]["captions"]) != len(stored.edl["tracks"]["video"]):
             raise RuntimeError("Every scene must have a persisted visual text card")
+        video_sha256 = hashlib.sha256(video.read_bytes()).hexdigest()
+        edl_sha256 = hashlib.sha256(json.dumps(
+            stored.edl, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")).hexdigest()
+        if render_result["result"].get("sha256") != video_sha256:
+            raise RuntimeError("Render job MP4 hash does not match its artifact")
+        if render_result["result"].get("edl_sha256") != edl_sha256:
+            raise RuntimeError("Render job EDL hash does not match its project")
         evidence = {
             "project_id": project_id,
             "project_status": stored.status,
@@ -186,7 +194,8 @@ def main() -> None:
             ],
             "events": [event.event_type for event in events],
             "video": str(video),
-            "sha256": hashlib.sha256(video.read_bytes()).hexdigest(),
+            "sha256": video_sha256,
+            "edl_sha256": edl_sha256,
             "duration_seconds": duration,
             "voice_duration_seconds": voice_duration,
             "video_codec": video_stream["codec_name"],

@@ -51,6 +51,16 @@ def test_v1_roundtrip_keeps_timing_text_and_looped_mp4() -> None:
     assert restored["tracks"]["video"][1]["clip_end_seconds"] == 3
 
 
+def test_v1_trim_longer_than_scene_is_preserved_for_truncation() -> None:
+    original = sample_edl()
+    original["tracks"]["video"][1]["clip_end_seconds"] = 10
+    converted = from_legacy(original, None)
+    assert converted.tracks[0].items[1].source_out_ms == 10000
+    assert to_legacy(converted, "vertical")["tracks"]["video"][1][
+        "clip_end_seconds"
+    ] == 10
+
+
 def test_draft_with_empty_voice_is_convertible_but_not_render_ready() -> None:
     old = sample_edl()
     old["tracks"]["audio"][0]["text"] = ""

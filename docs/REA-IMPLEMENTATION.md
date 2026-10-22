@@ -58,7 +58,12 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
 - Uma revisão invalida o estado de aprovação/saída. A revisão humana registra
   SHA-256 do EDL e do MP4; a exportação manual recusa alteração do arquivo
   aprovado. Teste de adulteração cobre este bloqueio.
-- `uv run pytest -q`: **49 passaram**, um aviso Starlette/httpx. `uv run ruff
+- O worker compara o EDL salvo no job com o projeto antes do render e marca
+  `FAILED` com evento `RENDER_STALE` se a timeline mudou após a fila. Um render
+  concluído registra SHA-256 do EDL e do MP4 em `job.result`; teste de integração
+  cobre o caso de job obsoleto sem iniciar Remotion.
+- `uv run pytest -q`: **51 passaram**, um aviso Starlette/httpx.
+  `uv run ruff
   check .` e TypeScript do Web passaram. `uv run python
   scripts/prove_video_pipeline.py --edl-v2-roundtrip` salvou revisão **2**,
   executou VOICE e RENDER (`SUCCEEDED`), gerou MP4 H.264/AAC 1080×1920 de 31 s
@@ -66,6 +71,12 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   `57ee11c5c4259e59d97b01979fc18a477c9fd75a52bc1664f20dfe465822eaec`.
   Projeto permaneceu em `QC`, sem aprovação/publicação. O mesmo hash da prova
   anterior evidencia compatibilidade de conteúdo no caso testado.
+- Após incluir o hash no worker, uma segunda prova em
+  `data/rea-proof/20261022T225037Z` manteve os mesmos 31 s e SHA-256 do MP4;
+  `job.result` contém também SHA-256 do EDL
+  `cf3425b22322da77d64acf090332b688e083db43141ed3fce89f6940b83b7d71`.
+  A prova repetida em `data/rea-proof/20261022T225159Z` conferiu em código
+  ambos os hashes do job com os arquivos/projeto, com o mesmo resultado.
 - Teste manual no navegador local com esta base isolada: timeline revisão 2,
   waveform e player WAV visíveis; edição do texto da primeira cena avançou a
   revisão para 3, mudou o estado para `SCRIPTED` e ocultou o MP4 anterior.

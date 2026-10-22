@@ -138,6 +138,20 @@ def render_one() -> bool:
             job.error = "Project or EDL not found"
             db.commit()
             return True
+        queued_edl = (job.payload or {}).get("edl")
+        if queued_edl is not None and queued_edl != project.edl:
+            job.status = JobStatus.FAILED.value
+            job.error = "Project timeline changed after this render was queued"
+            job.finished_at = now()
+            record_event(db, "RENDER_STALE", "project", project.id, after={
+                "job_id": job.id, "error": job.error,
+            })
+            db.commit()
+            return True
+        rendered_edl = queued_edl if queued_edl is not None else project.edl
+        edl_sha256 = hashlib.sha256(json.dumps(
+            rendered_edl, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")).hexdigest()
 
         temp_dir = settings.mediagrid_data_dir / "temp"
         output_dir = settings.mediagrid_data_dir / "renders"
@@ -288,7 +302,14 @@ def render_one() -> bool:
             video_info = validate_video(output_path)
             job.status = JobStatus.SUCCEEDED.value
             job.progress = 1
-            job.result = {"output": str(output_path), **video_info}
+            digest = hashlib.sha256()
+            with output_path.open("rb") as rendered:
+                for chunk in iter(lambda: rendered.read(1024 * 1024), b""):
+                    digest.update(chunk)
+            job.result = {
+                "output": str(output_path), "sha256": digest.hexdigest(),
+                "edl_sha256": edl_sha256, **video_info,
+            }
             job.finished_at = now()
             project.status = ProjectStatus.QC.value
             record_event(db, "RENDER_FINISHED", "project", project.id, after=job.result)
