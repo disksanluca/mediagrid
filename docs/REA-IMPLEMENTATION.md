@@ -31,7 +31,7 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   descartável, iniciar API/worker, renderizar e testar exportação e backup.
   Isso não equivale a atualizar o PC do usuário.
 
-## Marco 1 — cenas, título animado, som e clipe local
+## Marco 1 — cenas, título animado, som, clipe local e prévia
 
 - Alembic `1.20.0` instalado pelo `uv.lock`, com baseline `0001_legacy` e revisão
   `0002_revisions`. O bootstrap valida todas as tabelas/colunas legadas antes
@@ -74,7 +74,7 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   `FAILED` com evento `RENDER_STALE` se a timeline mudou após a fila. Um render
   concluído registra SHA-256 do EDL e do MP4 em `job.result`; teste de integração
   cobre o caso de job obsoleto sem iniciar Remotion.
-- `uv run pytest -q`: **56 passaram**, um aviso Starlette/httpx.
+- `uv run pytest -q`: **57 passaram**, um aviso Starlette/httpx.
   `uv run ruff
   check .` e TypeScript do Web passaram. `uv run python
   scripts/prove_video_pipeline.py --edl-v2-roundtrip` salvou revisão **2**,
@@ -128,14 +128,27 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   sintético sobre a cena. Este é um teste de composição, não uma peça editorial.
   Na interface local, o clipe apareceu na trilha e no formulário; sua opacidade
   foi alterada de 1 para 0,5 e salva na revisão 2→3, invalidando a saída antiga.
-- **Ainda pendente para concluir o Marco 1:** preview antes do render, QA
-  auditivo integral e teste
+- `GET /projects/{id}/preview` agora monta props da revisão salva com o mesmo
+  gerador usado pelo worker. Verifica direitos/hash dos assets e usa FFprobe
+  para checar duração e streams antes de expor a prévia. O Player React executa
+  a composição `MediaGridTimelineV2` no editor antes do render, com cenas,
+  camadas, som e voz local quando pronta; a voz final ainda passa pelo mix e
+  limitador FFmpeg, portanto a audição decisiva é a do MP4. Uma revisão antiga
+  incompatível usa as cenas atuais, como o worker, sem exibir camadas obsoletas.
+  A API não salva um job nem finge que gerou MP4 ao abrir a prévia.
+- A prova `data/rea-proof/20261022T233357Z/preview-props.json` validou a API de
+  prévia após VOICE, incluindo as quatro cenas, título, música e clipe.
+  O render seguinte manteve 31 s, H.264/AAC, 1080×1920 e SHA-256
+  `38862ebd38b2d0fe518350ff0c5215fa530799ffbee601589d8647da70424c88`.
+  No navegador local, o Player exibiu a revisão 3, iniciou a reprodução e
+  avançou no tempo sem erro novo de console. `next build apps/web` passou.
+- **Ainda pendente para concluir o Marco 1:** QA auditivo integral e teste
   de edição completa da composição no desktop empacotado. O contrato v2
   completo não está implementado.
 
 ## Ordem restante e gates
 
-1. Fechar Marco 1: preview antes do render e validação visual/auditiva.
+1. Fechar Marco 1: validação visual/auditiva no desktop empacotado.
    Manter a projeção estrita enquanto o
    renderer v2 não suportar os novos elementos.
 2. Ingestão longa com hash, probe, direitos, proxy e retomada.
@@ -161,7 +174,8 @@ existentes. Remotion instalado `4.0.532`; composição e sequenciamento foram
 conferidos na [documentação oficial](https://www.remotion.dev/docs/composition)
 e no [guia de timing](https://www.remotion.dev/docs/timing) em 22/10/2026.
 A API de [áudio do Remotion](https://www.remotion.dev/docs/html5-audio), a de
-[OffthreadVideo](https://www.remotion.dev/docs/offthreadvideo) e o
+[OffthreadVideo](https://www.remotion.dev/docs/offthreadvideo), a do
+[Player](https://www.remotion.dev/docs/player/player) e o
 filtro [amix do FFmpeg](https://ffmpeg.org/ffmpeg-filters.html#amix) também
 foram consultados nesta data. O código usa `Audio` do pacote `remotion` já
 fixado, com render local; a documentação atual recomenda `@remotion/media`

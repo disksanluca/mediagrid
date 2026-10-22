@@ -219,6 +219,21 @@ def main() -> None:
         voice_result = checked(client.get(f"/api/v1/jobs/{voice_job}"))
         if voice_result["status"] != "SUCCEEDED":
             raise RuntimeError(f"Voice job failed: {voice_result['error']}")
+        preview = checked(client.get(f"/api/v1/projects/{project_id}/preview"))
+        if not preview["voice_ready"] or preview["duration_seconds"] < 30:
+            raise RuntimeError("Preview did not include the generated voice timing")
+        if len(preview["props"]["scenes"]) != len(plan["scenes"]):
+            raise RuntimeError("Preview lost a saved scene")
+        for enabled, key in (
+            (args.kinetic_title, "overlays"),
+            (args.synthetic_sound, "sounds"),
+            (args.synthetic_video_layer, "video_layers"),
+        ):
+            if enabled and len(preview["props"].get(key, [])) != 1:
+                raise RuntimeError(f"Preview lost a saved {key} layer")
+        (run_dir / "preview-props.json").write_text(
+            json.dumps(preview, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
         render_job = checked(client.post(f"/api/v1/projects/{project_id}/render"))["job_id"]
         if not render_one():
             raise RuntimeError("Worker did not process the render job")

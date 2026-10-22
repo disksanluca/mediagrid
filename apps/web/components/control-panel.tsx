@@ -2,6 +2,7 @@
 
 import {FormEvent, useCallback, useEffect, useRef, useState} from "react";
 import type {Dispatch, SetStateAction} from "react";
+import dynamic from "next/dynamic";
 import {Activity, ArrowDownToLine, ArrowRight, CircleAlert, Clapperboard, Cpu, Film, FolderOpen, LockKeyhole, Mic, Plus, Radio, RefreshCw, RotateCcw, Save, Sparkles, Upload} from "lucide-react";
 import {AtelierHeader, atelierNav} from "@/components/atelier/atelier-header";
 import type {AtelierView} from "@/components/atelier/atelier-header";
@@ -14,6 +15,7 @@ import type {Asset, Channel, DoctorReport, Engine, GeoMunicipality, HardwareProf
 type View = AtelierView;
 type Dialog = "project" | "channel" | null;
 const nav = atelierNav;
+const TimelinePreview = dynamic(()=>import("./timeline-preview").then((module)=>module.TimelinePreview),{ssr:false});
 const pilotChannels: Array<{name: string; slug: string; niche: string; default_engine: Engine}> = [
   {name: "Futebol em Foco", slug: "futebol-em-foco", niche: "Futebol", default_engine: "football"},
   {name: "Mundo em Mapas", slug: "mundo-em-mapas", niche: "Geografia", default_engine: "geo"},
@@ -234,6 +236,7 @@ function ProjectEditor({project,assets,jobs,busy,onBack,onRadar,onRefresh,onRun}
   const hasEmptyNarration=scenes.some((scene)=>!scene.narration.trim());
   return <><button className="button quiet back" onClick={onBack}>← Voltar à produção</button><div className="section-heading no-top"><div><div className="eyebrow">PROJETO / {project.format.toUpperCase()}</div><h2>{project.title}</h2><p>{project.topic}</p></div><Badge value={project.status}/></div>
     {timeline&&<TimelineTracks timeline={timeline} assets={assets} selectedScene={selectedScene} onSelect={setSelectedScene}/>}
+    {timeline&&project.plan?.origin!=="OUTLINE"&&<TimelinePreview projectId={project.id} timeline={timeline}/>}
     {timeline&&<OverlayEditor projectId={project.id} timeline={timeline} selectedScene={selectedScene} assets={assets} busy={busy} disabled={unsaved||activeRender} onRun={onRun} onSaved={setTimeline}/>}
     {voiceReady&&<VoiceWaveform projectId={project.id}/>}
     {timelineError&&<p className="small-note">Timeline: {timelineError}</p>}
@@ -247,7 +250,7 @@ function ProjectEditor({project,assets,jobs,busy,onBack,onRadar,onRefresh,onRun}
 function TimelineTracks({timeline,assets,selectedScene,onSelect}:{timeline:TimelineResponse;assets:Asset[];selectedScene:string;onSelect:(id:string)=>void}) {
   const duration=Math.max(1,timeline.edl.duration_ms);
   const labels:Record<string,string>={video:"Imagem / clipe",voice:"Narração",graphic:"Texto visual",caption:"Título animado",music:"Música",sfx:"Efeitos sonoros"};
-  return <section className="panel timeline-v2"><div className="panel-head"><div><h3>Timeline persistida</h3><p>Trilhas da revisão {timeline.revision}; os blocos selecionam a cena correspondente.</p></div><span className="badge">{(duration/1000).toFixed(1)} s</span></div><div className="panel-body">{timeline.edl.tracks.map((track)=><div className="timeline-v2-row" key={track.id}><strong>{labels[track.kind]??track.kind}</strong><div className="timeline-v2-lane">{track.items.map((item)=><button key={item.id} className={selectedScene===item.params.scene_id?"active":""} style={{left:`${item.start_ms/duration*100}%`,width:`${item.duration_ms/duration*100}%`}} onClick={()=>item.params.scene_id&&onSelect(item.params.scene_id)} title={`${item.params.scene_id??item.id} · ${(item.start_ms/1000).toFixed(1)}–${((item.start_ms+item.duration_ms)/1000).toFixed(1)} s`}>{item.params.text||item.params.scene_id||assets.find((asset)=>asset.id===item.source_asset_id)?.name||item.id}</button>)}</div></div>)}<p className="small-note">{timeline.renderer==="timeline-v2"?"Camadas de título, som e clipes desta revisão são renderizadas no MP4. Revise o resultado completo antes de aprovar.":"Esta revisão usa o render de cenas atual; adicione camadas v2 no editor abaixo."} Preview antes do render ainda está pendente.</p></div></section>;
+  return <section className="panel timeline-v2"><div className="panel-head"><div><h3>Timeline persistida</h3><p>Trilhas da revisão {timeline.revision}; os blocos selecionam a cena correspondente.</p></div><span className="badge">{(duration/1000).toFixed(1)} s</span></div><div className="panel-body">{timeline.edl.tracks.map((track)=><div className="timeline-v2-row" key={track.id}><strong>{labels[track.kind]??track.kind}</strong><div className="timeline-v2-lane">{track.items.map((item)=><button key={item.id} className={selectedScene===item.params.scene_id?"active":""} style={{left:`${item.start_ms/duration*100}%`,width:`${item.duration_ms/duration*100}%`}} onClick={()=>item.params.scene_id&&onSelect(item.params.scene_id)} title={`${item.params.scene_id??item.id} · ${(item.start_ms/1000).toFixed(1)}–${((item.start_ms+item.duration_ms)/1000).toFixed(1)} s`}>{item.params.text||item.params.scene_id||assets.find((asset)=>asset.id===item.source_asset_id)?.name||item.id}</button>)}</div></div>)}<p className="small-note">{timeline.renderer==="timeline-v2"?"Camadas de título, som e clipes desta revisão são renderizadas no MP4. Revise o resultado completo antes de aprovar.":"Esta revisão usa o render de cenas atual; adicione camadas v2 no editor abaixo."} A prévia da revisão salva aparece abaixo.</p></div></section>;
 }
 
 type OverlayFrame={at_ms:number;x:number;y:number;opacity:number;scale:number};

@@ -112,6 +112,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .scene-media-preview { margin:10px 0; border:1px solid var(--line); background:#0b0e0c; overflow:hidden; }
 .scene-media-preview img,.scene-media-preview video { display:block; width:100%; max-height:220px; object-fit:contain; }
 .scene-media-preview span { display:block; padding:7px 10px; color:var(--muted); font-size:11px; }
+.timeline-preview-player { width:min(100%,380px); margin:0 auto 14px; overflow:hidden; background:#080b08; border:1px solid var(--line); }
 .small-note { color:var(--muted); font-size:12px; line-height:1.55; }
 .aside-stack { display:grid; gap:16px; align-content:start; }
 .output-wait { border:1px dashed #45505c; border-radius:10px; display:grid; gap:10px; place-items:center; color:var(--muted); font-size:11px; padding:35px 15px; }

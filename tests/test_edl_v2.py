@@ -132,6 +132,52 @@ def test_free_video_layer_keeps_scene_projection_and_requires_local_source() -> 
         EDLV2.model_validate(converted)
 
 
+def test_preview_uses_saved_timeline_props_before_render(client: TestClient) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Canal Preview", "slug": "canal-preview", "niche": "clips",
+        "default_engine": "clips",
+    }).json()
+    project = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Prévia local",
+        "topic": "Primeira linha original.\nSegunda linha original.\nTerceira linha original.",
+        "format": "vertical",
+    }).json()
+    project_id = project["id"]
+    assert client.get(f"/api/v1/projects/{project_id}/preview").status_code == 409
+    plan = client.post(f"/api/v1/projects/{project_id}/plan").json()
+    preview = client.get(f"/api/v1/projects/{project_id}/preview")
+    assert preview.status_code == 200, preview.text
+    payload = preview.json()
+    assert payload["voice_ready"] is False
+    assert len(payload["props"]["scenes"]) == len(plan["scenes"])
+    assert payload["duration_seconds"] == sum(
+        scene["duration_seconds"] for scene in plan["scenes"]
+    )
+    assert payload["props"]["scenes"][0]["on_screen_text"] == plan["scenes"][0][
+        "on_screen_text"
+    ]
+    timeline = client.get(f"/api/v1/projects/{project_id}/edl-v2").json()
+    timeline["edl"]["tracks"].append({
+        "id": "preview-title", "kind": "caption", "items": [{
+            "id": "overlay", "start_ms": 0, "duration_ms": 1000,
+            "z_index": 10, "preset": "kinetic_title_v1",
+            "params": {"text": "Prévia real", "color": "#dcf769", "keyframes": [
+                {"at_ms": 0, "x": 0.5, "y": 0.5, "opacity": 0, "scale": 0.8},
+                {"at_ms": 1000, "x": 0.5, "y": 0.5, "opacity": 1, "scale": 1},
+            ]},
+        }],
+    })
+    result = client.put(f"/api/v1/projects/{project_id}/edl-v2", json={
+        "expected_revision": timeline["revision"],
+        "expected_legacy_sha256": timeline["legacy_sha256"],
+        "edl": timeline["edl"],
+    })
+    assert result.status_code == 200, result.text
+    updated = client.get(f"/api/v1/projects/{project_id}/preview").json()
+    assert updated["revision"] == result.json()["revision"]
+    assert updated["props"]["overlays"][0]["text"] == "Prévia real"
+
+
 def test_v2_revision_api_preserves_legacy_render_and_rejects_stale_edit(
     client: TestClient,
 ) -> None:

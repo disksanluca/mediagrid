@@ -21,6 +21,7 @@ export interface RenderProps {
   overlays?: RenderOverlay[];
   sounds?: RenderSound[];
   video_layers?: RenderVideoLayer[];
+  voice_file?: string;
 }
 
 export interface RenderOverlay {

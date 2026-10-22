@@ -3,15 +3,12 @@ import hashlib
 import json
 import logging
 import os
-import re
 import shutil
 import sqlite3
 import subprocess
 import time
-import wave
 from contextlib import closing
 from pathlib import Path
-from urllib.parse import urlparse
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -31,50 +28,12 @@ from apps.api.models import (
     ProjectStatus,
     now,
 )
+from apps.api.render_plan import fit_video_to_voice, render_props
+from apps.api.render_plan import source_label as source_label
 from apps.api.scene_media import stage_scene_assets, stage_sound_assets
 from apps.api.services import claim_next_job, record_event
 
 logger = logging.getLogger(__name__)
-
-
-def source_label(plan: dict | None) -> str | None:
-    for source in (plan or {}).get("source_refs", []):
-        if not isinstance(source, dict):
-            continue
-        url = source.get("api_url")
-        if isinstance(url, str) and urlparse(url).hostname == "dadosabertos.camara.leg.br":
-            return "Fonte: Câmara dos Deputados"
-        if isinstance(url, str) and urlparse(url).hostname == "servicodados.ibge.gov.br":
-            return "Fonte: IBGE"
-    return None
-
-
-def fit_video_to_voice(
-    video: list[dict], audio: list[dict], voice: Path | None
-) -> tuple[list[dict], float]:
-    """Keep every narration audible when local TTS runs longer than estimates."""
-    tracks = [item.copy() for item in video]
-    planned = sum(float(item["duration"]) for item in tracks)
-    if voice is None:
-        return tracks, planned
-    try:
-        with wave.open(str(voice), "rb") as wav:
-            voice_seconds = wav.getnframes() / wav.getframerate()
-    except (OSError, wave.Error, ZeroDivisionError) as exc:
-        raise ValueError("Generated voice is not a readable WAV") from exc
-    required = voice_seconds + 1.0
-    if required > planned:
-        weights = [
-            max(1, len(str(item.get("text", "")).split())) for item in audio
-        ]
-        if len(weights) != len(tracks):
-            raise ValueError("Voice and video scene counts do not match")
-        total_weight = sum(weights)
-        for item, weight in zip(tracks, weights, strict=True):
-            item["duration"] = (
-                float(item["duration"]) + (required - planned) * weight / total_weight
-            )
-    return tracks, sum(float(item["duration"]) for item in tracks)
 
 
 def validate_video(path: Path) -> dict[str, object]:
@@ -213,14 +172,6 @@ def render_one() -> bool:
         public_dir = (temp_dir / f"{job.id}-media").resolve()
         output_path = (output_dir / f"{project.id}.mp4").resolve()
         channel = db.get(Channel, project.channel_id)
-        configured_accent = (channel.brand_profile or {}).get("accent") if channel else None
-        accent = (
-            configured_accent
-            if isinstance(configured_accent, str)
-            and re.fullmatch(r"#[0-9a-fA-F]{6}", configured_accent)
-            else "#c5ccd6"
-        )
-        captions = {item["scene_id"]: item["text"] for item in project.edl["tracks"]["captions"]}
         voice = settings.mediagrid_data_dir / "voice" / f"{project.id}.wav"
         valid_voice = voice if voice_matches(project.id, project.script) else None
         try:
@@ -233,50 +184,9 @@ def render_one() -> bool:
             project.status = ProjectStatus.FAILED.value
             db.commit()
             return True
-        props = {
-            "title": project.title,
-            "format": project.format,
-            "accent": accent,
-            "source_label": source_label(project.plan),
-            "scenes": [
-                dict(item, on_screen_text=captions.get(item["scene_id"]))
-                for item in video_tracks
-            ],
-        }
-        if overlays:
-            props["overlays"] = [
-                {
-                    "id": item.id, "start_ms": item.start_ms,
-                    "duration_ms": item.duration_ms, "z_index": item.z_index,
-                    **item.params,
-                }
-                for item in overlays
-            ]
-        if sounds:
-            props["sounds"] = [
-                {
-                    "id": item.id, "start_ms": item.start_ms,
-                    "duration_ms": item.duration_ms,
-                    "source_asset_id": item.source_asset_id,
-                    "source_in_ms": item.source_in_ms,
-                    "source_out_ms": item.source_out_ms,
-                    **item.params,
-                }
-                for item in sounds
-            ]
-        if video_layers:
-            props["video_layers"] = [
-                {
-                    "id": item.id, "start_ms": item.start_ms,
-                    "duration_ms": item.duration_ms,
-                    "z_index": item.z_index,
-                    "source_asset_id": item.source_asset_id,
-                    "source_in_ms": item.source_in_ms,
-                    "source_out_ms": item.source_out_ms,
-                    **item.params,
-                }
-                for item in video_layers
-            ]
+        props = render_props(
+            project, channel, video_tracks, overlays, sounds, video_layers
+        )
         project.status = ProjectStatus.RENDERING.value
         db.commit()
         try:

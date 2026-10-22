@@ -71,6 +71,14 @@ export interface TimelineResponse {
   };
 }
 
+export interface PreviewResponse {
+  revision: number;
+  revision_sha256: string;
+  duration_seconds: number;
+  voice_ready: boolean;
+  props: import("../../renderer/src/types").RenderProps;
+}
+
 export interface ContentPlan {
   project_id: string;
   engine: string;

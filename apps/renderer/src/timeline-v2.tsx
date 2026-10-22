@@ -1,6 +1,7 @@
-import {AbsoluteFill, Audio, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame, useVideoConfig} from "remotion";
+import {AbsoluteFill, Audio, interpolate, OffthreadVideo, Sequence, useCurrentFrame, useVideoConfig} from "remotion";
 import {MediaGridVideo} from "./video";
 import type {RenderOverlay, RenderProps, RenderSound, RenderVideoLayer} from "./types";
+import {mediaSource} from "./media-source";
 
 function KineticTitle({item}: {item: RenderOverlay}) {
   const frame = useCurrentFrame();
@@ -24,7 +25,7 @@ function KineticTitle({item}: {item: RenderOverlay}) {
 function SoundItem({item}: {item: RenderSound}) {
   const {fps} = useVideoConfig();
   return <Audio
-    src={staticFile(item.media_file)}
+    src={mediaSource(item.media_file)}
     startFrom={Math.round((item.source_in_ms ?? 0) * fps / 1000)}
     endAt={item.source_out_ms === null ? undefined : Math.round(item.source_out_ms * fps / 1000)}
     loop={item.loop}
@@ -40,7 +41,7 @@ function SoundItem({item}: {item: RenderSound}) {
 function VideoLayer({item}: {item: RenderVideoLayer}) {
   const {fps} = useVideoConfig();
   return <AbsoluteFill style={{pointerEvents:"none",opacity:item.opacity}}>
-    <OffthreadVideo muted src={staticFile(item.media_file)}
+    <OffthreadVideo muted src={mediaSource(item.media_file)}
       trimBefore={Math.round(item.source_in_ms * fps / 1000)}
       style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:`${item.focus_x*100}% ${item.focus_y*100}%`}}
     />
@@ -67,5 +68,6 @@ export function MediaGridTimelineV2(input: Partial<RenderProps>) {
       from={Math.round(item.start_ms * fps / 1000)}
       durationInFrames={Math.max(1, Math.round(item.duration_ms * fps / 1000))}
     ><SoundItem item={item}/></Sequence>)}
+    {props.voice_file && <Audio src={mediaSource(props.voice_file)}/>}
   </AbsoluteFill>;
 }

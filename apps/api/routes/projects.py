@@ -18,6 +18,7 @@ from ..edl_v2 import EDLV2, from_legacy, scene_projection
 from ..engines import get_engine
 from ..local_media import voice_matches
 from ..models import Channel, Job, JobStatus, Project, ProjectRevision, ProjectStatus
+from ..render_plan import fit_video_to_voice, probe_source, render_props
 from ..scene_media import scene_asset, sound_asset, validate_scene_assets
 from ..schemas import (
     ContentPlan,
@@ -111,6 +112,115 @@ def read_edl_v2(project_id: str, response: Response, db: Session = Depends(get_d
              or track.kind == "video" and track.id != "picture") and track.items
             for track in edl.tracks
         ) else "scene-v1-compatible",
+    }
+
+
+@router.get("/{project_id}/preview")
+def read_preview(project_id: str, db: Session = Depends(get_db)) -> dict:
+    """Validated props for a browser preview of the saved visual composition."""
+    project = db.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+    if not project.edl or not project.plan or project.plan.get("origin") == "OUTLINE":
+        raise HTTPException(409, "Complete and save the script before previewing")
+    saved = latest_revision(db, project_id)
+    overlays = []
+    sounds = []
+    video_layers = []
+    using_saved = False
+    if saved:
+        try:
+            canonical = EDLV2.model_validate(saved.edl)
+            base, retained_overlays, retained_sounds, retained_videos = scene_projection(
+                canonical, project.format
+            )
+            if base == project.edl:
+                overlays, sounds, video_layers = (
+                    retained_overlays, retained_sounds, retained_videos
+                )
+                using_saved = True
+        except (ValueError, ValidationError) as exc:
+            raise HTTPException(409, str(exc)) from exc
+    scene_tracks = project.edl["tracks"]["video"]
+    validate_scene_assets(db, scene_tracks)
+    voice_path = get_settings().mediagrid_data_dir / "voice" / f"{project.id}.wav"
+    valid_voice = voice_path if voice_matches(project.id, project.script) else None
+    try:
+        fitted, duration = fit_video_to_voice(
+            scene_tracks, project.edl["tracks"]["audio"], valid_voice
+        )
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    props = render_props(
+        project, db.get(Channel, project.channel_id),
+        fitted, overlays, sounds, video_layers,
+    )
+    checked: set[str] = set()
+
+    def check_hash(asset) -> None:
+        if asset.id in checked:
+            return
+        path = get_settings().mediagrid_data_dir / "assets" / asset.id
+        if file_hash(path) != asset.sha256:
+            raise HTTPException(409, f"Source changed after import: {asset.name}")
+        checked.add(asset.id)
+
+    for scene in props["scenes"]:
+        asset_id = scene.get("asset_id")
+        if not asset_id:
+            continue
+        asset = scene_asset(db, asset_id)
+        check_hash(asset)
+        scene["media_kind"] = "video" if asset.media_type == "video/mp4" else "image"
+        scene["media_file"] = asset.id
+        if asset.media_type == "video/mp4":
+            try:
+                source_duration = probe_source(
+                    get_settings().mediagrid_data_dir / "assets" / asset.id, "video"
+                )
+            except ValueError as exc:
+                raise HTTPException(422, str(exc)) from exc
+            start = float(scene.get("clip_start_seconds") or 0)
+            end = float(scene.get("clip_end_seconds") or source_duration)
+            if start >= source_duration or end > source_duration + 0.05 or end <= start:
+                raise HTTPException(422, "Scene clip exceeds its source MP4")
+            scene["media_duration"] = source_duration
+    for item in props.get("sounds", []):
+        asset = sound_asset(db, item["source_asset_id"])
+        check_hash(asset)
+        item["media_file"] = asset.id
+        try:
+            source_duration = probe_source(
+                get_settings().mediagrid_data_dir / "assets" / asset.id, "audio"
+            )
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        start = (item["source_in_ms"] or 0) / 1000
+        end = (item["source_out_ms"] or source_duration * 1000) / 1000
+        if start >= source_duration or end > source_duration + 0.05:
+            raise HTTPException(422, "Sound source interval exceeds the audio file")
+        if not item["loop"] and (end - start) * 1000 + 35 < item["duration_ms"]:
+            raise HTTPException(422, "Sound item exceeds its audio source")
+    for item in props.get("video_layers", []):
+        asset = scene_asset(db, item["source_asset_id"])
+        if asset.media_type != "video/mp4":
+            raise HTTPException(422, "Video layer requires an MP4")
+        check_hash(asset)
+        item["media_file"] = asset.id
+        try:
+            source_duration = probe_source(
+                get_settings().mediagrid_data_dir / "assets" / asset.id, "video"
+            )
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        if item["source_out_ms"] / 1000 > source_duration + 0.05:
+            raise HTTPException(422, "Video layer source interval exceeds its MP4")
+    return {
+        "revision": saved.revision if saved else 0,
+        "revision_sha256": saved.sha256 if using_saved else legacy_hash(project.edl),
+        "duration_seconds": duration,
+        "voice_ready": valid_voice is not None,
+        "props": props,
     }
 
 
