@@ -5,7 +5,7 @@ $installDir = Join-Path $env:RUNNER_TEMP "MediaGridSmokeInstall"
 $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP "MediaGridSmokeLocal"
 New-Item -ItemType Directory -Force -Path $env:LOCALAPPDATA | Out-Null
 Write-Host "Instalando $($installer.Name) em $installDir"
-$installerProcess = Start-Process $installer.FullName -ArgumentList @("/S", "/D=$installDir") -PassThru
+$installerProcess = Start-Process $installer.FullName -ArgumentList @("/S", "/D=$installDir") -PassThru -WindowStyle Hidden
 if (-not $installerProcess.WaitForExit(120000)) {
   Stop-Process -Id $installerProcess.Id -Force
   throw "Instalador não concluiu em 120 segundos."
@@ -16,7 +16,7 @@ $application = Join-Path $installDir "MediaGrid.exe"
 if (-not (Test-Path $application)) { throw "MediaGrid.exe não foi encontrado após instalar." }
 $dataDir = Join-Path $env:LOCALAPPDATA "MediaGrid\Data"
 $runtimeFile = Join-Path $dataDir "runtime.json"
-$applicationProcess = Start-Process $application -PassThru
+$applicationProcess = Start-Process $application -PassThru -WindowStyle Hidden
 Write-Host "Aguardando Core e worker locais."
 try {
   $ready = $false
@@ -135,3 +135,19 @@ try {
   if (-not $applicationProcess.HasExited) { Stop-Process -Id $applicationProcess.Id -Force }
   Get-CimInstance Win32_Process -Filter "Name = 'mediagrid-service.exe'" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 }
+
+# Exercise the packaged backup sidecar only on this disposable CI installation.
+$service = Join-Path $installDir "mediagrid-service.exe"
+if (-not (Test-Path $service)) { throw "Serviço local empacotado não encontrado." }
+$archive = Join-Path $env:RUNNER_TEMP "mediagrid-installed-backup.mgrid"
+$env:MEDIAGRID_DATA_DIR = $dataDir
+& $service backup --path $archive --include-assets --include-renders
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path $archive)) { throw "Backup pela instalação falhou." }
+$restoredData = Join-Path $env:RUNNER_TEMP "MediaGridSmokeRestored"
+$env:MEDIAGRID_DATA_DIR = $restoredData
+& $service restore --path $archive
+if ($LASTEXITCODE -ne 0) { throw "Restauração pela instalação falhou." }
+foreach ($restored in @("Database\mediagrid.db", "renders\$($project.id).mp4", "assets\$($imageAsset.id)", "assets\$($videoAsset.id)")) {
+  if (-not (Test-Path (Join-Path $restoredData $restored))) { throw "Restauração sem $restored." }
+}
+Write-Host "Backup e restauração do app instalado preservaram SQLite, MP4 e mídias importadas."

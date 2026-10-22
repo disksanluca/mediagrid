@@ -14,7 +14,7 @@ conteúdo ou de funcionalidades de produção.
 | FastAPI / SQLite | Autenticação local, canais, projetos, planos, assets, jobs, revisão e backup | Mudança futura de schema exige migrações versionadas |
 | Workers | Fila local, voz/transcrição opcionais, render e backup | Recuperação após reiniciar o instalador atualizado precisa de verificação |
 | Remotion / FFmpeg | Cinco transições (`impact`, `slide`, `cut`, `zoom`, `fade`) e MP4 com áudio | Seis artes conceituais do kit não correspondem a seis presets implementados; timeline multifaixa falta |
-| Motores | Football, Music, Geo, Clips, Politics e Trends; Politics consulta PLs oficiais da Câmara | Fontes para os demais motores e checagem automática de alegações faltam |
+| Motores | Football, Music, Geo, Clips, Politics e Trends; Politics consulta PLs da Câmara e Geo consulta localidades do IBGE | Fontes para Football, Music e Trends, recorte de Clips e checagem automática de alegações faltam |
 | Entrega | Revisão humana e pacote ZIP para publicação manual | Publicação direta e métricas de plataformas ainda não conectadas |
 
 Antes das mudanças, `pytest` passou com 37 testes, Ruff passou, TypeScript passou e
@@ -122,6 +122,7 @@ parte desta etapa.
 - O usuário ainda precisa verificar a divisão territorial atual, escolher imagens ou vídeos com direitos registrados, gerar voz, renderizar e aprovar a revisão. Não houve mudança de schema SQLite. Falha de rede retorna erro visível e não cria projeto vazio.
 - Validação local: 41 testes Python e Ruff passaram; busca e detalhe de São Paulo foram consultados ao vivo no IBGE. O typecheck e build Web passaram. Em uma base SQLite isolada, o Radar criou o canal Geo, buscou São Paulo, importou o projeto e abriu o Editor; a narração editada foi salva e os botões de voz/render voltaram a ficar disponíveis. O instalador e o fluxo Geo completo ainda precisam passar no CI da revisão antes de qualquer instalação no PC do usuário.
 - Um teste adicional na mesma base isolada editou as três narrações, gerou voz pt-BR pelo Windows e processou o render com Remotion e FFmpeg. O MP4 resultante tem 12,81 s, faixas de vídeo e áudio e estado `QC`; um quadro extraído confirmou “Fonte: IBGE”. O worker agora localiza o CLI do Remotion instalado na raiz do workspace npm, além do runtime empacotado do Tauri. O primeiro render de desenvolvimento falhou porque `npm` não estava no PATH deste ambiente; após configurar o Node e o diretório do renderer, o trabalho seguinte foi concluído. Esta validação técnica usou frases abreviadas e não equivale à aprovação editorial.
+- O smoke do instalador Windows agora também invoca o serviço de backup empacotado e restaura o arquivo `.mgrid` em outra pasta descartável do runner, conferindo SQLite, MP4 e mídias. A checagem só estará confirmada quando o CI desta revisão passar; a instalação real do usuário permanece intocada.
 
 Próxima validação: executar o instalador no CI com imagem, clipe, voz e exportação;
 conferir Geo no aplicativo instalado e completar os motores sem fonte real. A
