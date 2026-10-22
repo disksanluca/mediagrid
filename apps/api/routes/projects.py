@@ -114,6 +114,8 @@ def update_plan(
                     "visual_type": s.visual_type,
                     "transition": s.transition,
                     "asset_id": s.asset_id,
+                    "clip_start_seconds": s.clip_start_seconds,
+                    "clip_end_seconds": s.clip_end_seconds,
                 }
                 for s in plan.scenes
             ],

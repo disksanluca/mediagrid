@@ -36,8 +36,24 @@ def scene_asset(db: Session, asset_id: str) -> Asset:
 def validate_scene_assets(db: Session, scenes: list) -> None:
     for scene in scenes:
         asset_id = scene.asset_id if hasattr(scene, "asset_id") else scene.get("asset_id")
+        start = (
+            scene.clip_start_seconds
+            if hasattr(scene, "clip_start_seconds")
+            else scene.get("clip_start_seconds", 0)
+        )
+        end = (
+            scene.clip_end_seconds
+            if hasattr(scene, "clip_end_seconds")
+            else scene.get("clip_end_seconds")
+        )
+        if start < 0 or (end is not None and end <= start):
+            raise HTTPException(422, "Intervalo do clipe inválido.")
+        if (start > 0 or end is not None) and not asset_id:
+            raise HTTPException(422, "Escolha um MP4 antes de definir o trecho.")
         if asset_id:
-            scene_asset(db, asset_id)
+            asset = scene_asset(db, asset_id)
+            if (start > 0 or end is not None) and asset.media_type != "video/mp4":
+                raise HTTPException(422, "O intervalo de trecho só pode ser usado com MP4.")
 
 
 def stage_scene_assets(

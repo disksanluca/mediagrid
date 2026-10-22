@@ -43,7 +43,8 @@ In **Biblioteca**,
 import your own JPEG, PNG, WebP or MP4, or record its license; then choose it in each scene's
 **Mídia da biblioteca** field in the Editor, inspect the preview, and save. Unknown/restricted rights block saving
 or rendering. Licensed media needs a recorded license name. Selected MP4s are muted under
-the narration and repeat if a scene is longer than the source clip. A rendered MP4 can be
+the narration. For each MP4 scene, enter an optional start and end time in seconds; the selected
+range repeats if the scene is longer than that range. The source clip's own audio is muted. A rendered MP4 can be
 reviewed and downloaded, then packaged for manual publication after human approval. The
 review form lets you edit an Instagram caption; the ZIP includes `caption.txt` alongside
 `video.mp4` and the audit manifest.

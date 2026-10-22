@@ -62,7 +62,7 @@ try {
   if ($LASTEXITCODE -ne 0 -or -not $videoAsset.id) { throw "Upload do clipe na instalação falhou." }
   $scenes = @(
     @{id="intro";duration_seconds=0.5;narration="A";visual_type="image";visual_query="";on_screen_text="MediaGrid";transition="cut";asset_id=$imageAsset.id},
-    @{id="end";duration_seconds=0.5;narration="B";visual_type="image";visual_query="";on_screen_text="Teste local";transition="cut";asset_id=$videoAsset.id}
+    @{id="end";duration_seconds=0.5;narration="B";visual_type="image";visual_query="";on_screen_text="Teste local";transition="cut";asset_id=$videoAsset.id;clip_start_seconds=0.5;clip_end_seconds=1.5}
   )
   $planBody = @{hook="Teste local";angle="Validação do instalador";scenes=$scenes} | ConvertTo-Json -Depth 10 -Compress
   Invoke-RestMethod "$api/projects/$($project.id)/plan" -Method Put -ContentType "application/json" -Body $planBody | Out-Null

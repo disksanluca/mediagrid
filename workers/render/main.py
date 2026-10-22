@@ -187,6 +187,14 @@ def render_one() -> bool:
                     media["media_duration"] = info["duration_seconds"]
             for scene in props["scenes"]:
                 scene.update(staged.get(scene.get("asset_id"), {}))
+                if scene.get("media_kind") == "video":
+                    start = float(scene.get("clip_start_seconds") or 0)
+                    duration = float(scene["media_duration"])
+                    end = float(scene.get("clip_end_seconds") or duration)
+                    if start >= duration or end > duration + 0.05 or end <= start:
+                        raise ValueError(
+                            "Trecho do clipe fora da duração do MP4. Ajuste início e fim no Editor."
+                        )
             props_path.write_text(json.dumps(props, ensure_ascii=False), encoding="utf-8")
             renderer_root = (
                 settings.mediagrid_renderer_root.resolve()

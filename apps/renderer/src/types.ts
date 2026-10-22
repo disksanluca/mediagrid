@@ -8,6 +8,8 @@ export interface RenderScene {
   media_kind?: "image" | "video";
   media_file?: string;
   media_duration?: number;
+  clip_start_seconds?: number;
+  clip_end_seconds?: number | null;
 }
 
 export interface RenderProps {

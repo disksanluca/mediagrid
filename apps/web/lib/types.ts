@@ -41,6 +41,8 @@ export interface Scene {
   on_screen_text: string;
   transition: "impact" | "slide" | "cut" | "zoom" | "fade";
   asset_id?: string | null;
+  clip_start_seconds?: number;
+  clip_end_seconds?: number | null;
 }
 
 export interface ContentPlan {

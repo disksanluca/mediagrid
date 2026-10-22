@@ -111,3 +111,54 @@ def test_scene_media_rejects_unknown_asset_and_rights_change(
         json={"rights_status": "RESTRICTED"},
     )
     assert client.post(f"/api/v1/projects/{project['id']}/render").status_code == 422
+
+
+def test_clip_range_requires_owned_video_and_persists_in_edl(
+    client: TestClient, monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(get_settings(), "mediagrid_data_dir", tmp_path)
+    channel = client.post(
+        "/api/v1/channels",
+        json={
+            "name": "Clipes",
+            "slug": "clipes",
+            "niche": "Cortes",
+            "default_engine": "clips",
+        },
+    ).json()
+    project = client.post(
+        "/api/v1/projects",
+        json={"channel_id": channel["id"], "title": "Trecho", "topic": "Comentário original"},
+    ).json()
+    plan = client.post(f"/api/v1/projects/{project['id']}/plan").json()
+    for index, scene in enumerate(plan["scenes"]):
+        scene["narration"] = f"Comentário original sobre a cena {index + 1}."
+    scene = plan["scenes"][0]
+    scene["clip_start_seconds"] = 1.5
+    scene["clip_end_seconds"] = 2.5
+    payload = {"scenes": plan["scenes"], "hook": plan["hook"], "angle": plan["angle"]}
+    url = f"/api/v1/projects/{project['id']}/plan"
+    assert client.put(url, json=payload).status_code == 422
+
+    image = client.post(
+        "/api/v1/assets",
+        files={"file": ("frame.png", PNG, "image/png")},
+        data={"rights_status": "OWNED"},
+    ).json()
+    scene["asset_id"] = image["id"]
+    assert client.put(url, json=payload).status_code == 422
+    video = client.post(
+        "/api/v1/assets",
+        files={"file": ("clip.mp4", b"fixture-video", "video/mp4")},
+        data={"rights_status": "OWNED"},
+    ).json()
+    scene["asset_id"] = video["id"]
+    scene["clip_end_seconds"] = 1.4
+    assert client.put(url, json=payload).status_code == 422
+    scene["clip_end_seconds"] = 2.5
+    saved = client.put(url, json=payload)
+    assert saved.status_code == 200
+    track = saved.json()["edl"]["tracks"]["video"][0]
+    assert track["asset_id"] == video["id"]
+    assert track["clip_start_seconds"] == 1.5
+    assert track["clip_end_seconds"] == 2.5
