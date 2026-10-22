@@ -41,7 +41,9 @@ import your own JPEG, PNG, WebP or MP4, or record its license; then choose it in
 **Mídia da biblioteca** field in the Editor and save. Unknown/restricted rights block saving
 or rendering. Licensed media needs a recorded license name. Selected MP4s are muted under
 the narration and repeat if a scene is longer than the source clip. A rendered MP4 can be
-reviewed and downloaded, then packaged for manual publication after human approval.
+reviewed and downloaded, then packaged for manual publication after human approval. The
+review form lets you edit an Instagram caption; the ZIP includes `caption.txt` alongside
+`video.mp4` and the audit manifest.
 When a generated WAV lasts longer than the estimated scene times, the renderer extends the
 video scenes to keep the full narration audible. Generating a new voice or render after review
 invalidates the old approval until the new video is reviewed.

@@ -266,6 +266,7 @@ def approve_project_review(
         "facts_confirmed": True,
         "rights_confirmed": True,
         "notes": payload.notes,
+        "caption": payload.caption,
     }
     project.plan = {**(project.plan or {}), "review": review}
     project.status = ProjectStatus.APPROVED.value
@@ -304,6 +305,8 @@ def export_reviewed_project(project_id: str, db: Session = Depends(get_db)) -> F
         with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_STORED) as archive:
             archive.write(video, "video.mp4")
             archive.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2))
+            if review.get("caption"):
+                archive.writestr("caption.txt", review["caption"])
         os.replace(temporary, target)
     finally:
         temporary.unlink(missing_ok=True)

@@ -49,6 +49,7 @@ def test_manual_export_requires_review_and_is_revoked_after_edit(
         "facts_confirmed": True,
         "rights_confirmed": False,
         "notes": "Conferido com documento oficial",
+        "caption": "Resumo para publicação após conferência dos fatos.",
     }
     assert client.post(f"/api/v1/projects/{project_id}/review", json=review).status_code == 409
     review["rights_confirmed"] = True
@@ -61,6 +62,7 @@ def test_manual_export_requires_review_and_is_revoked_after_edit(
     assert package.status_code == 200
     with zipfile.ZipFile(io.BytesIO(package.content)) as archive:
         assert archive.read("video.mp4") == b"local-test-video"
+        assert archive.read("caption.txt").decode() == review["caption"]
         manifest = json.loads(archive.read("manifest.json"))
     assert manifest["publication"] == "manual"
     assert manifest["platform_status"] == "not_published"

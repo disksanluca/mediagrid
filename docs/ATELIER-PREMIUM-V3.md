@@ -85,13 +85,22 @@ parte desta etapa.
   existentes `plan` e `edl`. Projetos antigos sem `asset_id` continuam com as
   cenas de texto. O render pode falhar se um arquivo importado não for de fato
   decodificável no formato declarado; a falha fica visível no job.
+- A revisão humana aceita uma legenda editável. O pacote manual inclui
+  `caption.txt` quando a legenda foi registrada, além de `video.mp4` e
+  `manifest.json`; projetos aprovados antes desta etapa mantêm seus pacotes
+  antigos sem legenda.
 - Verificado localmente: 39 testes Python passaram, Ruff passou, typechecks Web
   e Renderer passaram, build Next passou. Um render real de quatro segundos em
   1080×1920 usou uma imagem vermelha e um MP4 verde; a leitura de pixels confirmou
   as cores em cenas diferentes. O smoke do instalador Windows foi ampliado para
-  importar e renderizar esses dois tipos de mídia no CI. Esse smoke ainda precisa
+  importar e renderizar esses dois tipos de mídia e testar revisão sintética e
+  exportação manual no CI. Esse smoke ainda precisa
   de execução na nova revisão, e o aplicativo instalado no PC do usuário continua
   na versão anterior.
+- A interface de produção foi conferida em 1440×900, 1280×800 e 1000×900, sem
+  overflow horizontal; no Editor, a seleção de mídia e o salvamento foram
+  exercitados contra a API e o SQLite de validação. O Radar consultou ao vivo a
+  lista de PLs de 2026 e abriu uma proposição pela API oficial da Câmara.
 
 Próxima validação: executar o instalador no CI com imagem, clipe e voz; verificar
 o fluxo de um roteiro de Política com fonte oficial, revisão e exportação, e só

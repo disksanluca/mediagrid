@@ -1,6 +1,7 @@
 import base64
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.config import get_settings
@@ -64,6 +65,9 @@ def test_uploaded_image_is_persisted_in_scene_and_staged_for_render(
         )
     assert staged[asset["id"]] == {"media_kind": "image", "media_file": f"{asset['id']}.png"}
     assert (tmp_path / "render-public" / f"{asset['id']}.png").read_bytes() == PNG
+    (tmp_path / "assets" / asset["id"]).write_bytes(b"changed after upload")
+    with SessionLocal() as db, pytest.raises(ValueError, match="alterado após a importação"):
+        stage_scene_assets(db, saved.json()["edl"]["tracks"]["video"], tmp_path / "retry")
 
 
 def test_scene_media_rejects_unknown_asset_and_rights_change(

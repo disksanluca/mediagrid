@@ -103,6 +103,31 @@ try {
     throw "A imagem ou o clipe importado não apareceu no MP4 final."
   }
   Write-Host "Remotion e FFmpeg instalados geraram MP4 com imagem, clipe e áudio."
+
+  # Synthetic CI review verifies the package flow; editorial approval remains a human action.
+  $caption = "Legenda de teste para publicação manual."
+  $reviewBody = @{
+    source_urls = @("https://www.camara.leg.br/")
+    facts_confirmed = $true
+    rights_confirmed = $true
+    notes = "Revisão sintética do instalador no CI"
+    caption = $caption
+  } | ConvertTo-Json -Depth 5 -Compress
+  $approved = Invoke-RestMethod "$api/projects/$($project.id)/review" -Method Post -ContentType "application/json" -Body $reviewBody
+  if ($approved.status -ne "APPROVED") { throw "Revisão sintética não aprovou o projeto de teste." }
+  $package = Join-Path $env:RUNNER_TEMP "mediagrid-export.zip"
+  Invoke-WebRequest "$api/projects/$($project.id)/export" -OutFile $package
+  $zip = [System.IO.Compression.ZipFile]::OpenRead($package)
+  try {
+    $entries = @($zip.Entries | ForEach-Object { $_.FullName })
+    foreach ($required in @("video.mp4", "caption.txt", "manifest.json")) {
+      if ($entries -notcontains $required) { throw "Pacote exportado sem $required." }
+    }
+    $reader = [System.IO.StreamReader]::new($zip.GetEntry("caption.txt").Open())
+    try { if ($reader.ReadToEnd() -ne $caption) { throw "Legenda exportada está incorreta." } }
+    finally { $reader.Dispose() }
+  } finally { $zip.Dispose() }
+  Write-Host "Revisão sintética e exportação manual geraram vídeo, legenda e manifesto."
 } catch {
   Get-ChildItem (Join-Path $dataDir "Logs") -ErrorAction SilentlyContinue | ForEach-Object { Get-Content $_.FullName -Tail 40 }
   throw

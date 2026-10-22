@@ -79,6 +79,7 @@ class ProjectReview(BaseModel):
     facts_confirmed: bool
     rights_confirmed: bool
     notes: str = Field(min_length=3, max_length=2000)
+    caption: str | None = Field(default=None, min_length=3, max_length=2200)
 
 
 class ChannelUpdate(BaseModel):
