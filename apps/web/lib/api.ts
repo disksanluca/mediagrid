@@ -1,4 +1,4 @@
-import type {Asset, Channel, ContentPlan, DoctorReport, GeoMunicipality, HardwareProfile, Job, OfficialProposal, Project, SetupState, SystemStatus} from "./types";
+import type {Asset, Channel, ContentPlan, DoctorReport, GeoMunicipality, HardwareProfile, Job, OfficialProposal, Project, SetupState, SystemStatus, TimelineResponse} from "./types";
 import {desktopRuntime} from "./desktop";
 
 let baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
@@ -57,6 +57,7 @@ export const api = {
   importGeoMunicipality: (channelId: string, municipalityId: number) => request<Project>("/geo/projects", {method:"POST", body:JSON.stringify({channel_id:channelId,municipality_id:municipalityId})}),
   createPlan: (id: string) => request<ContentPlan>(`/projects/${id}/plan`, {method: "POST"}),
   updatePlan: (id: string, body: Record<string, unknown>) => request<Project>(`/projects/${id}/plan`, {method: "PUT", body: JSON.stringify(body)}),
+  timeline: (id: string) => request<TimelineResponse>(`/projects/${id}/edl-v2`),
   render: (id: string) => request<{job_id: string; status: string}>(`/projects/${id}/render`, {method: "POST"}),
   voice: (id: string) => request<{job_id: string; status: string}>(`/projects/${id}/voice`, {method:"POST"}),
   voiceFile: (id: string) => `${baseUrl}/projects/${id}/voice`,

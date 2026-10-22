@@ -44,6 +44,10 @@ def checked(response):
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=ROOT / "data" / "rea-proof")
+    parser.add_argument(
+        "--edl-v2-roundtrip", action="store_true",
+        help="Persist a compatible EDL v2 revision before voice and render",
+    )
     args = parser.parse_args()
     run_dir = (args.output / datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")).resolve()
     run_dir.mkdir(parents=True, exist_ok=False)
@@ -105,6 +109,19 @@ def main() -> None:
         plan = checked(client.post(f"/api/v1/projects/{project_id}/plan"))
         if plan["origin"] != "BRIEF_BASED" or len(plan["scenes"]) != 4:
             raise RuntimeError("Brief was not converted into the expected editable scenes")
+        edl_v2_revision = None
+        if args.edl_v2_roundtrip:
+            timeline = checked(client.get(f"/api/v1/projects/{project_id}/edl-v2"))
+            edl_v2_revision = checked(
+                client.put(
+                    f"/api/v1/projects/{project_id}/edl-v2",
+                    json={
+                        "expected_revision": timeline["revision"],
+                        "expected_legacy_sha256": timeline["legacy_sha256"],
+                        "edl": timeline["edl"],
+                    },
+                )
+            )["revision"]
         voice_job = checked(client.post(f"/api/v1/projects/{project_id}/voice"))["job_id"]
         if not media_one():
             raise RuntimeError("Worker did not process the voice job")
@@ -160,6 +177,7 @@ def main() -> None:
             "project_status": stored.status,
             "plan_origin": stored.plan["origin"],
             "edl_version": stored.edl["version"],
+            "edl_v2_revision": edl_v2_revision,
             "scene_count": len(stored.edl["tracks"]["video"]),
             "caption_mode": "one visual text card per scene; word timing not implemented",
             "jobs": [

@@ -45,6 +45,28 @@ export interface Scene {
   clip_end_seconds?: number | null;
 }
 
+export interface TimelineItem {
+  id: string;
+  start_ms: number;
+  duration_ms: number;
+  source_asset_id?: string | null;
+  source_in_ms?: number | null;
+  source_out_ms?: number | null;
+  params: {scene_id?: string; text?: string; [key: string]: unknown};
+}
+
+export interface TimelineResponse {
+  revision: number;
+  legacy_sha256: string;
+  renderer: string;
+  edl: {
+    version: 2;
+    revision: number;
+    duration_ms: number;
+    tracks: Array<{id: string; kind: string; items: TimelineItem[]}>;
+  };
+}
+
 export interface ContentPlan {
   project_id: string;
   engine: string;

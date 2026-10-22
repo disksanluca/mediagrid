@@ -31,7 +31,7 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   descartável, iniciar API/worker, renderizar e testar exportação e backup.
   Isso não equivale a atualizar o PC do usuário.
 
-## Marco 1 — migração iniciada, entrega vertical pendente
+## Marco 1 — fatia vertical de compatibilidade entregue; editor livre pendente
 
 - Alembic `1.20.0` instalado pelo `uv.lock`, com baseline `0001_legacy` e revisão
   `0002_revisions`. O bootstrap valida todas as tabelas/colunas legadas antes
@@ -44,18 +44,43 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   do banco da prova audiovisual. O serviço PyInstaller inclui as migrações;
   sidecar empacotado iniciou API e SQLite em pasta isolada na revisão
   `0002_revisions`.
-- **Ainda não concluído:** conversor v1→v2 com preservação do comportamento de
-  clipes em loop, API de revisão concorrente (`409`), Editor multifaixa,
-  waveform/keyframes, preview e render a partir do mesmo EDL v2, invalidação de
-  aprovação por hash e teste de MP4 legado após salvar uma revisão v2. A tabela
-  nova não é apresentada como funcionalidade pronta.
+- `apps/api/edl_v2.py` converte o EDL de cenas v1 em três trilhas v2 (imagem,
+  voz, texto), preservando duração, ordem, texto, fonte, recorte e loop de MP4.
+  A volta para v1 recusa camadas, velocidade, keyframes ou FPS que o renderer
+  atual não executa. Não há queda silenciosa de elementos. `GET/PUT
+  /projects/{id}/edl-v2` expõe a revisão, hash da projeção legada e bloqueia
+  edições concorrentes com `409`. O Editor v1 também avança a revisão e verifica
+  hash. Regenerar o plano avança a revisão. Editar durante render ativo é recusado.
+- O Editor React mostra as três trilhas persistidas e a forma de onda decodificada
+  do WAV real, com audição local. Continua editando cenas reais; título, duração,
+  narração, mídia e ordem são salvos na API. O vídeo gerado é a prévia fiel do
+  subconjunto v2 compatível. O site não anuncia camada livre como pronta.
+- Uma revisão invalida o estado de aprovação/saída. A revisão humana registra
+  SHA-256 do EDL e do MP4; a exportação manual recusa alteração do arquivo
+  aprovado. Teste de adulteração cobre este bloqueio.
+- `uv run pytest -q`: **49 passaram**, um aviso Starlette/httpx. `uv run ruff
+  check .` e TypeScript do Web passaram. `uv run python
+  scripts/prove_video_pipeline.py --edl-v2-roundtrip` salvou revisão **2**,
+  executou VOICE e RENDER (`SUCCEEDED`), gerou MP4 H.264/AAC 1080×1920 de 31 s
+  em `data/rea-proof/20261022T224419Z`, SHA-256
+  `57ee11c5c4259e59d97b01979fc18a477c9fd75a52bc1664f20dfe465822eaec`.
+  Projeto permaneceu em `QC`, sem aprovação/publicação. O mesmo hash da prova
+  anterior evidencia compatibilidade de conteúdo no caso testado.
+- Teste manual no navegador local com esta base isolada: timeline revisão 2,
+  waveform e player WAV visíveis; edição do texto da primeira cena avançou a
+  revisão para 3, mudou o estado para `SCRIPTED` e ocultou o MP4 anterior.
+  Inspeção visual foi feita no viewport estreito do navegador, sem aferir ainda
+  as três resoluções-alvo nem audição humana completa.
+- **Ainda pendente para concluir o Marco 1:** trilhas livres e keyframes básicos
+  com preview/renderer v2, teste de composição fora do modelo de cenas, validação
+  visual nas três resoluções e QA auditivo integral. O renderer ainda consome a
+  projeção v1 do EDL v2 compatível; o contrato completo v2 não está implementado.
 
 ## Ordem restante e gates
 
-1. Fechar Marco 1: definir contrato v2 que preserve voz local, cartões e
-   recortes/loop do v1; converter sem mutar projeto legado; persistir revisão
-   com concorrência otimista; adaptar Editor, worker, preview e testes de
-   render/rollback. Só então permitir edição v2 pelo usuário.
+1. Fechar Marco 1: renderer/preview para trilhas livres e keyframes com mesmo
+   EDL, e validação visual/auditiva de um vídeo dessa composição. Manter a
+   conversão estrita enquanto o renderer v2 não suportar os novos elementos.
 2. Ingestão longa com hash, probe, direitos, proxy e retomada.
 3. Voz humana/local, ASR por palavra e captions corrigíveis.
 4. Máquina de cortes com contexto e seleção humana; depois Motion Ad,

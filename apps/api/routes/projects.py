@@ -1,24 +1,195 @@
+import hashlib
 import json
 import os
 import zipfile
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
 from ..database import get_db
+from ..edl_v2 import EDLV2, from_legacy, to_legacy
 from ..engines import get_engine
 from ..local_media import voice_matches
-from ..models import Channel, Job, JobStatus, Project, ProjectStatus
+from ..models import Channel, Job, JobStatus, Project, ProjectRevision, ProjectStatus
 from ..scene_media import validate_scene_assets
-from ..schemas import ContentPlan, ProjectCreate, ProjectPlanUpdate, ProjectRead, ProjectReview
+from ..schemas import (
+    ContentPlan,
+    ProjectCreate,
+    ProjectPlanUpdate,
+    ProjectRead,
+    ProjectReview,
+    Scene,
+)
 from ..services import build_local_plan, create_plan, enqueue_job, record_event
 
 router = APIRouter(prefix="/projects", tags=["projects"])
+
+
+class RevisionWrite(BaseModel):
+    expected_revision: int
+    expected_legacy_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    edl: EDLV2
+
+
+def latest_revision(db: Session, project_id: str) -> ProjectRevision | None:
+    return db.scalar(
+        select(ProjectRevision)
+        .where(ProjectRevision.project_id == project_id)
+        .order_by(ProjectRevision.revision.desc())
+        .limit(1)
+    )
+
+
+def append_revision(db: Session, project: Project, edl: EDLV2) -> ProjectRevision:
+    encoded = json.dumps(
+        edl.model_dump(), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
+    revision = ProjectRevision(
+        project_id=project.id,
+        revision=edl.revision,
+        edl=edl.model_dump(),
+        sha256=hashlib.sha256(encoded.encode("utf-8")).hexdigest(),
+    )
+    db.add(revision)
+    db.flush()
+    return revision
+
+
+def legacy_hash(edl: dict) -> str:
+    encoded = json.dumps(edl, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def file_hash(path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def active_render_for(db: Session, project_id: str) -> Job | None:
+    return db.scalar(select(Job).where(
+        Job.project_id == project_id,
+        Job.job_type == "RENDER",
+        Job.status.in_([JobStatus.QUEUED.value, JobStatus.RUNNING.value]),
+    ))
+
+
+@router.get("/{project_id}/edl-v2")
+def read_edl_v2(project_id: str, response: Response, db: Session = Depends(get_db)) -> dict:
+    project = db.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+    if not project.edl:
+        raise HTTPException(409, "Create a plan before opening the timeline")
+    saved = latest_revision(db, project_id)
+    current = saved.revision if saved else 0
+    try:
+        edl = from_legacy(project.edl, project.plan, revision=current + 1)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    response.headers["ETag"] = f'"edl-{current}"'
+    return {
+        "revision": current,
+        "legacy_sha256": legacy_hash(project.edl),
+        "edl": edl.model_dump(),
+        "renderer": "scene-v1-compatible",
+    }
+
+
+@router.put("/{project_id}/edl-v2")
+def write_edl_v2(project_id: str, payload: RevisionWrite, db: Session = Depends(get_db)) -> dict:
+    project = db.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+    current = latest_revision(db, project_id)
+    current_number = current.revision if current else 0
+    if (
+        payload.expected_revision != current_number
+        or payload.edl.revision != current_number + 1
+        or not project.edl
+        or payload.expected_legacy_sha256 != legacy_hash(project.edl)
+    ):
+        raise HTTPException(409, "Timeline changed; reload before saving")
+    if active_render_for(db, project_id):
+        raise HTTPException(409, "Wait for the current render before editing")
+    try:
+        legacy = to_legacy(payload.edl, project.format)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    validate_scene_assets(db, legacy["tracks"]["video"])
+    if not project.plan:
+        raise HTTPException(409, "Project plan is missing")
+    previous_scenes = {scene["id"]: scene for scene in project.plan.get("scenes", [])}
+    audio = {item["scene_id"]: item for item in legacy["tracks"]["audio"]}
+    captions = {item["scene_id"]: item for item in legacy["tracks"]["captions"]}
+    pictures = {
+        item.params["scene_id"]: item
+        for track in payload.edl.tracks if track.kind == "video" for item in track.items
+    }
+    scenes = []
+    for item in legacy["tracks"]["video"]:
+        scene_id = item["scene_id"]
+        source = previous_scenes.get(scene_id, {})
+        try:
+            scene = Scene.model_validate({
+                **source,
+                "id": scene_id,
+                "duration_seconds": item["duration"],
+                "narration": audio[scene_id]["text"],
+                "on_screen_text": captions[scene_id]["text"],
+                "visual_type": item["visual_type"],
+                "visual_query": pictures[scene_id].params.get(
+                    "visual_query", source.get("visual_query", "")
+                ),
+                "transition": item["transition"],
+                "asset_id": item["asset_id"],
+                "clip_start_seconds": item["clip_start_seconds"],
+                "clip_end_seconds": item["clip_end_seconds"],
+            })
+        except ValidationError as exc:
+            raise HTTPException(422, exc.errors()) from exc
+        scenes.append(scene)
+    old_origin = project.plan.get("origin")
+    unchanged = [scene.model_dump() for scene in scenes] == project.plan.get("scenes")
+    still_outline = old_origin == "OUTLINE" and any(
+        scene.narration.strip() == previous_scenes.get(scene.id, {}).get("narration", "").strip()
+        for scene in scenes
+    )
+    plan = ContentPlan.model_validate({
+        **project.plan,
+        "scenes": [scene.model_dump() for scene in scenes],
+        "origin": old_origin if unchanged else "OUTLINE" if still_outline else "MANUAL",
+        "target_duration_seconds": round(payload.edl.duration_ms / 1000),
+    })
+    project.plan = {key: value for key, value in plan.model_dump().items() if key != "review"}
+    channel = db.get(Channel, project.channel_id)
+    if channel is None:
+        raise HTTPException(404, "Channel not found")
+    project.script = {
+        "language": channel.language,
+        "segments": [scene.narration for scene in scenes],
+    }
+    project.edl = legacy
+    project.status = ProjectStatus.SCRIPTED.value
+    try:
+        saved = append_revision(db, project, payload.edl)
+        record_event(db, "EDL_REVISION_SAVED", "project", project.id, after={
+            "revision": saved.revision, "sha256": saved.sha256,
+        })
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(409, "Timeline changed; reload before saving") from exc
+    return {"revision": saved.revision, "sha256": saved.sha256, "project_id": project.id}
 
 
 @router.get("", response_model=list[ProjectRead])
@@ -57,7 +228,14 @@ def plan_project(project_id: str, db: Session = Depends(get_db)) -> ContentPlan:
     project = db.get(Project, project_id)
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
+    if active_render_for(db, project_id):
+        raise HTTPException(409, "Wait for the current render before editing")
+    previous = latest_revision(db, project_id)
     plan = create_plan(db, project)
+    if project.edl and project.format in {"vertical", "horizontal", "square"}:
+        append_revision(db, project, from_legacy(
+            project.edl, project.plan, revision=(previous.revision if previous else 0) + 1,
+        ))
     channel = db.get(Channel, project.channel_id)
     if (
         channel
@@ -76,9 +254,22 @@ def update_plan(
     project = db.get(Project, project_id)
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
+    if active_render_for(db, project_id):
+        raise HTTPException(409, "Wait for the current render before editing")
+    current_revision = latest_revision(db, project_id)
+    number = current_revision.revision if current_revision else 0
+    if payload.expected_revision is not None and payload.expected_revision != number:
+        raise HTTPException(409, "Timeline changed; reload before saving")
+    if payload.expected_legacy_sha256 is not None and (
+        not project.edl or payload.expected_legacy_sha256 != legacy_hash(project.edl)
+    ):
+        raise HTTPException(409, "Timeline changed; reload before saving")
     channel = db.get(Channel, project.channel_id)
     if channel is None:
         raise HTTPException(status_code=404, detail="Channel not found")
+    scene_ids = [scene.id for scene in payload.scenes]
+    if len(scene_ids) != len(set(scene_ids)):
+        raise HTTPException(422, "Scene IDs must be unique")
     validate_scene_assets(db, payload.scenes)
     original_narrations = {
         scene.id: scene.narration.strip()
@@ -124,6 +315,8 @@ def update_plan(
         },
     }
     project.status = ProjectStatus.SCRIPTED.value
+    if project.format in {"vertical", "horizontal", "square"}:
+        append_revision(db, project, from_legacy(project.edl, project.plan, revision=number + 1))
     record_event(
         db, "SCRIPT_EDITED", "project", project.id, after={"scene_count": len(plan.scenes)}
     )
@@ -279,7 +472,13 @@ def approve_project_review(
         "rights_confirmed": True,
         "notes": payload.notes,
         "caption": payload.caption,
+        "edl_sha256": legacy_hash(project.edl),
+        "video_sha256": file_hash(output),
     }
+    current = latest_revision(db, project_id)
+    if current:
+        review["revision"] = current.revision
+        review["revision_sha256"] = current.sha256
     project.plan = {**(project.plan or {}), "review": review}
     project.status = ProjectStatus.APPROVED.value
     record_event(db, "PROJECT_APPROVED", "project", project.id, after=review)
@@ -300,6 +499,15 @@ def export_reviewed_project(project_id: str, db: Session = Depends(get_db)) -> F
     video = data_dir / "renders" / f"{project_id}.mp4"
     if not video.is_file():
         raise HTTPException(404, "Rendered MP4 is missing")
+    if review.get("edl_sha256") != legacy_hash(project.edl) or (
+        review.get("video_sha256") != file_hash(video)
+    ):
+        raise HTTPException(409, "Approved content changed; render and review again")
+    current = latest_revision(db, project_id)
+    if review.get("revision_sha256") and (
+        not current or review["revision_sha256"] != current.sha256
+    ):
+        raise HTTPException(409, "Approved timeline changed; review again")
     exports = data_dir / "exports"
     exports.mkdir(parents=True, exist_ok=True)
     target = exports / f"{project_id}.zip"

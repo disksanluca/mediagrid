@@ -332,3 +332,15 @@ body:has(.atelier-app) { background:var(--bg); }
 @media (max-width:760px) { .atelier-header { height:110px; min-height:110px; grid-template-columns:1fr auto; grid-template-rows:58px 52px; padding:0 14px; } .atelier-nav { grid-column:1/-1; grid-row:2; order:0; overflow-x:auto; justify-content:space-between; } .atelier-nav button { flex:1; min-width:52px; font-size:9px; } .atelier-nav button svg { width:17px; height:17px; } .atelier-header-actions { grid-column:2; grid-row:1; } .premium-page-heading { display:block; min-height:0; padding:12px 0 24px; } .premium-page-heading h2 { font-size:34px; } .premium-heading-actions { justify-content:flex-start; margin-top:18px; } .premium-inspector { grid-template-columns:1fr; } .atelier-stage-preview { min-height:300px; } .atelier-stage-copy h3 { font-size:clamp(42px,8vw,70px); } .settings-summary { grid-template-columns:repeat(2,1fr); } .settings-summary>div:nth-child(2) { border-right:0; } .settings-summary>div:nth-child(-n+2) { border-bottom:1px solid var(--line); } }
 @media (max-width:475px) { .atelier-header .brand-text small { font-size:6px; } .atelier-nav button { min-width:44px; font-size:8px; } .atelier-content { padding-inline:16px; } .atelier-stage-preview { min-height:270px; padding:24px; } .atelier-stage-copy h3 { font-size:42px; } .atelier-stage-copy p { font-size:12px; } .atelier-stage-hud { display:none; } .atelier-stage-caption { left:24px; right:24px; bottom:10px; font-size:7px; } .atelier-stage-transport span:last-child { display:none; } .premium-scenes { grid-auto-columns:minmax(135px,70%); } .settings-summary>div { padding:14px 8px; } }
 @media (prefers-reduced-motion:reduce) { .atelier-nav button,.atelier-icon-button,.atelier-app .button,.premium-scenes button { transition:none; } }
+.timeline-v2 {margin-bottom: 24px}
+.timeline-v2 .panel-body {display: grid; gap: 12px}
+.timeline-v2-row {display: grid; grid-template-columns: 130px minmax(0,1fr); gap: 12px; align-items: center}
+.timeline-v2-row > strong {font-size: 12px; color: #aab4a7}
+.timeline-v2-lane {height: 38px; position: relative; border: 1px solid #354039; border-radius: 8px; background: #151b18; overflow: hidden}
+.timeline-v2-lane button {position: absolute; top: 3px; bottom: 3px; border: 1px solid #647a64; border-radius: 5px; padding: 0 7px; color: #e9f1e7; background: #284035; font-size: 11px; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer}
+.timeline-v2-lane button.active {border-color: #dcf769; background: #3b5038}
+@media (max-width: 700px) {.timeline-v2-row {grid-template-columns: 1fr; gap: 4px}}
+.voice-waveform {margin-bottom: 24px}
+.voice-waveform .panel-body {display: grid; gap: 12px}
+.voice-waveform canvas {width: 100%; height: 90px; background: #151b18; border-radius: 8px}
+.voice-waveform audio {width: 100%}

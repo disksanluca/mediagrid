@@ -67,6 +67,13 @@ def test_manual_export_requires_review_and_is_revoked_after_edit(
     assert manifest["publication"] == "manual"
     assert manifest["platform_status"] == "not_published"
     assert manifest["approved_review"]["source_urls"] == ["https://example.org/documento"]
+    assert len(manifest["approved_review"]["video_sha256"]) == 64
+    assert len(manifest["approved_review"]["edl_sha256"]) == 64
+
+    video = render_dir / f"{project_id}.mp4"
+    video.write_bytes(b"tampered-after-approval")
+    assert client.get(f"/api/v1/projects/{project_id}/export").status_code == 409
+    video.write_bytes(b"local-test-video")
 
     for index, scene in enumerate(plan["scenes"]):
         scene["narration"] = f"Cena {index + 1} revisada com o documento oficial."
