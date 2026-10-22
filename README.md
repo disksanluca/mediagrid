@@ -1,5 +1,8 @@
 # MediaGrid
 
+O [plano e a auditoria do Atelier Premium v3](docs/ATELIER-PREMIUM-V3.md)
+documentam a branch visual atual e seus limites funcionais.
+
 MediaGrid V1 is being built as a local **Windows desktop application**. Tauri hosts the
 React panel in its own window and starts the FastAPI Core and worker on the same computer.
 See [DESKTOP-PLAN.md](DESKTOP-PLAN.md) for the delivery gates. The Windows CI installs the
@@ -12,7 +15,7 @@ The first pilots are YouTube Football, TikTok Geography and Instagram Music. The
 independent of niches: niches are engines, platforms are connectors, and visual styles are
 template packs.
 
-The renderer uses text cards. Windows offline speech synthesis can add narration to the MP4;
+The renderer uses text cards or a selected local image/video behind the scene text. Windows offline speech synthesis can add narration to the MP4;
 transcription uses Windows speech recognition or an optional local whisper.cpp model. The
 Politics Radar can read public Câmara dos Deputados PL records with no account or API key.
 Other research, fact verification, licensed asset sourcing, and direct publishing are still
@@ -33,8 +36,20 @@ fetches the selected PL again, stores the official source URL and retrieval time
 project plan, and creates an editable vertical script from the identifier, ementa, and last
 recorded status. The API is online and may be unavailable; the saved project remains local.
 The source is evidence to review, not proof that a proposal became law. Check the current
-tramitação, context, and media rights before approving the manual export. Uploaded library
-assets are not yet placed in rendered scenes.
+tramitação, context, and media rights before approving the manual export.
+For a Geo channel, **Radar** searches the official [IBGE Localidades API v1.0.0](https://servicodados.ibge.gov.br/api/docs/localidades) by municipality name and creates an editable three-scene plan from the selected municipality, state and administrative regions. It stores the source URL and retrieval time, and the render labels the source as IBGE. This flow does not supply maps, population data or licensed footage. Review the current IBGE entry and add your own rights-cleared visuals in the Editor.
+
+In **Biblioteca**,
+import your own JPEG, PNG, WebP or MP4, or record its license; then choose it in each scene's
+**Mídia da biblioteca** field in the Editor, inspect the preview, and save. Unknown/restricted rights block saving
+or rendering. Licensed media needs a recorded license name. Selected MP4s are muted under
+the narration. For each MP4 scene, enter an optional start and end time in seconds; the selected
+range repeats if the scene is longer than that range. The source clip's own audio is muted. A rendered MP4 can be
+reviewed and downloaded, then packaged for manual publication after human approval. The
+review form lets you edit an Instagram caption; the ZIP includes `caption.txt` alongside
+`video.mp4` and the audit manifest.
+The Editor can add or remove scenes while keeping at least two. A draft with an empty scene
+narration can be saved, but voice and render wait until every scene has narration.
 When a generated WAV lasts longer than the estimated scene times, the renderer extends the
 video scenes to keep the full narration audible. Generating a new voice or render after review
 invalidates the old approval until the new video is reviewed.

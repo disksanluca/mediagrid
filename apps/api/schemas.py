@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
 
 class ChannelCreate(BaseModel):
@@ -52,6 +52,15 @@ class Scene(BaseModel):
     visual_query: str
     on_screen_text: str
     transition: Literal["impact", "slide", "cut", "zoom", "fade"] = "cut"
+    asset_id: str | None = None
+    clip_start_seconds: float = Field(default=0, ge=0, le=21600)
+    clip_end_seconds: float | None = Field(default=None, gt=0, le=21600)
+
+    @model_validator(mode="after")
+    def valid_clip_range(self) -> "Scene":
+        if self.clip_end_seconds is not None and self.clip_end_seconds <= self.clip_start_seconds:
+            raise ValueError("O fim do trecho deve ser maior que o início.")
+        return self
 
 
 class ContentPlan(BaseModel):
@@ -78,6 +87,7 @@ class ProjectReview(BaseModel):
     facts_confirmed: bool
     rights_confirmed: bool
     notes: str = Field(min_length=3, max_length=2000)
+    caption: str | None = Field(default=None, min_length=3, max_length=2200)
 
 
 class ChannelUpdate(BaseModel):
@@ -111,6 +121,13 @@ class AssetRead(BaseModel):
     commercial_use: bool
     metadata_json: dict[str, Any]
     created_at: datetime
+
+
+class AssetRightsUpdate(BaseModel):
+    rights_status: Literal["UNKNOWN", "OWNED", "LICENSED", "RESTRICTED"]
+    creator: str | None = Field(default=None, max_length=240)
+    license_name: str | None = Field(default=None, max_length=120)
+    commercial_use: bool = False
 
 
 class SystemStatus(BaseModel):

@@ -11,17 +11,32 @@ import time
 import wave
 from contextlib import closing
 from pathlib import Path
+from urllib.parse import urlparse
 from uuid import uuid4
 
+from fastapi import HTTPException
 from sqlalchemy import select
 
 from apps.api.config import get_settings
 from apps.api.database import SessionLocal
 from apps.api.local_media import narration_text, synthesize_voice, transcribe_media, voice_matches
 from apps.api.models import Asset, Channel, Job, JobStatus, Project, ProjectStatus, now
+from apps.api.scene_media import stage_scene_assets
 from apps.api.services import claim_next_job, record_event
 
 logger = logging.getLogger(__name__)
+
+
+def source_label(plan: dict | None) -> str | None:
+    for source in (plan or {}).get("source_refs", []):
+        if not isinstance(source, dict):
+            continue
+        url = source.get("api_url")
+        if isinstance(url, str) and urlparse(url).hostname == "dadosabertos.camara.leg.br":
+            return "Fonte: Câmara dos Deputados"
+        if isinstance(url, str) and urlparse(url).hostname == "servicodados.ibge.gov.br":
+            return "Fonte: IBGE"
+    return None
 
 
 def fit_video_to_voice(
@@ -129,6 +144,7 @@ def render_one() -> bool:
         temp_dir.mkdir(parents=True, exist_ok=True)
         output_dir.mkdir(parents=True, exist_ok=True)
         props_path = (temp_dir / f"{job.id}.json").resolve()
+        public_dir = (temp_dir / f"{job.id}-media").resolve()
         output_path = (output_dir / f"{project.id}.mp4").resolve()
         channel = db.get(Channel, project.channel_id)
         configured_accent = (channel.brand_profile or {}).get("accent") if channel else None
@@ -155,26 +171,53 @@ def render_one() -> bool:
             "title": project.title,
             "format": project.format,
             "accent": accent,
-            "source_label": (
-                "Fonte: Câmara dos Deputados"
-                if (project.plan or {}).get("origin") == "OFFICIAL_SOURCE"
-                else None
-            ),
+            "source_label": source_label(project.plan),
             "scenes": [
                 dict(item, on_screen_text=captions.get(item["scene_id"]))
                 for item in video_tracks
             ],
         }
-        props_path.write_text(json.dumps(props, ensure_ascii=False), encoding="utf-8")
         project.status = ProjectStatus.RENDERING.value
         db.commit()
         try:
-            renderer_root = settings.mediagrid_renderer_root
+            staged = stage_scene_assets(db, video_tracks, public_dir)
+            for media in staged.values():
+                if media["media_kind"] == "video":
+                    info = validate_video(public_dir / media["media_file"])
+                    media["media_duration"] = info["duration_seconds"]
+            for scene in props["scenes"]:
+                scene.update(staged.get(scene.get("asset_id"), {}))
+                if scene.get("media_kind") == "video":
+                    start = float(scene.get("clip_start_seconds") or 0)
+                    duration = float(scene["media_duration"])
+                    end = float(scene.get("clip_end_seconds") or duration)
+                    if start >= duration or end > duration + 0.05 or end <= start:
+                        raise ValueError(
+                            "Trecho do clipe fora da duração do MP4. Ajuste início e fim no Editor."
+                        )
+            props_path.write_text(json.dumps(props, ensure_ascii=False), encoding="utf-8")
+            renderer_root = (
+                settings.mediagrid_renderer_root.resolve()
+                if settings.mediagrid_renderer_root
+                else None
+            )
             node = settings.mediagrid_node_path
             if renderer_root and node:
+                cli = renderer_root / "node_modules" / "@remotion" / "cli" / "remotion-cli.js"
+                if not cli.is_file():
+                    # npm workspaces hoist the CLI to the repository root in development.
+                    cli = (
+                        renderer_root.parents[1]
+                        / "node_modules"
+                        / "@remotion"
+                        / "cli"
+                        / "remotion-cli.js"
+                    )
+                if not cli.is_file():
+                    raise ValueError("Remotion CLI not found in renderer runtime or workspace")
                 command = [
                     str(node),
-                    str(renderer_root / "node_modules" / "@remotion" / "cli" / "remotion-cli.js"),
+                    str(cli),
                     "render",
                     str(renderer_root / "src" / "index.ts"),
                     "MediaGridVideo",
@@ -210,6 +253,7 @@ def render_one() -> bool:
                 browser = shutil.which("chromium") or shutil.which("google-chrome")
             if browser:
                 command.append(f"--browser-executable={browser}")
+            command.append(f"--public-dir={public_dir}")
             subprocess.run(command, check=True, cwd=renderer_root if renderer_root else None)
             if valid_voice is not None:
                 voiced = temp_dir / f"{job.id}-voiced.mp4"
@@ -248,15 +292,24 @@ def render_one() -> bool:
             job.finished_at = now()
             project.status = ProjectStatus.QC.value
             record_event(db, "RENDER_FINISHED", "project", project.id, after=job.result)
-        except (subprocess.CalledProcessError, ValueError, OSError, json.JSONDecodeError) as exc:
+        except (
+            subprocess.CalledProcessError,
+            ValueError,
+            OSError,
+            json.JSONDecodeError,
+            HTTPException,
+        ) as exc:
             job.status = JobStatus.FAILED.value
-            job.error = f"Render validation failed: {exc}"
+            detail = exc.detail if isinstance(exc, HTTPException) else exc
+            job.error = f"Render validation failed: {detail}"
             job.finished_at = now()
             project.status = ProjectStatus.FAILED.value
             project.error = job.error
             record_event(db, "RENDER_FAILED", "project", project.id, after={"error": job.error})
         finally:
             props_path.unlink(missing_ok=True)
+            if public_dir.parent == temp_dir.resolve() and public_dir.name == f"{job.id}-media":
+                shutil.rmtree(public_dir, ignore_errors=True)
             db.commit()
         return True
 

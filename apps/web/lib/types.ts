@@ -40,6 +40,9 @@ export interface Scene {
   visual_query: string;
   on_screen_text: string;
   transition: "impact" | "slide" | "cut" | "zoom" | "fade";
+  asset_id?: string | null;
+  clip_start_seconds?: number;
+  clip_end_seconds?: number | null;
 }
 
 export interface ContentPlan {
@@ -53,7 +56,7 @@ export interface ContentPlan {
   requires_fact_review: boolean;
   review_checks: string[];
   source_refs?: Array<{title:string;url:string;api_url?:string;fetched_at:string}>;
-  review?: {approved_at:string;source_urls:string[];facts_confirmed:boolean;rights_confirmed:boolean;notes:string};
+  review?: {approved_at:string;source_urls:string[];facts_confirmed:boolean;rights_confirmed:boolean;notes:string;caption?:string|null};
 }
 
 export interface OfficialProposal {
@@ -64,6 +67,17 @@ export interface OfficialProposal {
   presented_at: string;
   source_url: string;
   api_url: string;
+}
+
+export interface GeoMunicipality {
+  id: number;
+  name: string;
+  state_code: string;
+  state_name: string;
+  region_name: string;
+  immediate_name: string;
+  intermediate_name: string;
+  source_url: string;
 }
 
 export interface Job {

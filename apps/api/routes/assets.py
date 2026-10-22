@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from ..config import get_settings
 from ..database import get_db
 from ..models import Asset, Job, JobStatus, new_id
-from ..schemas import AssetRead
+from ..schemas import AssetRead, AssetRightsUpdate
 from ..services import record_event
 
 router = APIRouter(prefix="/assets", tags=["assets"])
@@ -32,6 +32,8 @@ def upload_asset(
 ) -> Asset:
     if rights_status not in {"UNKNOWN", "OWNED", "LICENSED", "RESTRICTED"}:
         raise HTTPException(422, "Invalid rights status")
+    if rights_status == "LICENSED" and not license_name:
+        raise HTTPException(422, "License name is required for licensed media")
     name = Path(file.filename or "arquivo").name[:240]
     asset = Asset(
         id=new_id(),
@@ -86,6 +88,37 @@ def download_asset(asset_id: str, db: Session = Depends(get_db)) -> FileResponse
     if not path.is_file():
         raise HTTPException(404, "Asset file is missing")
     return FileResponse(path, media_type=asset.media_type, filename=asset.name)
+
+
+@router.patch("/{asset_id}/rights", response_model=AssetRead)
+def update_asset_rights(
+    asset_id: str, payload: AssetRightsUpdate, db: Session = Depends(get_db)
+) -> Asset:
+    asset = db.get(Asset, asset_id)
+    if asset is None:
+        raise HTTPException(404, "Asset not found")
+    if payload.rights_status == "LICENSED" and not payload.license_name:
+        raise HTTPException(422, "License name is required for licensed media")
+    before = {
+        "rights_status": asset.rights_status,
+        "license_name": asset.license_name,
+        "commercial_use": asset.commercial_use,
+    }
+    asset.rights_status = payload.rights_status
+    asset.creator = payload.creator
+    asset.license_name = payload.license_name
+    asset.commercial_use = payload.commercial_use
+    record_event(
+        db,
+        "ASSET_RIGHTS_UPDATED",
+        "asset",
+        asset.id,
+        before=before,
+        after=payload.model_dump(),
+    )
+    db.commit()
+    db.refresh(asset)
+    return asset
 
 
 @router.post("/{asset_id}/transcribe", status_code=status.HTTP_202_ACCEPTED)

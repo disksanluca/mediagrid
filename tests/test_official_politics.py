@@ -2,6 +2,7 @@ import httpx
 from fastapi.testclient import TestClient
 
 from apps.api import official_politics
+from workers.render.main import source_label
 
 
 def official_response(request: httpx.Request) -> httpx.Response:
@@ -71,6 +72,7 @@ def test_official_politics_creates_editable_sourced_plan(
     assert updated.status_code == 200
     assert updated.json()["plan"]["origin"] == "MANUAL"
     assert updated.json()["plan"]["source_refs"] == plan["source_refs"]
+    assert source_label(updated.json()["plan"]) == "Fonte: Câmara dos Deputados"
     assert client.post(f"/api/v1/projects/{project['id']}/voice").status_code == 202
     assert client.post(f"/api/v1/projects/{project['id']}/render").status_code == 409
 

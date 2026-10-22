@@ -14,6 +14,7 @@ from ..database import get_db
 from ..engines import get_engine
 from ..local_media import voice_matches
 from ..models import Channel, Job, JobStatus, Project, ProjectStatus
+from ..scene_media import validate_scene_assets
 from ..schemas import ContentPlan, ProjectCreate, ProjectPlanUpdate, ProjectRead, ProjectReview
 from ..services import build_local_plan, create_plan, enqueue_job, record_event
 
@@ -78,6 +79,7 @@ def update_plan(
     channel = db.get(Channel, project.channel_id)
     if channel is None:
         raise HTTPException(status_code=404, detail="Channel not found")
+    validate_scene_assets(db, payload.scenes)
     original_narrations = {
         scene.id: scene.narration.strip()
         for scene in build_local_plan(project, channel).scenes
@@ -111,6 +113,9 @@ def update_plan(
                     "duration": s.duration_seconds,
                     "visual_type": s.visual_type,
                     "transition": s.transition,
+                    "asset_id": s.asset_id,
+                    "clip_start_seconds": s.clip_start_seconds,
+                    "clip_end_seconds": s.clip_end_seconds,
                 }
                 for s in plan.scenes
             ],
@@ -139,6 +144,12 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict[str, st
             status_code=409,
             detail="O plano ainda é um esboço. Revise e salve a narração antes do render.",
         )
+    if any(
+        not str(scene.get("narration", "")).strip()
+        for scene in (project.plan or {}).get("scenes", [])
+    ):
+        raise HTTPException(409, "Preencha a narração de todas as cenas antes do render.")
+    validate_scene_assets(db, project.edl["tracks"]["video"])
     active = db.scalars(
         select(Job).where(
             Job.project_id == project_id,
@@ -183,6 +194,11 @@ def queue_voice(project_id: str, db: Session = Depends(get_db)) -> dict[str, str
         raise HTTPException(409, "Create a plan before generating voice")
     if (project.plan or {}).get("origin") == "OUTLINE":
         raise HTTPException(409, "Revise e salve a narração antes de gerar a voz.")
+    if any(
+        not str(scene.get("narration", "")).strip()
+        for scene in (project.plan or {}).get("scenes", [])
+    ):
+        raise HTTPException(409, "Preencha a narração de todas as cenas antes de gerar a voz.")
     active = db.scalar(
         select(Job).where(
             Job.project_id == project_id,
@@ -262,6 +278,7 @@ def approve_project_review(
         "facts_confirmed": True,
         "rights_confirmed": True,
         "notes": payload.notes,
+        "caption": payload.caption,
     }
     project.plan = {**(project.plan or {}), "review": review}
     project.status = ProjectStatus.APPROVED.value
@@ -300,6 +317,8 @@ def export_reviewed_project(project_id: str, db: Session = Depends(get_db)) -> F
         with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_STORED) as archive:
             archive.write(video, "video.mp4")
             archive.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2))
+            if review.get("caption"):
+                archive.writestr("caption.txt", review["caption"])
         os.replace(temporary, target)
     finally:
         temporary.unlink(missing_ok=True)
