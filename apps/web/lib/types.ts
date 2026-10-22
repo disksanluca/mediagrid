@@ -49,9 +49,12 @@ export interface TimelineItem {
   id: string;
   start_ms: number;
   duration_ms: number;
+  z_index: number;
   source_asset_id?: string | null;
   source_in_ms?: number | null;
   source_out_ms?: number | null;
+  speed: number;
+  preset?: string | null;
   params: {scene_id?: string; text?: string; [key: string]: unknown};
 }
 
@@ -62,6 +65,7 @@ export interface TimelineResponse {
   edl: {
     version: 2;
     revision: number;
+    canvas: {width:number;height:number;fps_num:number;fps_den:number};
     duration_ms: number;
     tracks: Array<{id: string; kind: string; items: TimelineItem[]}>;
   };

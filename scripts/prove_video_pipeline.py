@@ -48,6 +48,10 @@ def main() -> None:
         "--edl-v2-roundtrip", action="store_true",
         help="Persist a compatible EDL v2 revision before voice and render",
     )
+    parser.add_argument(
+        "--kinetic-title", action="store_true",
+        help="Render an original animated text layer from EDL v2",
+    )
     args = parser.parse_args()
     run_dir = (args.output / datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")).resolve()
     run_dir.mkdir(parents=True, exist_ok=False)
@@ -110,8 +114,26 @@ def main() -> None:
         if plan["origin"] != "BRIEF_BASED" or len(plan["scenes"]) != 4:
             raise RuntimeError("Brief was not converted into the expected editable scenes")
         edl_v2_revision = None
-        if args.edl_v2_roundtrip:
+        if args.edl_v2_roundtrip or args.kinetic_title:
             timeline = checked(client.get(f"/api/v1/projects/{project_id}/edl-v2"))
+            if args.kinetic_title:
+                timeline["edl"]["tracks"].append({
+                    "id": "kinetic-titles", "kind": "caption", "items": [{
+                        "id": "proof-title", "start_ms": 0, "duration_ms": 3000,
+                        "z_index": 10, "preset": "kinetic_title_v1",
+                        "params": {
+                            "text": "CAMADA V2 • TESTE REAL", "color": "#dcf769",
+                            "keyframes": [
+                                {"at_ms": 0, "x": 0.5, "y": 0.78,
+                                 "opacity": 0, "scale": 0.8},
+                                {"at_ms": 600, "x": 0.5, "y": 0.78,
+                                 "opacity": 1, "scale": 1},
+                                {"at_ms": 3000, "x": 0.5, "y": 0.78,
+                                 "opacity": 1, "scale": 1},
+                            ],
+                        },
+                    }],
+                })
             edl_v2_revision = checked(
                 client.put(
                     f"/api/v1/projects/{project_id}/edl-v2",
@@ -180,6 +202,8 @@ def main() -> None:
             raise RuntimeError("Render job MP4 hash does not match its artifact")
         if render_result["result"].get("edl_sha256") != edl_sha256:
             raise RuntimeError("Render job EDL hash does not match its project")
+        if args.kinetic_title and not render_result["result"].get("revision_sha256"):
+            raise RuntimeError("Animated title render did not record its EDL v2 revision")
         evidence = {
             "project_id": project_id,
             "project_status": stored.status,
@@ -188,6 +212,8 @@ def main() -> None:
             "edl_v2_revision": edl_v2_revision,
             "scene_count": len(stored.edl["tracks"]["video"]),
             "caption_mode": "one visual text card per scene; word timing not implemented",
+            "kinetic_title": args.kinetic_title,
+            "revision_sha256": render_result["result"].get("revision_sha256"),
             "jobs": [
                 {"type": job.job_type, "status": job.status, "attempt": job.attempt}
                 for job in jobs

@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from ..config import get_settings
 from ..database import get_db
-from ..edl_v2 import EDLV2, from_legacy, to_legacy
+from ..edl_v2 import EDLV2, from_legacy, scene_projection
 from ..engines import get_engine
 from ..local_media import voice_matches
 from ..models import Channel, Job, JobStatus, Project, ProjectRevision, ProjectStatus
@@ -94,6 +94,11 @@ def read_edl_v2(project_id: str, response: Response, db: Session = Depends(get_d
     current = saved.revision if saved else 0
     try:
         edl = from_legacy(project.edl, project.plan, revision=current + 1)
+        if saved:
+            stored = EDLV2.model_validate(saved.edl)
+            projected, _ = scene_projection(stored, project.format)
+            if projected == project.edl:
+                edl = stored.model_copy(update={"revision": current + 1})
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from exc
     response.headers["ETag"] = f'"edl-{current}"'
@@ -101,7 +106,9 @@ def read_edl_v2(project_id: str, response: Response, db: Session = Depends(get_d
         "revision": current,
         "legacy_sha256": legacy_hash(project.edl),
         "edl": edl.model_dump(),
-        "renderer": "scene-v1-compatible",
+        "renderer": "timeline-v2" if any(
+            track.kind == "caption" and track.items for track in edl.tracks
+        ) else "scene-v1-compatible",
     }
 
 
@@ -122,7 +129,7 @@ def write_edl_v2(project_id: str, payload: RevisionWrite, db: Session = Depends(
     if active_render_for(db, project_id):
         raise HTTPException(409, "Wait for the current render before editing")
     try:
-        legacy = to_legacy(payload.edl, project.format)
+        legacy, _ = scene_projection(payload.edl, project.format)
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
     validate_scene_assets(db, legacy["tracks"]["video"])
@@ -232,18 +239,22 @@ def plan_project(project_id: str, db: Session = Depends(get_db)) -> ContentPlan:
         raise HTTPException(409, "Wait for the current render before editing")
     previous = latest_revision(db, project_id)
     plan = create_plan(db, project)
-    if project.edl and project.format in {"vertical", "horizontal", "square"}:
-        append_revision(db, project, from_legacy(
-            project.edl, project.plan, revision=(previous.revision if previous else 0) + 1,
-        ))
     channel = db.get(Channel, project.channel_id)
-    if (
-        channel
-        and plan.origin != "OUTLINE"
-        and (channel.editorial_profile or {}).get("auto_render") is True
-    ):
-        enqueue_job(db, project.id, "RENDER", {"edl": project.edl})
-    db.commit()
+    try:
+        if project.edl and project.format in {"vertical", "horizontal", "square"}:
+            append_revision(db, project, from_legacy(
+                project.edl, project.plan, revision=(previous.revision if previous else 0) + 1,
+            ))
+        if (
+            channel
+            and plan.origin != "OUTLINE"
+            and (channel.editorial_profile or {}).get("auto_render") is True
+        ):
+            enqueue_job(db, project.id, "RENDER", {"edl": project.edl})
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(409, "Timeline changed; reload before saving") from exc
     return plan
 
 
@@ -315,12 +326,36 @@ def update_plan(
         },
     }
     project.status = ProjectStatus.SCRIPTED.value
-    if project.format in {"vertical", "horizontal", "square"}:
-        append_revision(db, project, from_legacy(project.edl, project.plan, revision=number + 1))
-    record_event(
-        db, "SCRIPT_EDITED", "project", project.id, after={"scene_count": len(plan.scenes)}
-    )
-    db.commit()
+    try:
+        if project.format in {"vertical", "horizontal", "square"}:
+            revised = from_legacy(
+                project.edl, project.plan, revision=number + 1,
+            )
+            if current_revision:
+                prior = EDLV2.model_validate(current_revision.edl)
+                overlay_tracks = [
+                    track for track in prior.tracks if track.kind == "caption"
+                ]
+                if overlay_tracks:
+                    try:
+                        revised = EDLV2.model_validate({
+                            **revised.model_dump(),
+                            "tracks": [
+                                *[track.model_dump() for track in revised.tracks],
+                                *[track.model_dump() for track in overlay_tracks],
+                            ],
+                        })
+                    except ValidationError as exc:
+                        raise HTTPException(422, "Overlay exceeds the revised timeline") from exc
+            append_revision(db, project, revised)
+        record_event(
+            db, "SCRIPT_EDITED", "project", project.id,
+            after={"scene_count": len(plan.scenes)},
+        )
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(409, "Timeline changed; reload before saving") from exc
     db.refresh(project)
     return project
 
@@ -373,7 +408,17 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict[str, st
             "project",
             project.id,
         )
-    job = enqueue_job(db, project.id, "RENDER", {"edl": project.edl})
+    payload = {"edl": project.edl}
+    saved = latest_revision(db, project.id)
+    if saved:
+        try:
+            canonical = EDLV2.model_validate(saved.edl)
+            base, overlays = scene_projection(canonical, project.format)
+            if overlays and base == project.edl:
+                payload["edl_v2"] = saved.edl
+        except ValueError as exc:
+            raise HTTPException(409, f"Invalid timeline revision: {exc}") from exc
+    job = enqueue_job(db, project.id, "RENDER", payload)
     db.commit()
     return {"job_id": job.id, "status": job.status}
 

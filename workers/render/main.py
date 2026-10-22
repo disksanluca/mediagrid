@@ -19,8 +19,18 @@ from sqlalchemy import select
 
 from apps.api.config import get_settings
 from apps.api.database import SessionLocal
+from apps.api.edl_v2 import EDLV2, scene_projection
 from apps.api.local_media import narration_text, synthesize_voice, transcribe_media, voice_matches
-from apps.api.models import Asset, Channel, Job, JobStatus, Project, ProjectStatus, now
+from apps.api.models import (
+    Asset,
+    Channel,
+    Job,
+    JobStatus,
+    Project,
+    ProjectRevision,
+    ProjectStatus,
+    now,
+)
 from apps.api.scene_media import stage_scene_assets
 from apps.api.services import claim_next_job, record_event
 
@@ -152,6 +162,28 @@ def render_one() -> bool:
         edl_sha256 = hashlib.sha256(json.dumps(
             rendered_edl, ensure_ascii=False, sort_keys=True, separators=(",", ":")
         ).encode("utf-8")).hexdigest()
+        queued_v2 = (job.payload or {}).get("edl_v2")
+        overlays = []
+        revision_sha256 = None
+        if queued_v2 is not None:
+            current = db.scalar(
+                select(ProjectRevision)
+                .where(ProjectRevision.project_id == project.id)
+                .order_by(ProjectRevision.revision.desc())
+                .limit(1)
+            )
+            try:
+                canonical = EDLV2.model_validate(queued_v2)
+                base, overlays = scene_projection(canonical, project.format)
+                if not current or current.edl != queued_v2 or base != project.edl:
+                    raise ValueError("Timeline revision changed after this render was queued")
+                revision_sha256 = current.sha256
+            except ValueError as exc:
+                job.status = JobStatus.FAILED.value
+                job.error = f"Invalid queued EDL v2: {exc}"
+                job.finished_at = now()
+                db.commit()
+                return True
 
         temp_dir = settings.mediagrid_data_dir / "temp"
         output_dir = settings.mediagrid_data_dir / "renders"
@@ -191,6 +223,15 @@ def render_one() -> bool:
                 for item in video_tracks
             ],
         }
+        if overlays:
+            props["overlays"] = [
+                {
+                    "id": item.id, "start_ms": item.start_ms,
+                    "duration_ms": item.duration_ms, "z_index": item.z_index,
+                    **item.params,
+                }
+                for item in overlays
+            ]
         project.status = ProjectStatus.RENDERING.value
         db.commit()
         try:
@@ -234,7 +275,7 @@ def render_one() -> bool:
                     str(cli),
                     "render",
                     str(renderer_root / "src" / "index.ts"),
-                    "MediaGridVideo",
+                    "MediaGridTimelineV2" if overlays else "MediaGridVideo",
                     str(output_path),
                     "--props",
                     str(props_path),
@@ -256,7 +297,7 @@ def render_one() -> bool:
                 command = [
                     "npm",
                     "run",
-                    "render",
+                    "render:v2" if overlays else "render",
                     "--workspace",
                     "@mediagrid/renderer",
                     "--",
@@ -310,6 +351,8 @@ def render_one() -> bool:
                 "output": str(output_path), "sha256": digest.hexdigest(),
                 "edl_sha256": edl_sha256, **video_info,
             }
+            if revision_sha256:
+                job.result["revision_sha256"] = revision_sha256
             job.finished_at = now()
             project.status = ProjectStatus.QC.value
             record_event(db, "RENDER_FINISHED", "project", project.id, after=job.result)

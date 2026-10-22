@@ -4,7 +4,9 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
+from apps.api.database import SessionLocal
 from apps.api.edl_v2 import EDLV2, from_legacy, to_legacy
+from apps.api.models import Job
 
 
 def sample_edl() -> dict:
@@ -88,6 +90,25 @@ def test_source_bounds_and_timeline_bounds_are_checked() -> None:
         EDLV2.model_validate(converted)
 
 
+def test_overlay_rejects_unknown_preset_and_invalid_keyframes() -> None:
+    converted = from_legacy(sample_edl(), None).model_dump()
+    overlay = {
+        "id": "overlay-1", "start_ms": 0, "duration_ms": 1000,
+        "z_index": 10, "preset": "untrusted_html",
+        "params": {"text": "Título", "color": "#dcf769", "keyframes": [
+            {"at_ms": 0, "x": 0.5, "y": 0.5, "opacity": 0, "scale": 0.8},
+            {"at_ms": 1000, "x": 0.5, "y": 0.5, "opacity": 1, "scale": 1},
+        ]},
+    }
+    converted["tracks"].append({"id": "captions", "kind": "caption", "items": [overlay]})
+    with pytest.raises(ValidationError, match="Only local kinetic text"):
+        EDLV2.model_validate(converted)
+    overlay["preset"] = "kinetic_title_v1"
+    overlay["params"]["keyframes"][1]["at_ms"] = 1010
+    with pytest.raises(ValidationError, match="within the item"):
+        EDLV2.model_validate(converted)
+
+
 def test_v2_revision_api_preserves_legacy_render_and_rejects_stale_edit(
     client: TestClient,
 ) -> None:
@@ -158,3 +179,64 @@ def test_scene_editor_write_advances_revision_and_checks_legacy_hash(
     assert saved.status_code == 200, saved.text
     assert client.get(f"/api/v1/projects/{project_id}/edl-v2").json()["revision"] == 2
     assert client.put(f"/api/v1/projects/{project_id}/plan", json=body).status_code == 409
+
+
+def test_kinetic_title_survives_scene_edit_and_reaches_render_job(client: TestClient) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Motion local", "slug": "motion-local", "niche": "motion",
+        "default_engine": "clips",
+    }).json()
+    project = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Título animado",
+        "topic": (
+            "Primeira frase concreta para a abertura do vídeo.\n"
+            "Segunda frase concreta para a parte central.\n"
+            "Terceira frase concreta para o encerramento."
+        ),
+    }).json()
+    project_id = project["id"]
+    plan = client.post(f"/api/v1/projects/{project_id}/plan").json()
+    url = f"/api/v1/projects/{project_id}/edl-v2"
+    current = client.get(url).json()
+    legacy = client.get(f"/api/v1/projects/{project_id}").json()["edl"]
+    current["edl"]["tracks"].append({
+        "id": "kinetic-titles", "kind": "caption", "items": [{
+            "id": "overlay-1", "start_ms": 500, "duration_ms": 2000,
+            "z_index": 10, "preset": "kinetic_title_v1",
+            "params": {"text": "Texto original", "color": "#dcf769", "keyframes": [
+                {"at_ms": 0, "x": 0.5, "y": 0.8, "opacity": 0, "scale": 0.8},
+                {"at_ms": 2000, "x": 0.5, "y": 0.7, "opacity": 1, "scale": 1},
+            ]},
+        }],
+    })
+    saved = client.put(url, json={
+        "expected_revision": current["revision"],
+        "expected_legacy_sha256": current["legacy_sha256"],
+        "edl": current["edl"],
+    })
+    assert saved.status_code == 200, saved.text
+    after = client.get(url).json()
+    assert after["renderer"] == "timeline-v2"
+    assert after["edl"]["tracks"][3]["items"][0]["params"]["text"] == "Texto original"
+    projected = client.get(f"/api/v1/projects/{project_id}").json()["edl"]
+    assert projected["tracks"]["audio"] == legacy["tracks"]["audio"]
+    assert projected["tracks"]["captions"] == legacy["tracks"]["captions"]
+    assert [item["duration"] for item in projected["tracks"]["video"]] == [
+        item["duration"] for item in legacy["tracks"]["video"]
+    ]
+
+    plan["scenes"][0]["on_screen_text"] = "Cena revista"
+    edited = client.put(f"/api/v1/projects/{project_id}/plan", json={
+        "scenes": plan["scenes"], "hook": plan["hook"], "angle": plan["angle"],
+        "expected_revision": after["revision"],
+        "expected_legacy_sha256": after["legacy_sha256"],
+    })
+    assert edited.status_code == 200, edited.text
+    after = client.get(url).json()
+    assert after["renderer"] == "timeline-v2"
+    assert after["edl"]["tracks"][3]["items"][0]["params"]["text"] == "Texto original"
+    queued = client.post(f"/api/v1/projects/{project_id}/render")
+    assert queued.status_code == 202, queued.text
+    with SessionLocal() as db:
+        job = db.get(Job, queued.json()["job_id"])
+        assert job and job.payload["edl_v2"]["tracks"][3]["items"][0]["id"] == "overlay-1"

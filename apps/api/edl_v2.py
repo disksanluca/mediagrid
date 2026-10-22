@@ -56,6 +56,46 @@ class TimelineTrack(BaseModel):
     items: list[TimelineItem] = Field(default_factory=list)
 
 
+class OverlayKeyframe(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    at_ms: int = Field(ge=0)
+    x: float = Field(ge=0, le=1)
+    y: float = Field(ge=0, le=1)
+    opacity: float = Field(ge=0, le=1)
+    scale: float = Field(ge=0.25, le=4)
+
+
+class OverlaySpec(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: str = Field(min_length=1, max_length=180)
+    color: str = Field(pattern=r"^#[0-9a-fA-F]{6}$")
+    keyframes: list[OverlayKeyframe] = Field(min_length=2, max_length=8)
+
+    @model_validator(mode="after")
+    def nonempty_text(self) -> "OverlaySpec":
+        if not self.text.strip():
+            raise ValueError("Overlay text must not be blank")
+        return self
+
+
+def validate_overlay(item: TimelineItem) -> OverlaySpec:
+    if (
+        item.preset != "kinetic_title_v1" or item.source_asset_id is not None
+        or item.source_in_ms is not None or item.speed != 1 or item.z_index < 1
+    ):
+        raise ValueError("Only local kinetic text is supported on caption tracks")
+    spec = OverlaySpec.model_validate(item.params)
+    times = [frame.at_ms for frame in spec.keyframes]
+    if (
+        times[0] != 0 or times[-1] > item.duration_ms
+        or any(right - left < 34 for left, right in zip(times, times[1:], strict=False))
+    ):
+        raise ValueError("Overlay keyframes must start at zero and increase within the item")
+    return spec
+
+
 class EDLV2(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -81,8 +121,7 @@ class EDLV2(BaseModel):
                 if track.kind in {"music", "sfx"} and not item.source_asset_id:
                     raise ValueError("music and sound items need an asset")
                 if track.kind == "caption":
-                    if not str(item.params.get("text", "")).strip():
-                        raise ValueError("text item needs text")
+                    validate_overlay(item)
         return self
 
 
@@ -230,3 +269,14 @@ def to_legacy(edl: EDLV2, format_: str) -> dict[str, Any]:
     ):
         raise ValueError("Every scene must have one voice and one title")
     return {"version": 1, "format": format_, "tracks": result}
+
+
+def scene_projection(edl: EDLV2, format_: str) -> tuple[dict[str, Any], list[TimelineItem]]:
+    """Keep the scene renderer input while retaining supported caption overlays."""
+    overlays = [
+        item for track in edl.tracks if track.kind == "caption" for item in track.items
+    ]
+    base = edl.model_copy(update={
+        "tracks": [track for track in edl.tracks if track.kind != "caption"],
+    })
+    return to_legacy(base, format_), overlays

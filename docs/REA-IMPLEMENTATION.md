@@ -31,7 +31,7 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   descartável, iniciar API/worker, renderizar e testar exportação e backup.
   Isso não equivale a atualizar o PC do usuário.
 
-## Marco 1 — fatia vertical de compatibilidade entregue; editor livre pendente
+## Marco 1 — compatibilidade e primeira camada animada; editor livre pendente
 
 - Alembic `1.20.0` instalado pelo `uv.lock`, com baseline `0001_legacy` e revisão
   `0002_revisions`. O bootstrap valida todas as tabelas/colunas legadas antes
@@ -46,15 +46,21 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   `0002_revisions`.
 - `apps/api/edl_v2.py` converte o EDL de cenas v1 em três trilhas v2 (imagem,
   voz, texto), preservando duração, ordem, texto, fonte, recorte e loop de MP4.
-  A volta para v1 recusa camadas, velocidade, keyframes ou FPS que o renderer
-  atual não executa. Não há queda silenciosa de elementos. `GET/PUT
+  A projeção para v1 recusa elementos fora do subconjunto de cenas, com uma
+  exceção explícita: títulos locais `kinetic_title_v1` numa trilha `caption`
+  são preservados no EDL canônico v2 e enviados ao renderer v2. O contrato
+  valida texto, cor, posição, escala, opacidade, intervalos e keyframes; não
+  aceita HTML ou presets arbitrários. Música, efeitos, vídeo livre, velocidade
+  e outros keyframes continuam recusados. `GET/PUT
   /projects/{id}/edl-v2` expõe a revisão, hash da projeção legada e bloqueia
   edições concorrentes com `409`. O Editor v1 também avança a revisão e verifica
   hash. Regenerar o plano avança a revisão. Editar durante render ativo é recusado.
-- O Editor React mostra as três trilhas persistidas e a forma de onda decodificada
+- O Editor React mostra as trilhas persistidas e a forma de onda decodificada
   do WAV real, com audição local. Continua editando cenas reais; título, duração,
-  narração, mídia e ordem são salvos na API. O vídeo gerado é a prévia fiel do
-  subconjunto v2 compatível. O site não anuncia camada livre como pronta.
+  narração, mídia e ordem são salvos na API. Também adiciona, edita e remove
+  títulos animados com três keyframes e persiste a revisão via API. A edição
+  de cena preserva títulos válidos; alterações invalidam o vídeo anterior.
+  O MP4 renderizado é a prévia fiel do subconjunto v2 implementado.
 - Uma revisão invalida o estado de aprovação/saída. A revisão humana registra
   SHA-256 do EDL e do MP4; a exportação manual recusa alteração do arquivo
   aprovado. Teste de adulteração cobre este bloqueio.
@@ -62,7 +68,7 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   `FAILED` com evento `RENDER_STALE` se a timeline mudou após a fila. Um render
   concluído registra SHA-256 do EDL e do MP4 em `job.result`; teste de integração
   cobre o caso de job obsoleto sem iniciar Remotion.
-- `uv run pytest -q`: **51 passaram**, um aviso Starlette/httpx.
+- `uv run pytest -q`: **53 passaram**, um aviso Starlette/httpx.
   `uv run ruff
   check .` e TypeScript do Web passaram. `uv run python
   scripts/prove_video_pipeline.py --edl-v2-roundtrip` salvou revisão **2**,
@@ -80,18 +86,31 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
 - Teste manual no navegador local com esta base isolada: timeline revisão 2,
   waveform e player WAV visíveis; edição do texto da primeira cena avançou a
   revisão para 3, mudou o estado para `SCRIPTED` e ocultou o MP4 anterior.
-  Inspeção visual foi feita no viewport estreito do navegador, sem aferir ainda
-  as três resoluções-alvo nem audição humana completa.
-- **Ainda pendente para concluir o Marco 1:** trilhas livres e keyframes básicos
-  com preview/renderer v2, teste de composição fora do modelo de cenas, validação
-  visual nas três resoluções e QA auditivo integral. O renderer ainda consome a
-  projeção v1 do EDL v2 compatível; o contrato completo v2 não está implementado.
+  Inspeção visual no navegador em 1440×900, 1280×800 e 1000×900 mostrou trilhas,
+  waveform, player e painéis sem transbordamento visível. A audição humana
+  integral do vídeo continua pendente.
+- A composição `MediaGridTimelineV2` no Remotion renderizou uma camada local
+  original fora das cenas, com opacidade/escala interpoladas em três keyframes.
+  `uv run python scripts/prove_video_pipeline.py --kinetic-title` gerou o MP4
+  `data/rea-proof/20261022T230258Z/renders/f861f294-93fc-412b-85f4-ebb49ec471f2.mp4`:
+  31 s, 1080×1920, H.264/AAC, SHA-256
+  `fad5ec257aa4f4e8052e99750c13b5ef72e675194697d57ba6f8f3fb108c9de6`.
+  O worker registrou o hash da revisão v2, do EDL de cenas e do MP4.
+  O quadro em 1,5 s foi inspecionado: título verde visível sobre a cena.
+  A composição é prova técnica, ainda simples editorialmente. Em navegador,
+  o texto do overlay foi editado e salvo (revisão 2→3), e um segundo título
+  foi adicionado e salvo (revisão 3→4). Estado voltou a `SCRIPTED` e a saída
+  anterior foi ocultada.
+- **Ainda pendente para concluir o Marco 1:** música, efeitos e camadas de
+  vídeo livres no EDL, preview antes do render, QA auditivo integral e teste
+  de edição completa da composição no desktop empacotado. O contrato v2
+  completo não está implementado.
 
 ## Ordem restante e gates
 
-1. Fechar Marco 1: renderer/preview para trilhas livres e keyframes com mesmo
-   EDL, e validação visual/auditiva de um vídeo dessa composição. Manter a
-   conversão estrita enquanto o renderer v2 não suportar os novos elementos.
+1. Fechar Marco 1: trilhas de música, efeitos e vídeo livres, preview antes do
+   render e validação visual/auditiva. Manter a projeção estrita enquanto o
+   renderer v2 não suportar os novos elementos.
 2. Ingestão longa com hash, probe, direitos, proxy e retomada.
 3. Voz humana/local, ASR por palavra e captions corrigíveis.
 4. Máquina de cortes com contexto e seleção humana; depois Motion Ad,
@@ -111,8 +130,12 @@ Alembic `1.20.0` no ambiente desta branch; guia oficial atual consultado em
 e [batch migrations no SQLite](https://alembic.sqlalchemy.org/en/latest/batch.html).
 A documentação online estava em `1.20.1`; não se usa autogenerate como migração
 final. A migração atual só cria/remove tabela nova, sem alterar colunas SQLite
-existentes. Remotion, FFmpeg, Câmara, IBGE e provedores de ASR não tiveram
-protocolos alterados nesta etapa.
+existentes. Remotion instalado `4.0.532`; composição e sequenciamento foram
+conferidos na [documentação oficial](https://www.remotion.dev/docs/composition)
+e no [guia de timing](https://www.remotion.dev/docs/timing) em 22/10/2026.
+A [licença oficial](https://www.remotion.dev/docs/license/faq) depende do tipo
+e porte da organização; nenhuma licença paga foi ativada. FFmpeg, Câmara,
+IBGE e provedores de ASR não tiveram protocolos alterados nesta etapa.
 
 ## Operação, integrações e custos
 

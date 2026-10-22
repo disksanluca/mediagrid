@@ -18,5 +18,22 @@ export interface RenderProps {
   accent: string;
   source_label?: string | null;
   scenes: RenderScene[];
+  overlays?: RenderOverlay[];
+}
+
+export interface RenderOverlay {
+  id: string;
+  start_ms: number;
+  duration_ms: number;
+  z_index: number;
+  text: string;
+  color: string;
+  keyframes: Array<{
+    at_ms: number;
+    x: number;
+    y: number;
+    opacity: number;
+    scale: number;
+  }>;
 }
 

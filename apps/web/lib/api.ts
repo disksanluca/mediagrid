@@ -58,6 +58,7 @@ export const api = {
   createPlan: (id: string) => request<ContentPlan>(`/projects/${id}/plan`, {method: "POST"}),
   updatePlan: (id: string, body: Record<string, unknown>) => request<Project>(`/projects/${id}/plan`, {method: "PUT", body: JSON.stringify(body)}),
   timeline: (id: string) => request<TimelineResponse>(`/projects/${id}/edl-v2`),
+  updateTimeline: (id: string, body: {expected_revision:number;expected_legacy_sha256:string;edl:TimelineResponse["edl"]}) => request<{revision:number;sha256:string;project_id:string}>(`/projects/${id}/edl-v2`, {method:"PUT", body:JSON.stringify(body)}),
   render: (id: string) => request<{job_id: string; status: string}>(`/projects/${id}/render`, {method: "POST"}),
   voice: (id: string) => request<{job_id: string; status: string}>(`/projects/${id}/voice`, {method:"POST"}),
   voiceFile: (id: string) => `${baseUrl}/projects/${id}/voice`,
