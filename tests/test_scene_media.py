@@ -100,6 +100,12 @@ def test_scene_media_rejects_unknown_asset_and_rights_change(
     ).json()
     payload["scenes"][0]["asset_id"] = asset["id"]
     assert client.put(f"/api/v1/projects/{project['id']}/plan", json=payload).status_code == 200
+    payload["scenes"][0]["narration"] = ""
+    assert client.put(f"/api/v1/projects/{project['id']}/plan", json=payload).status_code == 200
+    assert client.post(f"/api/v1/projects/{project['id']}/render").status_code == 409
+    assert client.post(f"/api/v1/projects/{project['id']}/voice").status_code == 409
+    payload["scenes"][0]["narration"] = "Narração revisada após consultar a fonte."
+    assert client.put(f"/api/v1/projects/{project['id']}/plan", json=payload).status_code == 200
     client.patch(
         f"/api/v1/assets/{asset['id']}/rights",
         json={"rights_status": "RESTRICTED"},

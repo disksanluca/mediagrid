@@ -142,6 +142,11 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict[str, st
             status_code=409,
             detail="O plano ainda é um esboço. Revise e salve a narração antes do render.",
         )
+    if any(
+        not str(scene.get("narration", "")).strip()
+        for scene in (project.plan or {}).get("scenes", [])
+    ):
+        raise HTTPException(409, "Preencha a narração de todas as cenas antes do render.")
     validate_scene_assets(db, project.edl["tracks"]["video"])
     active = db.scalars(
         select(Job).where(
@@ -187,6 +192,11 @@ def queue_voice(project_id: str, db: Session = Depends(get_db)) -> dict[str, str
         raise HTTPException(409, "Create a plan before generating voice")
     if (project.plan or {}).get("origin") == "OUTLINE":
         raise HTTPException(409, "Revise e salve a narração antes de gerar a voz.")
+    if any(
+        not str(scene.get("narration", "")).strip()
+        for scene in (project.plan or {}).get("scenes", [])
+    ):
+        raise HTTPException(409, "Preencha a narração de todas as cenas antes de gerar a voz.")
     active = db.scalar(
         select(Job).where(
             Job.project_id == project_id,

@@ -38,12 +38,14 @@ recorded status. The API is online and may be unavailable; the saved project rem
 The source is evidence to review, not proof that a proposal became law. Check the current
 tramitação, context, and media rights before approving the manual export. In **Biblioteca**,
 import your own JPEG, PNG, WebP or MP4, or record its license; then choose it in each scene's
-**Mídia da biblioteca** field in the Editor and save. Unknown/restricted rights block saving
+**Mídia da biblioteca** field in the Editor, inspect the preview, and save. Unknown/restricted rights block saving
 or rendering. Licensed media needs a recorded license name. Selected MP4s are muted under
 the narration and repeat if a scene is longer than the source clip. A rendered MP4 can be
 reviewed and downloaded, then packaged for manual publication after human approval. The
 review form lets you edit an Instagram caption; the ZIP includes `caption.txt` alongside
 `video.mp4` and the audit manifest.
+The Editor can add or remove scenes while keeping at least two. A draft with an empty scene
+narration can be saved, but voice and render wait until every scene has narration.
 When a generated WAV lasts longer than the estimated scene times, the renderer extends the
 video scenes to keep the full narration audible. Generating a new voice or render after review
 invalidates the old approval until the new video is reviewed.

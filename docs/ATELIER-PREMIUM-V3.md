@@ -74,7 +74,10 @@ parte desta etapa.
 - O Editor grava `asset_id` em cada cena do plano e do EDL. JPEG, PNG, WebP e
   MP4 importados na Biblioteca podem ser selecionados; a tela de texto continua
   disponível. A interface permite corrigir status de direitos, criador, licença
-  e permissão comercial de arquivos já importados.
+  e permissão comercial de arquivos já importados. Cenas podem ser adicionadas
+  e removidas (mínimo duas); rascunhos com narração vazia podem ser salvos, mas
+  não geram voz ou vídeo até serem preenchidos. A mídia escolhida tem prévia
+  de imagem ou vídeo no Editor.
 - A API rejeita mídia inexistente, ausente, restrita ou de direitos desconhecidos;
   mídia licenciada exige nome de licença. A fila verifica novamente os direitos
   antes de renderizar. O worker confere SHA-256, copia apenas os arquivos usados
@@ -94,13 +97,16 @@ parte desta etapa.
   1080×1920 usou uma imagem vermelha e um MP4 verde; a leitura de pixels confirmou
   as cores em cenas diferentes. O smoke do instalador Windows foi ampliado para
   importar e renderizar esses dois tipos de mídia e testar revisão sintética e
-  exportação manual no CI. Esse smoke ainda precisa
-  de execução na nova revisão, e o aplicativo instalado no PC do usuário continua
-  na versão anterior.
+  exportação manual no CI. O [primeiro smoke de mídia instalada](https://github.com/disksanluca/mediagrid/actions/runs/39696317921)
+  passou, incluindo conferência de pixels e áudio. O smoke com exportação ainda
+  precisa de execução na revisão correspondente, e o aplicativo instalado no
+  PC do usuário continua na versão anterior.
 - A interface de produção foi conferida em 1440×900, 1280×800 e 1000×900, sem
   overflow horizontal; no Editor, a seleção de mídia e o salvamento foram
   exercitados contra a API e o SQLite de validação. O Radar consultou ao vivo a
   lista de PLs de 2026 e abriu uma proposição pela API oficial da Câmara.
+  Adição e remoção de cenas foram persistidas no projeto; uma imagem importada
+  carregou na prévia do Editor em 1000×900.
 
 Próxima validação: executar o instalador no CI com imagem, clipe e voz; verificar
 o fluxo de um roteiro de Política com fonte oficial, revisão e exportação, e só

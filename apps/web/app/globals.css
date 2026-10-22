@@ -109,6 +109,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .detail-grid { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(250px,.65fr); gap:18px; }
 .scene-card { border:1px solid var(--line); border-radius:12px; padding:15px; margin:12px 0; background:#141a20; }
 .scene-head { display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:800; margin-bottom:12px; }
+.scene-media-preview { margin:10px 0; border:1px solid var(--line); background:#0b0e0c; overflow:hidden; }
+.scene-media-preview img,.scene-media-preview video { display:block; width:100%; max-height:220px; object-fit:contain; }
+.scene-media-preview span { display:block; padding:7px 10px; color:var(--muted); font-size:11px; }
 .small-note { color:var(--muted); font-size:12px; line-height:1.55; }
 .aside-stack { display:grid; gap:16px; align-content:start; }
 .output-wait { border:1px dashed #45505c; border-radius:10px; display:grid; gap:10px; place-items:center; color:var(--muted); font-size:11px; padding:35px 15px; }
