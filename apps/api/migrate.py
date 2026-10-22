@@ -41,7 +41,10 @@ def _backup_existing_sqlite() -> None:
 def main() -> None:
     settings = get_settings()
     settings.mediagrid_data_dir.mkdir(parents=True, exist_ok=True)
-    for directory in ("assets", "exports", "renders", "temp", "voice", "transcripts", "backups"):
+    for directory in (
+        "assets", "exports", "renders", "temp", "voice", "transcripts",
+        "backups", "uploads", "proxies",
+    ):
         (settings.mediagrid_data_dir / directory).mkdir(exist_ok=True)
     existing = set(inspect(engine).get_table_names())
     with engine.connect() as connection:

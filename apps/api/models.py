@@ -5,6 +5,7 @@ from typing import Any
 
 from sqlalchemy import (
     JSON,
+    BigInteger,
     Boolean,
     DateTime,
     Float,
@@ -132,6 +133,27 @@ class Asset(TimestampMixin, Base):
     license_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     commercial_use: Mapped[bool] = mapped_column(Boolean, default=False)
     metadata_json: Mapped[dict[str, Any]] = mapped_column("metadata", JSON, default=dict)
+
+
+class UploadSession(TimestampMixin, Base):
+    """Durable offset for one local, resumable media import."""
+
+    __tablename__ = "upload_sessions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    name: Mapped[str] = mapped_column(String(240))
+    media_type: Mapped[str] = mapped_column(String(40))
+    expected_size: Mapped[int] = mapped_column(BigInteger)
+    expected_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    received_bytes: Mapped[int] = mapped_column(BigInteger, default=0)
+    status: Mapped[str] = mapped_column(String(24), default="OPEN")
+    rights_status: Mapped[str] = mapped_column(String(40))
+    source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    creator: Mapped[str | None] = mapped_column(String(240), nullable=True)
+    license_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    commercial_use: Mapped[bool] = mapped_column(Boolean, default=False)
+    asset_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class Job(TimestampMixin, Base):

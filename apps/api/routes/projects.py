@@ -248,8 +248,12 @@ def write_edl_v2(project_id: str, payload: RevisionWrite, db: Session = Depends(
     for item in sounds:
         sound_asset(db, item.source_asset_id)
     for item in video_layers:
-        if scene_asset(db, item.source_asset_id).media_type != "video/mp4":
+        asset = scene_asset(db, item.source_asset_id)
+        if asset.media_type != "video/mp4":
             raise HTTPException(422, "Video layers require an MP4 asset")
+        source_duration = (asset.metadata_json or {}).get("duration_ms")
+        if source_duration and item.source_out_ms > source_duration:
+            raise HTTPException(422, "Video layer trim exceeds the imported MP4")
     if not project.plan:
         raise HTTPException(409, "Project plan is missing")
     previous_scenes = {scene["id"]: scene for scene in project.plan.get("scenes", [])}

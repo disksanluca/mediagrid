@@ -118,6 +118,7 @@ class AssetRead(BaseModel):
     name: str
     media_type: str
     rights_status: str
+    source_url: str | None
     creator: str | None
     license_name: str | None
     commercial_use: bool
@@ -128,6 +129,7 @@ class AssetRead(BaseModel):
 class AssetRightsUpdate(BaseModel):
     rights_status: Literal["UNKNOWN", "OWNED", "LICENSED", "RESTRICTED"]
     creator: str | None = Field(default=None, max_length=240)
+    source_url: str | None = Field(default=None, max_length=2000)
     license_name: str | None = Field(default=None, max_length=120)
     commercial_use: bool = False
 
