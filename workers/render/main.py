@@ -188,12 +188,28 @@ def render_one() -> bool:
             for scene in props["scenes"]:
                 scene.update(staged.get(scene.get("asset_id"), {}))
             props_path.write_text(json.dumps(props, ensure_ascii=False), encoding="utf-8")
-            renderer_root = settings.mediagrid_renderer_root
+            renderer_root = (
+                settings.mediagrid_renderer_root.resolve()
+                if settings.mediagrid_renderer_root
+                else None
+            )
             node = settings.mediagrid_node_path
             if renderer_root and node:
+                cli = renderer_root / "node_modules" / "@remotion" / "cli" / "remotion-cli.js"
+                if not cli.is_file():
+                    # npm workspaces hoist the CLI to the repository root in development.
+                    cli = (
+                        renderer_root.parents[1]
+                        / "node_modules"
+                        / "@remotion"
+                        / "cli"
+                        / "remotion-cli.js"
+                    )
+                if not cli.is_file():
+                    raise ValueError("Remotion CLI not found in renderer runtime or workspace")
                 command = [
                     str(node),
-                    str(renderer_root / "node_modules" / "@remotion" / "cli" / "remotion-cli.js"),
+                    str(cli),
                     "render",
                     str(renderer_root / "src" / "index.ts"),
                     "MediaGridVideo",
