@@ -1,5 +1,8 @@
 """Compatibility must preserve the existing scene renderer's inputs."""
 
+import io
+import wave
+
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
@@ -73,7 +76,8 @@ def test_unimplemented_layers_are_rejected_instead_of_dropped() -> None:
     converted = from_legacy(sample_edl(), None).model_dump()
     converted["tracks"].append({"id": "music", "kind": "music", "items": [{
         "id": "music-1", "start_ms": 0, "duration_ms": 12000,
-        "source_asset_id": "song-1", "params": {},
+        "source_asset_id": "song-1", "preset": "sound_v1",
+        "params": {"gain": 0.2},
     }]})
     with pytest.raises(ValueError, match="additional tracks"):
         to_legacy(EDLV2.model_validate(converted), "vertical")
@@ -240,3 +244,61 @@ def test_kinetic_title_survives_scene_edit_and_reaches_render_job(client: TestCl
     with SessionLocal() as db:
         job = db.get(Job, queued.json()["job_id"])
         assert job and job.payload["edl_v2"]["tracks"][3]["items"][0]["id"] == "overlay-1"
+
+
+def test_sound_track_requires_rights_and_reaches_render_job(client: TestClient) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Som local", "slug": "som-local", "niche": "motion",
+        "default_engine": "clips",
+    }).json()
+    project = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Mix local",
+        "topic": (
+            "Primeira frase concreta para a abertura do vídeo.\n"
+            "Segunda frase concreta para a parte central.\n"
+            "Terceira frase concreta para o encerramento."
+        ),
+    }).json()
+    project_id = project["id"]
+    assert client.post(f"/api/v1/projects/{project_id}/plan").status_code == 200
+    output = io.BytesIO()
+    with wave.open(output, "wb") as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(16000)
+        wav.writeframes(b"\0\0" * 16000)
+    uploaded = client.post("/api/v1/assets", files={
+        "file": ("tone.wav", output.getvalue(), "audio/wav"),
+    })
+    assert uploaded.status_code == 201, uploaded.text
+    asset_id = uploaded.json()["id"]
+    url = f"/api/v1/projects/{project_id}/edl-v2"
+    current = client.get(url).json()
+    current["edl"]["tracks"].append({
+        "id": "local-music", "kind": "music", "items": [{
+            "id": "sound-1", "start_ms": 0, "duration_ms": 1000,
+            "source_asset_id": asset_id, "preset": "sound_v1",
+            "params": {"gain": 0.2, "fade_in_ms": 100, "fade_out_ms": 100},
+        }],
+    })
+    payload = {
+        "expected_revision": current["revision"],
+        "expected_legacy_sha256": current["legacy_sha256"],
+        "edl": current["edl"],
+    }
+    blocked = client.put(url, json=payload)
+    assert blocked.status_code == 422
+    assert "direitos" in blocked.text
+    assert client.patch(f"/api/v1/assets/{asset_id}/rights", json={
+        "rights_status": "OWNED", "creator": "Original local",
+    }).status_code == 200
+    saved = client.put(url, json=payload)
+    assert saved.status_code == 200, saved.text
+    after = client.get(url).json()
+    assert after["renderer"] == "timeline-v2"
+    assert after["edl"]["tracks"][3]["items"][0]["source_asset_id"] == asset_id
+    queued = client.post(f"/api/v1/projects/{project_id}/render")
+    assert queued.status_code == 202, queued.text
+    with SessionLocal() as db:
+        job = db.get(Job, queued.json()["job_id"])
+        assert job and job.payload["edl_v2"]["tracks"][3]["items"][0]["id"] == "sound-1"

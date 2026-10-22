@@ -1,6 +1,6 @@
-import {AbsoluteFill, interpolate, Sequence, useCurrentFrame, useVideoConfig} from "remotion";
+import {AbsoluteFill, Audio, interpolate, Sequence, staticFile, useCurrentFrame, useVideoConfig} from "remotion";
 import {MediaGridVideo} from "./video";
-import type {RenderOverlay, RenderProps} from "./types";
+import type {RenderOverlay, RenderProps, RenderSound} from "./types";
 
 function KineticTitle({item}: {item: RenderOverlay}) {
   const frame = useCurrentFrame();
@@ -21,8 +21,24 @@ function KineticTitle({item}: {item: RenderOverlay}) {
   </AbsoluteFill>;
 }
 
+function SoundItem({item}: {item: RenderSound}) {
+  const {fps} = useVideoConfig();
+  return <Audio
+    src={staticFile(item.media_file)}
+    startFrom={Math.round((item.source_in_ms ?? 0) * fps / 1000)}
+    endAt={item.source_out_ms === null ? undefined : Math.round(item.source_out_ms * fps / 1000)}
+    loop={item.loop}
+    volume={(frame) => {
+      const at = frame * 1000 / fps;
+      const fadeIn = item.fade_in_ms ? Math.min(1, at / item.fade_in_ms) : 1;
+      const fadeOut = item.fade_out_ms ? Math.min(1, Math.max(0, item.duration_ms - at) / item.fade_out_ms) : 1;
+      return item.gain * Math.min(fadeIn, fadeOut);
+    }}
+  />;
+}
+
 export function MediaGridTimelineV2(input: Partial<RenderProps>) {
-  const props: RenderProps = {title:"MediaGrid",format:"vertical",accent:"#dcf769",scenes:[],overlays:[],...input};
+  const props: RenderProps = {title:"MediaGrid",format:"vertical",accent:"#dcf769",scenes:[],overlays:[],sounds:[],...input};
   const {fps} = useVideoConfig();
   return <AbsoluteFill>
     <MediaGridVideo {...props}/>
@@ -31,5 +47,10 @@ export function MediaGridTimelineV2(input: Partial<RenderProps>) {
       from={Math.round(item.start_ms * fps / 1000)}
       durationInFrames={Math.max(1, Math.round(item.duration_ms * fps / 1000))}
     ><KineticTitle item={item}/></Sequence>)}
+    {(props.sounds ?? []).map((item) => <Sequence
+      key={item.id}
+      from={Math.round(item.start_ms * fps / 1000)}
+      durationInFrames={Math.max(1, Math.round(item.duration_ms * fps / 1000))}
+    ><SoundItem item={item}/></Sequence>)}
   </AbsoluteFill>;
 }

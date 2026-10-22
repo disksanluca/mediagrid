@@ -31,7 +31,7 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   descartável, iniciar API/worker, renderizar e testar exportação e backup.
   Isso não equivale a atualizar o PC do usuário.
 
-## Marco 1 — compatibilidade e primeira camada animada; editor livre pendente
+## Marco 1 — cenas, título animado e som local; vídeo livre pendente
 
 - Alembic `1.20.0` instalado pelo `uv.lock`, com baseline `0001_legacy` e revisão
   `0002_revisions`. O bootstrap valida todas as tabelas/colunas legadas antes
@@ -48,18 +48,22 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   voz, texto), preservando duração, ordem, texto, fonte, recorte e loop de MP4.
   A projeção para v1 recusa elementos fora do subconjunto de cenas, com uma
   exceção explícita: títulos locais `kinetic_title_v1` numa trilha `caption`
-  são preservados no EDL canônico v2 e enviados ao renderer v2. O contrato
+  são preservados no EDL canônico v2 e enviados ao renderer v2. Trilhas
+  `music` e `sfx` aceitam WAV/MP3 locais com direitos OWNED/ LICENSED,
+  ganho, fades, loop, início e duração. O worker confere hash e duração do
+  arquivo, e mistura o som com a narração no MP4. O contrato
   valida texto, cor, posição, escala, opacidade, intervalos e keyframes; não
-  aceita HTML ou presets arbitrários. Música, efeitos, vídeo livre, velocidade
-  e outros keyframes continuam recusados. `GET/PUT
+  aceita HTML ou presets arbitrários. Vídeo livre, velocidade e outros
+  keyframes continuam recusados. `GET/PUT
   /projects/{id}/edl-v2` expõe a revisão, hash da projeção legada e bloqueia
   edições concorrentes com `409`. O Editor v1 também avança a revisão e verifica
   hash. Regenerar o plano avança a revisão. Editar durante render ativo é recusado.
 - O Editor React mostra as trilhas persistidas e a forma de onda decodificada
   do WAV real, com audição local. Continua editando cenas reais; título, duração,
   narração, mídia e ordem são salvos na API. Também adiciona, edita e remove
-  títulos animados com três keyframes e persiste a revisão via API. A edição
-  de cena preserva títulos válidos; alterações invalidam o vídeo anterior.
+  títulos animados com três keyframes, adiciona/edita/remove música e efeitos
+  da Biblioteca e persiste a revisão via API. A edição de cena preserva
+  camadas válidas; alterações invalidam o vídeo anterior.
   O MP4 renderizado é a prévia fiel do subconjunto v2 implementado.
 - Uma revisão invalida o estado de aprovação/saída. A revisão humana registra
   SHA-256 do EDL e do MP4; a exportação manual recusa alteração do arquivo
@@ -68,7 +72,7 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   `FAILED` com evento `RENDER_STALE` se a timeline mudou após a fila. Um render
   concluído registra SHA-256 do EDL e do MP4 em `job.result`; teste de integração
   cobre o caso de job obsoleto sem iniciar Remotion.
-- `uv run pytest -q`: **53 passaram**, um aviso Starlette/httpx.
+- `uv run pytest -q`: **54 passaram**, um aviso Starlette/httpx.
   `uv run ruff
   check .` e TypeScript do Web passaram. `uv run python
   scripts/prove_video_pipeline.py --edl-v2-roundtrip` salvou revisão **2**,
@@ -101,14 +105,24 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   o texto do overlay foi editado e salvo (revisão 2→3), e um segundo título
   foi adicionado e salvo (revisão 3→4). Estado voltou a `SCRIPTED` e a saída
   anterior foi ocultada.
-- **Ainda pendente para concluir o Marco 1:** música, efeitos e camadas de
-  vídeo livres no EDL, preview antes do render, QA auditivo integral e teste
+- A prova combinada `--kinetic-title --synthetic-sound` gerou MP4 H.264/AAC
+  1080×1920 de 31 s em `data/rea-proof/20261022T231200Z`, SHA-256
+  `fb2185e65314a5f5d270315bebbc090eadf7f448f22ea7ff9862125b2a176990`.
+  O som foi criado matematicamente no teste, importado com hash/direitos e
+  misturado à voz local. Entre 29–30 s, `scripts/check_sound_mix.py` mediu RMS
+  0,000000 no render apenas com voz e 0,003569 no mix, confirmando presença
+  do áudio no MP4. FFprobe confirmou H.264/AAC e 31 s; audição humana integral
+  ainda não foi realizada. O navegador exibiu música/SFX persistidos; editar
+  um SFX avançou revisão 4→5. A correção de recarga automática preservou a
+  alteração por mais de 10 s; criar outro SFX pela UI avançou revisão 5→6.
+- **Ainda pendente para concluir o Marco 1:** camadas de vídeo livres no EDL,
+  preview antes do render, QA auditivo integral e teste
   de edição completa da composição no desktop empacotado. O contrato v2
   completo não está implementado.
 
 ## Ordem restante e gates
 
-1. Fechar Marco 1: trilhas de música, efeitos e vídeo livres, preview antes do
+1. Fechar Marco 1: vídeo livre em trilha, preview antes do
    render e validação visual/auditiva. Manter a projeção estrita enquanto o
    renderer v2 não suportar os novos elementos.
 2. Ingestão longa com hash, probe, direitos, proxy e retomada.
@@ -133,6 +147,11 @@ final. A migração atual só cria/remove tabela nova, sem alterar colunas SQLit
 existentes. Remotion instalado `4.0.532`; composição e sequenciamento foram
 conferidos na [documentação oficial](https://www.remotion.dev/docs/composition)
 e no [guia de timing](https://www.remotion.dev/docs/timing) em 22/10/2026.
+A API de [áudio do Remotion](https://www.remotion.dev/docs/html5-audio) e o
+filtro [amix do FFmpeg](https://ffmpeg.org/ffmpeg-filters.html#amix) também
+foram consultados nesta data. O código usa `Audio` do pacote `remotion` já
+fixado, com render local; a documentação atual recomenda `@remotion/media`
+para novos usos. A migração de pacote ficará para uma mudança versionada.
 A [licença oficial](https://www.remotion.dev/docs/license/faq) depende do tipo
 e porte da organização; nenhuma licença paga foi ativada. FFmpeg, Câmara,
 IBGE e provedores de ASR não tiveram protocolos alterados nesta etapa.

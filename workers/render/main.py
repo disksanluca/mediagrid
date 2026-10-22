@@ -31,7 +31,7 @@ from apps.api.models import (
     ProjectStatus,
     now,
 )
-from apps.api.scene_media import stage_scene_assets
+from apps.api.scene_media import stage_scene_assets, stage_sound_assets
 from apps.api.services import claim_next_job, record_event
 
 logger = logging.getLogger(__name__)
@@ -105,6 +105,22 @@ def validate_video(path: Path) -> dict[str, object]:
     return {"duration_seconds": duration, "width": video["width"], "height": video["height"]}
 
 
+def audio_duration(path: Path) -> float:
+    ffprobe = get_settings().mediagrid_ffprobe_path or "ffprobe"
+    result = subprocess.run(
+        [str(ffprobe), "-v", "error", "-show_entries", "format=duration:stream=codec_type",
+         "-of", "json", str(path)],
+        check=True, capture_output=True, text=True,
+    )
+    metadata = json.loads(result.stdout)
+    duration = float(metadata.get("format", {}).get("duration", 0))
+    if duration <= 0 or not any(
+        stream.get("codec_type") == "audio" for stream in metadata.get("streams", [])
+    ):
+        raise ValueError("Sound asset has no valid audio stream")
+    return duration
+
+
 def recover_interrupted_jobs() -> None:
     with SessionLocal() as db:
         jobs = db.scalars(
@@ -164,6 +180,7 @@ def render_one() -> bool:
         ).encode("utf-8")).hexdigest()
         queued_v2 = (job.payload or {}).get("edl_v2")
         overlays = []
+        sounds = []
         revision_sha256 = None
         if queued_v2 is not None:
             current = db.scalar(
@@ -174,7 +191,7 @@ def render_one() -> bool:
             )
             try:
                 canonical = EDLV2.model_validate(queued_v2)
-                base, overlays = scene_projection(canonical, project.format)
+                base, overlays, sounds = scene_projection(canonical, project.format)
                 if not current or current.edl != queued_v2 or base != project.edl:
                     raise ValueError("Timeline revision changed after this render was queued")
                 revision_sha256 = current.sha256
@@ -232,6 +249,18 @@ def render_one() -> bool:
                 }
                 for item in overlays
             ]
+        if sounds:
+            props["sounds"] = [
+                {
+                    "id": item.id, "start_ms": item.start_ms,
+                    "duration_ms": item.duration_ms,
+                    "source_asset_id": item.source_asset_id,
+                    "source_in_ms": item.source_in_ms,
+                    "source_out_ms": item.source_out_ms,
+                    **item.params,
+                }
+                for item in sounds
+            ]
         project.status = ProjectStatus.RENDERING.value
         db.commit()
         try:
@@ -250,6 +279,19 @@ def render_one() -> bool:
                         raise ValueError(
                             "Trecho do clipe fora da duração do MP4. Ajuste início e fim no Editor."
                         )
+            if sounds:
+                staged_sounds = stage_sound_assets(
+                    db, {item.source_asset_id for item in sounds}, public_dir
+                )
+                for item in props["sounds"]:
+                    item["media_file"] = staged_sounds[item["source_asset_id"]]
+                    source_duration = audio_duration(public_dir / item["media_file"])
+                    start = (item["source_in_ms"] or 0) / 1000
+                    end = (item["source_out_ms"] or source_duration * 1000) / 1000
+                    if start >= source_duration or end > source_duration + 0.05:
+                        raise ValueError("Sound source interval exceeds the audio file")
+                    if not item["loop"] and (end - start) * 1000 + 35 < item["duration_ms"]:
+                        raise ValueError("Sound item exceeds its audio source")
             props_path.write_text(json.dumps(props, ensure_ascii=False), encoding="utf-8")
             renderer_root = (
                 settings.mediagrid_renderer_root.resolve()
@@ -275,7 +317,7 @@ def render_one() -> bool:
                     str(cli),
                     "render",
                     str(renderer_root / "src" / "index.ts"),
-                    "MediaGridTimelineV2" if overlays else "MediaGridVideo",
+                    "MediaGridTimelineV2" if overlays or sounds else "MediaGridVideo",
                     str(output_path),
                     "--props",
                     str(props_path),
@@ -297,7 +339,7 @@ def render_one() -> bool:
                 command = [
                     "npm",
                     "run",
-                    "render:v2" if overlays else "render",
+                    "render:v2" if overlays or sounds else "render",
                     "--workspace",
                     "@mediagrid/renderer",
                     "--",
@@ -313,8 +355,7 @@ def render_one() -> bool:
             if valid_voice is not None:
                 voiced = temp_dir / f"{job.id}-voiced.mp4"
                 ffmpeg = settings.mediagrid_ffmpeg_path or "ffmpeg"
-                subprocess.run(
-                    [
+                voice_command = [
                         str(ffmpeg),
                         "-y",
                         "-i",
@@ -323,18 +364,23 @@ def render_one() -> bool:
                         str(voice),
                         "-map",
                         "0:v:0",
-                        "-map",
-                        "1:a:0",
                         "-c:v",
                         "copy",
                         "-c:a",
                         "aac",
-                        "-af",
-                        "apad",
-                        "-t",
-                        str(render_duration),
-                        str(voiced),
-                    ],
+                ]
+                if sounds:
+                    voice_command.extend([
+                        "-filter_complex",
+                        "[0:a:0][1:a:0]amix=inputs=2:duration=longest:normalize=0,"
+                        "alimiter=limit=0.95,apad[mix]",
+                        "-map", "[mix]",
+                    ])
+                else:
+                    voice_command.extend(["-map", "1:a:0", "-af", "apad"])
+                voice_command.extend(["-t", str(render_duration), str(voiced)])
+                subprocess.run(
+                    voice_command,
                     check=True,
                     capture_output=True,
                     text=True,

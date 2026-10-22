@@ -19,6 +19,7 @@ export interface RenderProps {
   source_label?: string | null;
   scenes: RenderScene[];
   overlays?: RenderOverlay[];
+  sounds?: RenderSound[];
 }
 
 export interface RenderOverlay {
@@ -35,5 +36,18 @@ export interface RenderOverlay {
     opacity: number;
     scale: number;
   }>;
+}
+
+export interface RenderSound {
+  id: string;
+  start_ms: number;
+  duration_ms: number;
+  media_file: string;
+  source_in_ms: number | null;
+  source_out_ms: number | null;
+  gain: number;
+  fade_in_ms: number;
+  fade_out_ms: number;
+  loop: boolean;
 }
 

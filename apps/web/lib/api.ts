@@ -3,6 +3,16 @@ import {desktopRuntime} from "./desktop";
 
 let baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 
+function errorMessage(detail: unknown, status: number): string {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    const issues = detail.filter((issue): issue is {loc?: unknown;msg: string} =>
+      typeof issue === "object" && issue !== null && typeof issue.msg === "string");
+    if (issues.length) return issues.map((issue) => `${Array.isArray(issue.loc) ? issue.loc.join(".") + ": " : ""}${issue.msg}`).join("; ");
+  }
+  return `Erro ${status}`;
+}
+
 async function resolveBaseUrl(): Promise<string> {
   const runtime = await desktopRuntime();
   if (runtime) baseUrl = `http://127.0.0.1:${runtime.api_port}/api/v1`;
@@ -16,8 +26,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     cache: "no-store",
   });
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {detail?: string} | null;
-    throw new Error(body?.detail ?? `Erro ${response.status}`);
+    const body = (await response.json().catch(() => null)) as {detail?: unknown} | null;
+    throw new Error(errorMessage(body?.detail, response.status));
   }
   return response.json() as Promise<T>;
 }
@@ -32,7 +42,7 @@ export const api = {
   assets: () => request<Asset[]>("/assets"),
   uploadAsset: async (form: FormData) => {
     const response = await fetch(`${await resolveBaseUrl()}/assets`, {method:"POST", body:form});
-    if (!response.ok) {const body = (await response.json().catch(()=>null)) as {detail?:string}|null; throw new Error(body?.detail ?? `Erro ${response.status}`);}
+    if (!response.ok) {const body = (await response.json().catch(()=>null)) as {detail?:unknown}|null; throw new Error(errorMessage(body?.detail,response.status));}
     return response.json() as Promise<Asset>;
   },
   assetFile: (id: string) => `${baseUrl}/assets/${id}/file`,

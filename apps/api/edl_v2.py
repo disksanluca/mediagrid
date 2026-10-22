@@ -1,9 +1,4 @@
-"""Strict scene-compatible EDL v2 adapter for projects made with the v1 editor.
-
-The adapter preserves source ranges and text, but refuses unsupported layers on
-the return path. A future multitrack renderer must implement those before the
-API accepts them for rendering.
-"""
+"""Versioned EDL with a strict v1 scene projection and supported v2 layers."""
 
 from typing import Any, Literal
 
@@ -96,6 +91,29 @@ def validate_overlay(item: TimelineItem) -> OverlaySpec:
     return spec
 
 
+class SoundSpec(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    gain: float = Field(gt=0, le=1)
+    fade_in_ms: int = Field(default=0, ge=0)
+    fade_out_ms: int = Field(default=0, ge=0)
+    loop: bool = False
+
+
+def validate_sound(item: TimelineItem) -> SoundSpec:
+    if (
+        item.preset != "sound_v1" or not item.source_asset_id
+        or item.speed != 1 or item.z_index != 0
+    ):
+        raise ValueError("Only local sound assets are supported on audio tracks")
+    spec = SoundSpec.model_validate(item.params)
+    if spec.fade_in_ms + spec.fade_out_ms > item.duration_ms:
+        raise ValueError("Sound fades exceed the item duration")
+    if spec.loop and item.source_in_ms is not None:
+        raise ValueError("Looped sound does not support a source trim")
+    return spec
+
+
 class EDLV2(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -118,8 +136,8 @@ class EDLV2(BaseModel):
                 ids.add(item.id)
                 if item.start_ms + item.duration_ms > self.duration_ms:
                     raise ValueError("item extends past project duration")
-                if track.kind in {"music", "sfx"} and not item.source_asset_id:
-                    raise ValueError("music and sound items need an asset")
+                if track.kind in {"music", "sfx"}:
+                    validate_sound(item)
                 if track.kind == "caption":
                     validate_overlay(item)
         return self
@@ -271,12 +289,21 @@ def to_legacy(edl: EDLV2, format_: str) -> dict[str, Any]:
     return {"version": 1, "format": format_, "tracks": result}
 
 
-def scene_projection(edl: EDLV2, format_: str) -> tuple[dict[str, Any], list[TimelineItem]]:
-    """Keep the scene renderer input while retaining supported caption overlays."""
+def scene_projection(
+    edl: EDLV2, format_: str
+) -> tuple[dict[str, Any], list[TimelineItem], list[TimelineItem]]:
+    """Project scenes to v1 while retaining supported visual and sound layers."""
     overlays = [
         item for track in edl.tracks if track.kind == "caption" for item in track.items
     ]
+    sounds = [
+        item for track in edl.tracks if track.kind in {"music", "sfx"}
+        for item in track.items
+    ]
     base = edl.model_copy(update={
-        "tracks": [track for track in edl.tracks if track.kind != "caption"],
+        "tracks": [
+            track for track in edl.tracks
+            if track.kind not in {"caption", "music", "sfx"}
+        ],
     })
-    return to_legacy(base, format_), overlays
+    return to_legacy(base, format_), overlays, sounds

@@ -18,7 +18,7 @@ from ..edl_v2 import EDLV2, from_legacy, scene_projection
 from ..engines import get_engine
 from ..local_media import voice_matches
 from ..models import Channel, Job, JobStatus, Project, ProjectRevision, ProjectStatus
-from ..scene_media import validate_scene_assets
+from ..scene_media import sound_asset, validate_scene_assets
 from ..schemas import (
     ContentPlan,
     ProjectCreate,
@@ -96,7 +96,7 @@ def read_edl_v2(project_id: str, response: Response, db: Session = Depends(get_d
         edl = from_legacy(project.edl, project.plan, revision=current + 1)
         if saved:
             stored = EDLV2.model_validate(saved.edl)
-            projected, _ = scene_projection(stored, project.format)
+            projected, _, _ = scene_projection(stored, project.format)
             if projected == project.edl:
                 edl = stored.model_copy(update={"revision": current + 1})
     except ValueError as exc:
@@ -107,7 +107,8 @@ def read_edl_v2(project_id: str, response: Response, db: Session = Depends(get_d
         "legacy_sha256": legacy_hash(project.edl),
         "edl": edl.model_dump(),
         "renderer": "timeline-v2" if any(
-            track.kind == "caption" and track.items for track in edl.tracks
+            track.kind in {"caption", "music", "sfx"} and track.items
+            for track in edl.tracks
         ) else "scene-v1-compatible",
     }
 
@@ -129,10 +130,12 @@ def write_edl_v2(project_id: str, payload: RevisionWrite, db: Session = Depends(
     if active_render_for(db, project_id):
         raise HTTPException(409, "Wait for the current render before editing")
     try:
-        legacy, _ = scene_projection(payload.edl, project.format)
+        legacy, _, sounds = scene_projection(payload.edl, project.format)
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
     validate_scene_assets(db, legacy["tracks"]["video"])
+    for item in sounds:
+        sound_asset(db, item.source_asset_id)
     if not project.plan:
         raise HTTPException(409, "Project plan is missing")
     previous_scenes = {scene["id"]: scene for scene in project.plan.get("scenes", [])}
@@ -333,20 +336,21 @@ def update_plan(
             )
             if current_revision:
                 prior = EDLV2.model_validate(current_revision.edl)
-                overlay_tracks = [
-                    track for track in prior.tracks if track.kind == "caption"
+                extra_tracks = [
+                    track for track in prior.tracks
+                    if track.kind in {"caption", "music", "sfx"}
                 ]
-                if overlay_tracks:
+                if extra_tracks:
                     try:
                         revised = EDLV2.model_validate({
                             **revised.model_dump(),
                             "tracks": [
                                 *[track.model_dump() for track in revised.tracks],
-                                *[track.model_dump() for track in overlay_tracks],
+                                *[track.model_dump() for track in extra_tracks],
                             ],
                         })
                     except ValidationError as exc:
-                        raise HTTPException(422, "Overlay exceeds the revised timeline") from exc
+                        raise HTTPException(422, "Layer exceeds the revised timeline") from exc
             append_revision(db, project, revised)
         record_event(
             db, "SCRIPT_EDITED", "project", project.id,
@@ -413,8 +417,10 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict[str, st
     if saved:
         try:
             canonical = EDLV2.model_validate(saved.edl)
-            base, overlays = scene_projection(canonical, project.format)
-            if overlays and base == project.edl:
+            base, overlays, sounds = scene_projection(canonical, project.format)
+            if (overlays or sounds) and base == project.edl:
+                for item in sounds:
+                    sound_asset(db, item.source_asset_id)
                 payload["edl_v2"] = saved.edl
         except ValueError as exc:
             raise HTTPException(409, f"Invalid timeline revision: {exc}") from exc

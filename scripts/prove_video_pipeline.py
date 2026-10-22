@@ -6,12 +6,15 @@ It requires the Windows speech voice, FFmpeg, Node and installed Remotion deps.
 
 import argparse
 import hashlib
+import io
 import json
+import math
 import os
 import shutil
 import subprocess
 import sys
 import wave
+from array import array
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -41,6 +44,21 @@ def checked(response):
     return response.json()
 
 
+def original_test_tone() -> bytes:
+    """Create a quiet original two-second tone; no third-party music is used."""
+    samples = array("h", (
+        round(1800 * math.sin(2 * math.pi * 220 * index / 16000))
+        for index in range(32000)
+    ))
+    output = io.BytesIO()
+    with wave.open(output, "wb") as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(16000)
+        wav.writeframes(samples.tobytes())
+    return output.getvalue()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=ROOT / "data" / "rea-proof")
@@ -51,6 +69,10 @@ def main() -> None:
     parser.add_argument(
         "--kinetic-title", action="store_true",
         help="Render an original animated text layer from EDL v2",
+    )
+    parser.add_argument(
+        "--synthetic-sound", action="store_true",
+        help="Mix an original looped test tone with local narration",
     )
     args = parser.parse_args()
     run_dir = (args.output / datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")).resolve()
@@ -114,7 +136,7 @@ def main() -> None:
         if plan["origin"] != "BRIEF_BASED" or len(plan["scenes"]) != 4:
             raise RuntimeError("Brief was not converted into the expected editable scenes")
         edl_v2_revision = None
-        if args.edl_v2_roundtrip or args.kinetic_title:
+        if args.edl_v2_roundtrip or args.kinetic_title or args.synthetic_sound:
             timeline = checked(client.get(f"/api/v1/projects/{project_id}/edl-v2"))
             if args.kinetic_title:
                 timeline["edl"]["tracks"].append({
@@ -132,6 +154,22 @@ def main() -> None:
                                  "opacity": 1, "scale": 1},
                             ],
                         },
+                    }],
+                })
+            if args.synthetic_sound:
+                asset = checked(client.post(
+                    "/api/v1/assets",
+                    files={"file": ("original-test-tone.wav", original_test_tone(), "audio/wav")},
+                    data={"rights_status": "OWNED", "creator": "MediaGrid technical proof"},
+                ))
+                timeline["edl"]["tracks"].append({
+                    "id": "proof-music", "kind": "music", "items": [{
+                        "id": "proof-sound", "start_ms": 0,
+                        "duration_ms": timeline["edl"]["duration_ms"],
+                        "z_index": 0, "source_asset_id": asset["id"],
+                        "preset": "sound_v1",
+                        "params": {"gain": 0.12, "fade_in_ms": 500,
+                                   "fade_out_ms": 500, "loop": True},
                     }],
                 })
             edl_v2_revision = checked(
@@ -202,8 +240,10 @@ def main() -> None:
             raise RuntimeError("Render job MP4 hash does not match its artifact")
         if render_result["result"].get("edl_sha256") != edl_sha256:
             raise RuntimeError("Render job EDL hash does not match its project")
-        if args.kinetic_title and not render_result["result"].get("revision_sha256"):
-            raise RuntimeError("Animated title render did not record its EDL v2 revision")
+        if (args.kinetic_title or args.synthetic_sound) and not render_result["result"].get(
+            "revision_sha256"
+        ):
+            raise RuntimeError("Layer render did not record its EDL v2 revision")
         evidence = {
             "project_id": project_id,
             "project_status": stored.status,
@@ -213,6 +253,7 @@ def main() -> None:
             "scene_count": len(stored.edl["tracks"]["video"]),
             "caption_mode": "one visual text card per scene; word timing not implemented",
             "kinetic_title": args.kinetic_title,
+            "synthetic_sound": args.synthetic_sound,
             "revision_sha256": render_result["result"].get("revision_sha256"),
             "jobs": [
                 {"type": job.job_type, "status": job.status, "attempt": job.attempt}
