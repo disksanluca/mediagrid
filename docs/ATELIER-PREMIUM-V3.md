@@ -106,7 +106,14 @@ parte desta etapa.
   exercitados contra a API e o SQLite de validação. O Radar consultou ao vivo a
   lista de PLs de 2026 e abriu uma proposição pela API oficial da Câmara.
   Adição e remoção de cenas foram persistidas no projeto; uma imagem importada
-  carregou na prévia do Editor em 1000×900.
+  carregou na prévia do Editor em 1000×900. A atribuição à Câmara agora permanece
+  no vídeo mesmo quando o roteiro oficial recebe edição humana.
+- Um fluxo local isolado importou ao vivo o PL 5642/2026, preservou a URL oficial
+  após edição, gerou voz pelo sintetizador Windows, processou os jobs VOICE e
+  RENDER pelo worker e produziu MP4 de 24,53 segundos com faixas de vídeo e áudio
+  em estado `QC`. Um quadro extraído mostrou a atribuição à Câmara. O roteiro
+  desse teste foi abreviado para acelerar a renderização; ele não recebeu
+  revisão editorial humana e não é conteúdo pronto para publicação.
 
 Próxima validação: executar o instalador no CI com imagem, clipe e voz; verificar
 o fluxo de um roteiro de Política com fonte oficial, revisão e exportação, e só

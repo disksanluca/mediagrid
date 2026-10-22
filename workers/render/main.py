@@ -11,6 +11,7 @@ import time
 import wave
 from contextlib import closing
 from pathlib import Path
+from urllib.parse import urlparse
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -24,6 +25,18 @@ from apps.api.scene_media import stage_scene_assets
 from apps.api.services import claim_next_job, record_event
 
 logger = logging.getLogger(__name__)
+
+
+def source_label(plan: dict | None) -> str | None:
+    for source in (plan or {}).get("source_refs", []):
+        if not isinstance(source, dict):
+            continue
+        url = source.get("api_url")
+        if isinstance(url, str) and urlparse(url).hostname == "dadosabertos.camara.leg.br":
+            return "Fonte: Câmara dos Deputados"
+    if (plan or {}).get("origin") == "OFFICIAL_SOURCE":
+        return "Fonte: Câmara dos Deputados"
+    return None
 
 
 def fit_video_to_voice(
@@ -158,11 +171,7 @@ def render_one() -> bool:
             "title": project.title,
             "format": project.format,
             "accent": accent,
-            "source_label": (
-                "Fonte: Câmara dos Deputados"
-                if (project.plan or {}).get("origin") == "OFFICIAL_SOURCE"
-                else None
-            ),
+            "source_label": source_label(project.plan),
             "scenes": [
                 dict(item, on_screen_text=captions.get(item["scene_id"]))
                 for item in video_tracks
