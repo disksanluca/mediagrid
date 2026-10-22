@@ -115,7 +115,14 @@ parte desta etapa.
   desse teste foi abreviado para acelerar a renderização; ele não recebeu
   revisão editorial humana e não é conteúdo pronto para publicação.
 
-Próxima validação: executar o instalador no CI com imagem, clipe e voz; verificar
-o fluxo de um roteiro de Política com fonte oficial, revisão e exportação, e só
-então considerar a atualização da instalação local. Publicação direta e fontes
-dos demais motores permanecem sem integração real.
+## Etapa funcional: Geo com fonte oficial (21 de outubro de 2026)
+
+- O Radar pesquisa municípios na [API de Localidades do IBGE v1.0.0](https://servicodados.ibge.gov.br/api/docs/localidades), sem chave. A pesquisa ocorre apenas por ação do usuário; baixa o catálogo de municípios (cerca de 2,4 MB na validação) e filtra nome, inclusive sem acentos. A importação consulta novamente o identificador escolhido, evitando depender de uma lista antiga.
+- A importação cria projeto Geo local com três cenas editáveis, plano, roteiro, EDL, URL oficial e hora da consulta. Narração e cartões usam somente município, UF e regiões imediata, intermediária e grande região retornadas pelo IBGE. O vídeo preserva a atribuição “Fonte: IBGE” depois de edição humana. Não acrescenta população, área, mapa ou estatística sem fonte.
+- O usuário ainda precisa verificar a divisão territorial atual, escolher imagens ou vídeos com direitos registrados, gerar voz, renderizar e aprovar a revisão. Não houve mudança de schema SQLite. Falha de rede retorna erro visível e não cria projeto vazio.
+- Validação local: 41 testes Python e Ruff passaram; busca e detalhe de São Paulo foram consultados ao vivo no IBGE. O typecheck Web passou. O instalador e o fluxo Geo completo ainda precisam passar no CI da revisão antes de qualquer instalação no PC do usuário.
+
+Próxima validação: executar o instalador no CI com imagem, clipe, voz e exportação;
+conferir Geo no aplicativo instalado e completar os motores sem fonte real. A
+atualização local só será instalada após os fluxos funcionais serem validados.
+Publicação direta permanece sem integração real.

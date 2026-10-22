@@ -67,6 +67,17 @@ export interface OfficialProposal {
   api_url: string;
 }
 
+export interface GeoMunicipality {
+  id: number;
+  name: string;
+  state_code: string;
+  state_name: string;
+  region_name: string;
+  immediate_name: string;
+  intermediate_name: string;
+  source_url: string;
+}
+
 export interface Job {
   id: string;
   project_id: string | null;

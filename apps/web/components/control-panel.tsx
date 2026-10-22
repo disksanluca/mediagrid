@@ -8,7 +8,7 @@ import {AtelierMediaStage} from "@/components/atelier/atelier-media-stage";
 import {api} from "@/lib/api";
 import {desktopChooseDataDir, desktopCreateBackup, desktopOpenLogs, desktopRestart, desktopRestoreBackup, desktopServices, desktopStart, desktopStop, runningInDesktop} from "@/lib/desktop";
 import type {DesktopServices} from "@/lib/desktop";
-import type {Asset, Channel, DoctorReport, Engine, HardwareProfile, Job, OfficialProposal, Project, Scene, SetupState, SystemStatus} from "@/lib/types";
+import type {Asset, Channel, DoctorReport, Engine, GeoMunicipality, HardwareProfile, Job, OfficialProposal, Project, Scene, SetupState, SystemStatus} from "@/lib/types";
 
 type View = AtelierView;
 type Dialog = "project" | "channel" | null;
@@ -172,7 +172,30 @@ function Radar({projects,channels,busy,onProject,onRun}:{projects:Project[];chan
       {searchError&&<Alert text={searchError}/>}
       {results!==null&&<><p className="small-note">{results.length} registros retornados pela API oficial. Ementa e situação exigem conferência humana antes da publicação.</p>{!results.length&&<p>Nenhuma proposição encontrada para esta busca.</p>}{results.map((proposal)=><div className="row" key={proposal.id}><span className="row-icon"><Radio size={17}/></span><span className="row-main"><strong>PL {proposal.number}/{proposal.year}</strong><small>{proposal.summary}</small><a href={proposal.source_url} target="_blank" rel="noopener noreferrer">Abrir registro na Câmara ↗</a></span><button className="button small" disabled={busy||!selectedChannel} onClick={()=>void importProposal(proposal)}>Criar roteiro</button></div>)}</>}
       {!politicsChannels.length?<p className="small-note">Crie um canal Política para importar uma pauta. <button className="button small" disabled={busy} onClick={()=>void onRun(async()=>{await api.createChannel({name:"Política em Foco",slug:"politica-em-foco",niche:"Política",default_engine:"politics"});})}>Criar canal Política</button></p>:<Field label="Canal para os roteiros"><select value={selectedChannel} onChange={(event)=>setChannelId(event.target.value)}>{politicsChannels.map((channel)=><option key={channel.id} value={channel.id}>{channel.name}</option>)}</select></Field>}
-    </div></div><div className="atelier-note">Os dados vêm da Câmara no momento da consulta. A situação pode mudar; confira o registro antes de publicar.</div><div className="section-heading"><div><h2>Pautas em preparação</h2><p>Projetos salvos neste computador.</p></div></div><div className="atelier-list">{projects.length?projects.map((project)=><button key={project.id} onClick={()=>onProject(project.id)}><span>{project.created_at.slice(0,10)}</span><strong>{project.title}</strong><Badge value={project.status}/><ArrowRight size={16}/></button>):<p>Não há pautas locais. Pesquise acima ou crie uma no Studio.</p>}</div></>;
+    </div></div><div className="atelier-note">Os dados vêm da Câmara no momento da consulta. A situação pode mudar; confira o registro antes de publicar.</div><GeoRadar channels={channels} busy={busy} onProject={onProject} onRun={onRun}/><div className="section-heading"><div><h2>Pautas em preparação</h2><p>Projetos salvos neste computador.</p></div></div><div className="atelier-list">{projects.length?projects.map((project)=><button key={project.id} onClick={()=>onProject(project.id)}><span>{project.created_at.slice(0,10)}</span><strong>{project.title}</strong><Badge value={project.status}/><ArrowRight size={16}/></button>):<p>Não há pautas locais. Pesquise acima ou crie uma no Studio.</p>}</div></>;
+}
+
+function GeoRadar({channels,busy,onProject,onRun}:{channels:Channel[];busy:boolean;onProject:(id:string)=>void;onRun:(action:()=>Promise<unknown>)=>Promise<void>}) {
+  const geoChannels=channels.filter((channel)=>channel.default_engine==="geo");
+  const [channelId,setChannelId]=useState("");
+  const [query,setQuery]=useState("");
+  const [results,setResults]=useState<GeoMunicipality[]|null>(null);
+  const [searching,setSearching]=useState(false);
+  const [searchError,setSearchError]=useState<string|null>(null);
+  const selectedChannel=geoChannels.some((channel)=>channel.id===channelId)?channelId:(geoChannels[0]?.id??"");
+  const search=async(event:FormEvent<HTMLFormElement>)=>{
+    event.preventDefault();setSearching(true);setSearchError(null);
+    try{setResults(await api.geoMunicipalities(query.trim()));}
+    catch(reason){setResults(null);setSearchError(message(reason));}
+    finally{setSearching(false);}
+  };
+  const importMunicipality=(municipality:GeoMunicipality)=>onRun(async()=>{const project=await api.importGeoMunicipality(selectedChannel,municipality.id);onProject(project.id);});
+  return <><div className="panel"><div className="panel-head"><div><h3>Geo · municípios do IBGE</h3><p>Cadastro oficial de localidades. Consulta feita somente ao clicar em buscar.</p></div><Radio size={19}/></div><div className="panel-body">
+    <form onSubmit={(event)=>void search(event)}><Field label="Nome do município"><input value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Ex.: São Paulo" minLength={3} maxLength={80} required/></Field><button className="button primary" disabled={searching} type="submit"><RefreshCw size={15}/> {searching?"Consultando…":"Buscar no IBGE"}</button></form>
+    {searchError&&<Alert text={searchError}/>}
+    {results!==null&&<><p className="small-note">{results.length} municípios encontrados. O roteiro usa apenas a divisão territorial retornada pelo IBGE; inclua e confira seus próprios visuais antes de publicar.</p>{!results.length&&<p>Nenhum município encontrado para esta busca.</p>}{results.map((municipality)=><div className="row" key={municipality.id}><span className="row-icon"><Radio size={17}/></span><span className="row-main"><strong>{municipality.name} · {municipality.state_code}</strong><small>Região imediata: {municipality.immediate_name} · {municipality.region_name}</small><a href={municipality.source_url} target="_blank" rel="noopener noreferrer">Abrir registro no IBGE ↗</a></span><button className="button small" disabled={busy||!selectedChannel} onClick={()=>void importMunicipality(municipality)}>Criar roteiro</button></div>)}</>}
+    {!geoChannels.length?<p className="small-note">Crie um canal Geo para importar uma pauta. <button className="button small" disabled={busy} onClick={()=>void onRun(async()=>{await api.createChannel({name:"Mundo em Mapas",slug:"mundo-em-mapas",niche:"Geografia",default_engine:"geo"});})}>Criar canal Geo</button></p>:<Field label="Canal para os roteiros"><select value={selectedChannel} onChange={(event)=>setChannelId(event.target.value)}>{geoChannels.map((channel)=><option key={channel.id} value={channel.id}>{channel.name}</option>)}</select></Field>}
+  </div></div><div className="atelier-note">A API do IBGE fornece localização administrativa, sem mapas licenciados ou indicadores populacionais neste fluxo.</div></>;
 }
 
 function Insights({channels,projects,jobs}:{channels:Channel[];projects:Project[];jobs:Job[]}) {return <><div className="atelier-intro compact"><h2>Insights <span>locais.</span></h2><p>Indicadores da sua produção registrados no MediaGrid.</p></div><div className="atelier-note">ANALYTICS DE YOUTUBE, TIKTOK E INSTAGRAM NÃO CONECTADOS · SEM MÉTRICAS INVENTADAS</div><div className="insights-grid"><div><span>CANAIS</span><strong>{channels.length}</strong></div><div><span>PROJETOS</span><strong>{projects.length}</strong></div><div><span>RENDERS CONCLUÍDOS</span><strong>{jobs.filter((job)=>job.job_type==="RENDER"&&job.status==="SUCCEEDED").length}</strong></div><div><span>TRABALHOS FALHOS</span><strong>{jobs.filter((job)=>job.status==="FAILED").length}</strong></div></div><div className="section-heading"><div><h2>Dados de plataformas</h2><p>Conecte contas por APIs oficiais em uma etapa futura. Até lá, o painel mostra apenas dados locais.</p></div></div></>}

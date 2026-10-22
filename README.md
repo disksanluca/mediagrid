@@ -36,7 +36,10 @@ fetches the selected PL again, stores the official source URL and retrieval time
 project plan, and creates an editable vertical script from the identifier, ementa, and last
 recorded status. The API is online and may be unavailable; the saved project remains local.
 The source is evidence to review, not proof that a proposal became law. Check the current
-tramitação, context, and media rights before approving the manual export. In **Biblioteca**,
+tramitação, context, and media rights before approving the manual export.
+For a Geo channel, **Radar** searches the official [IBGE Localidades API v1.0.0](https://servicodados.ibge.gov.br/api/docs/localidades) by municipality name and creates an editable three-scene plan from the selected municipality, state and administrative regions. It stores the source URL and retrieval time, and the render labels the source as IBGE. This flow does not supply maps, population data or licensed footage. Review the current IBGE entry and add your own rights-cleared visuals in the Editor.
+
+In **Biblioteca**,
 import your own JPEG, PNG, WebP or MP4, or record its license; then choose it in each scene's
 **Mídia da biblioteca** field in the Editor, inspect the preview, and save. Unknown/restricted rights block saving
 or rendering. Licensed media needs a recorded license name. Selected MP4s are muted under

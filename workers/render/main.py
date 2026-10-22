@@ -34,8 +34,8 @@ def source_label(plan: dict | None) -> str | None:
         url = source.get("api_url")
         if isinstance(url, str) and urlparse(url).hostname == "dadosabertos.camara.leg.br":
             return "Fonte: Câmara dos Deputados"
-    if (plan or {}).get("origin") == "OFFICIAL_SOURCE":
-        return "Fonte: Câmara dos Deputados"
+        if isinstance(url, str) and urlparse(url).hostname == "servicodados.ibge.gov.br":
+            return "Fonte: IBGE"
     return None
 
 
