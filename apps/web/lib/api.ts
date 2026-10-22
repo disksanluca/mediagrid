@@ -1,7 +1,17 @@
-import type {Asset, Channel, ContentPlan, DoctorReport, GeoMunicipality, HardwareProfile, Job, OfficialProposal, Project, SetupState, SystemStatus} from "./types";
+import type {Asset, Channel, ContentPlan, DoctorReport, GeoMunicipality, HardwareProfile, Job, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimelineResponse} from "./types";
 import {desktopRuntime} from "./desktop";
 
 let baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
+
+function errorMessage(detail: unknown, status: number): string {
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    const issues = detail.filter((issue): issue is {loc?: unknown;msg: string} =>
+      typeof issue === "object" && issue !== null && typeof issue.msg === "string");
+    if (issues.length) return issues.map((issue) => `${Array.isArray(issue.loc) ? issue.loc.join(".") + ": " : ""}${issue.msg}`).join("; ");
+  }
+  return `Erro ${status}`;
+}
 
 async function resolveBaseUrl(): Promise<string> {
   const runtime = await desktopRuntime();
@@ -16,8 +26,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     cache: "no-store",
   });
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {detail?: string} | null;
-    throw new Error(body?.detail ?? `Erro ${response.status}`);
+    const body = (await response.json().catch(() => null)) as {detail?: unknown} | null;
+    throw new Error(errorMessage(body?.detail, response.status));
   }
   return response.json() as Promise<T>;
 }
@@ -32,7 +42,7 @@ export const api = {
   assets: () => request<Asset[]>("/assets"),
   uploadAsset: async (form: FormData) => {
     const response = await fetch(`${await resolveBaseUrl()}/assets`, {method:"POST", body:form});
-    if (!response.ok) {const body = (await response.json().catch(()=>null)) as {detail?:string}|null; throw new Error(body?.detail ?? `Erro ${response.status}`);}
+    if (!response.ok) {const body = (await response.json().catch(()=>null)) as {detail?:unknown}|null; throw new Error(errorMessage(body?.detail,response.status));}
     return response.json() as Promise<Asset>;
   },
   assetFile: (id: string) => `${baseUrl}/assets/${id}/file`,
@@ -57,6 +67,9 @@ export const api = {
   importGeoMunicipality: (channelId: string, municipalityId: number) => request<Project>("/geo/projects", {method:"POST", body:JSON.stringify({channel_id:channelId,municipality_id:municipalityId})}),
   createPlan: (id: string) => request<ContentPlan>(`/projects/${id}/plan`, {method: "POST"}),
   updatePlan: (id: string, body: Record<string, unknown>) => request<Project>(`/projects/${id}/plan`, {method: "PUT", body: JSON.stringify(body)}),
+  timeline: (id: string) => request<TimelineResponse>(`/projects/${id}/edl-v2`),
+  preview: (id: string) => request<PreviewResponse>(`/projects/${id}/preview`),
+  updateTimeline: (id: string, body: {expected_revision:number;expected_legacy_sha256:string;edl:TimelineResponse["edl"]}) => request<{revision:number;sha256:string;project_id:string}>(`/projects/${id}/edl-v2`, {method:"PUT", body:JSON.stringify(body)}),
   render: (id: string) => request<{job_id: string; status: string}>(`/projects/${id}/render`, {method: "POST"}),
   voice: (id: string) => request<{job_id: string; status: string}>(`/projects/${id}/voice`, {method:"POST"}),
   voiceFile: (id: string) => `${baseUrl}/projects/${id}/voice`,

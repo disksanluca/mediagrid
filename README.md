@@ -1,5 +1,8 @@
 # MediaGrid
 
+The [REA implementation record](docs/REA-IMPLEMENTATION.md) tracks the six-mode
+studio work, baseline evidence, migration status and remaining acceptance gates.
+
 O [plano e a auditoria do Atelier Premium v3](docs/ATELIER-PREMIUM-V3.md)
 documentam a branch visual atual e seus limites funcionais.
 

@@ -3,7 +3,17 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -92,6 +102,20 @@ class Project(TimestampMixin, Base):
         from .local_media import voice_matches
 
         return voice_matches(self.id, self.script)
+
+
+class ProjectRevision(Base):
+    """Immutable saved timeline revision; the legacy project EDL remains renderable."""
+
+    __tablename__ = "project_revisions"
+    __table_args__ = (UniqueConstraint("project_id", "revision", name="uq_project_revision"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), index=True)
+    revision: Mapped[int] = mapped_column(Integer)
+    edl: Mapped[dict[str, Any]] = mapped_column(JSON)
+    sha256: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
 class Asset(TimestampMixin, Base):

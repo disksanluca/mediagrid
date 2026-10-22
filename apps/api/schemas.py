@@ -80,6 +80,8 @@ class ProjectPlanUpdate(BaseModel):
     scenes: list[Scene] = Field(min_length=2)
     hook: str = Field(min_length=3)
     angle: str = Field(min_length=3)
+    expected_revision: int | None = Field(default=None, ge=0)
+    expected_legacy_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
 
 class ProjectReview(BaseModel):

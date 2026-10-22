@@ -5,18 +5,26 @@ os.environ["DATABASE_URL"] = "sqlite:///./data/mediagrid-test.db"
 Path("data").mkdir(exist_ok=True)
 
 import pytest  # noqa: E402
+from alembic import command  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import text  # noqa: E402
 
 from apps.api.database import Base, engine  # noqa: E402
 from apps.api.main import app  # noqa: E402
+from apps.api.migrate import _config  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
 def clean_database():
     Base.metadata.drop_all(bind=engine)
+    with engine.begin() as connection:
+        connection.execute(text("DROP TABLE IF EXISTS alembic_version"))
     Base.metadata.create_all(bind=engine)
+    command.stamp(_config(), "head")
     yield
     Base.metadata.drop_all(bind=engine)
+    with engine.begin() as connection:
+        connection.execute(text("DROP TABLE IF EXISTS alembic_version"))
 
 
 @pytest.fixture

@@ -5,6 +5,7 @@
   "scripts": {
     "studio": "remotion studio src/index.ts",
     "render": "remotion render src/index.ts MediaGridVideo",
+    "render:v2": "remotion render src/index.ts MediaGridTimelineV2",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

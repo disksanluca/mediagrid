@@ -3,15 +3,12 @@ import hashlib
 import json
 import logging
 import os
-import re
 import shutil
 import sqlite3
 import subprocess
 import time
-import wave
 from contextlib import closing
 from pathlib import Path
-from urllib.parse import urlparse
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -19,52 +16,24 @@ from sqlalchemy import select
 
 from apps.api.config import get_settings
 from apps.api.database import SessionLocal
+from apps.api.edl_v2 import EDLV2, scene_projection
 from apps.api.local_media import narration_text, synthesize_voice, transcribe_media, voice_matches
-from apps.api.models import Asset, Channel, Job, JobStatus, Project, ProjectStatus, now
-from apps.api.scene_media import stage_scene_assets
+from apps.api.models import (
+    Asset,
+    Channel,
+    Job,
+    JobStatus,
+    Project,
+    ProjectRevision,
+    ProjectStatus,
+    now,
+)
+from apps.api.render_plan import fit_video_to_voice, render_props
+from apps.api.render_plan import source_label as source_label
+from apps.api.scene_media import stage_scene_assets, stage_sound_assets
 from apps.api.services import claim_next_job, record_event
 
 logger = logging.getLogger(__name__)
-
-
-def source_label(plan: dict | None) -> str | None:
-    for source in (plan or {}).get("source_refs", []):
-        if not isinstance(source, dict):
-            continue
-        url = source.get("api_url")
-        if isinstance(url, str) and urlparse(url).hostname == "dadosabertos.camara.leg.br":
-            return "Fonte: Câmara dos Deputados"
-        if isinstance(url, str) and urlparse(url).hostname == "servicodados.ibge.gov.br":
-            return "Fonte: IBGE"
-    return None
-
-
-def fit_video_to_voice(
-    video: list[dict], audio: list[dict], voice: Path | None
-) -> tuple[list[dict], float]:
-    """Keep every narration audible when local TTS runs longer than estimates."""
-    tracks = [item.copy() for item in video]
-    planned = sum(float(item["duration"]) for item in tracks)
-    if voice is None:
-        return tracks, planned
-    try:
-        with wave.open(str(voice), "rb") as wav:
-            voice_seconds = wav.getnframes() / wav.getframerate()
-    except (OSError, wave.Error, ZeroDivisionError) as exc:
-        raise ValueError("Generated voice is not a readable WAV") from exc
-    required = voice_seconds + 1.0
-    if required > planned:
-        weights = [
-            max(1, len(str(item.get("text", "")).split())) for item in audio
-        ]
-        if len(weights) != len(tracks):
-            raise ValueError("Voice and video scene counts do not match")
-        total_weight = sum(weights)
-        for item, weight in zip(tracks, weights, strict=True):
-            item["duration"] = (
-                float(item["duration"]) + (required - planned) * weight / total_weight
-            )
-    return tracks, sum(float(item["duration"]) for item in tracks)
 
 
 def validate_video(path: Path) -> dict[str, object]:
@@ -93,6 +62,22 @@ def validate_video(path: Path) -> dict[str, object]:
     if duration <= 0 or not video or not video.get("width") or not video.get("height"):
         raise ValueError("Rendered MP4 has no valid video stream")
     return {"duration_seconds": duration, "width": video["width"], "height": video["height"]}
+
+
+def audio_duration(path: Path) -> float:
+    ffprobe = get_settings().mediagrid_ffprobe_path or "ffprobe"
+    result = subprocess.run(
+        [str(ffprobe), "-v", "error", "-show_entries", "format=duration:stream=codec_type",
+         "-of", "json", str(path)],
+        check=True, capture_output=True, text=True,
+    )
+    metadata = json.loads(result.stdout)
+    duration = float(metadata.get("format", {}).get("duration", 0))
+    if duration <= 0 or not any(
+        stream.get("codec_type") == "audio" for stream in metadata.get("streams", [])
+    ):
+        raise ValueError("Sound asset has no valid audio stream")
+    return duration
 
 
 def recover_interrupted_jobs() -> None:
@@ -138,6 +123,46 @@ def render_one() -> bool:
             job.error = "Project or EDL not found"
             db.commit()
             return True
+        queued_edl = (job.payload or {}).get("edl")
+        if queued_edl is not None and queued_edl != project.edl:
+            job.status = JobStatus.FAILED.value
+            job.error = "Project timeline changed after this render was queued"
+            job.finished_at = now()
+            record_event(db, "RENDER_STALE", "project", project.id, after={
+                "job_id": job.id, "error": job.error,
+            })
+            db.commit()
+            return True
+        rendered_edl = queued_edl if queued_edl is not None else project.edl
+        edl_sha256 = hashlib.sha256(json.dumps(
+            rendered_edl, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")).hexdigest()
+        queued_v2 = (job.payload or {}).get("edl_v2")
+        overlays = []
+        sounds = []
+        video_layers = []
+        revision_sha256 = None
+        if queued_v2 is not None:
+            current = db.scalar(
+                select(ProjectRevision)
+                .where(ProjectRevision.project_id == project.id)
+                .order_by(ProjectRevision.revision.desc())
+                .limit(1)
+            )
+            try:
+                canonical = EDLV2.model_validate(queued_v2)
+                base, overlays, sounds, video_layers = scene_projection(
+                    canonical, project.format
+                )
+                if not current or current.edl != queued_v2 or base != project.edl:
+                    raise ValueError("Timeline revision changed after this render was queued")
+                revision_sha256 = current.sha256
+            except ValueError as exc:
+                job.status = JobStatus.FAILED.value
+                job.error = f"Invalid queued EDL v2: {exc}"
+                job.finished_at = now()
+                db.commit()
+                return True
 
         temp_dir = settings.mediagrid_data_dir / "temp"
         output_dir = settings.mediagrid_data_dir / "renders"
@@ -147,14 +172,6 @@ def render_one() -> bool:
         public_dir = (temp_dir / f"{job.id}-media").resolve()
         output_path = (output_dir / f"{project.id}.mp4").resolve()
         channel = db.get(Channel, project.channel_id)
-        configured_accent = (channel.brand_profile or {}).get("accent") if channel else None
-        accent = (
-            configured_accent
-            if isinstance(configured_accent, str)
-            and re.fullmatch(r"#[0-9a-fA-F]{6}", configured_accent)
-            else "#c5ccd6"
-        )
-        captions = {item["scene_id"]: item["text"] for item in project.edl["tracks"]["captions"]}
         voice = settings.mediagrid_data_dir / "voice" / f"{project.id}.wav"
         valid_voice = voice if voice_matches(project.id, project.script) else None
         try:
@@ -167,20 +184,16 @@ def render_one() -> bool:
             project.status = ProjectStatus.FAILED.value
             db.commit()
             return True
-        props = {
-            "title": project.title,
-            "format": project.format,
-            "accent": accent,
-            "source_label": source_label(project.plan),
-            "scenes": [
-                dict(item, on_screen_text=captions.get(item["scene_id"]))
-                for item in video_tracks
-            ],
-        }
+        props = render_props(
+            project, channel, video_tracks, overlays, sounds, video_layers
+        )
         project.status = ProjectStatus.RENDERING.value
         db.commit()
         try:
-            staged = stage_scene_assets(db, video_tracks, public_dir)
+            staged = stage_scene_assets(db, [
+                *video_tracks,
+                *({"asset_id": item.source_asset_id} for item in video_layers),
+            ], public_dir)
             for media in staged.values():
                 if media["media_kind"] == "video":
                     info = validate_video(public_dir / media["media_file"])
@@ -195,6 +208,27 @@ def render_one() -> bool:
                         raise ValueError(
                             "Trecho do clipe fora da duração do MP4. Ajuste início e fim no Editor."
                         )
+            for item in props.get("video_layers", []):
+                media = staged[item["source_asset_id"]]
+                if media["media_kind"] != "video":
+                    raise ValueError("Video layer asset is not an MP4")
+                item["media_file"] = media["media_file"]
+                duration = float(media["media_duration"])
+                if item["source_out_ms"] / 1000 > duration + 0.05:
+                    raise ValueError("Video layer source interval exceeds the MP4")
+            if sounds:
+                staged_sounds = stage_sound_assets(
+                    db, {item.source_asset_id for item in sounds}, public_dir
+                )
+                for item in props["sounds"]:
+                    item["media_file"] = staged_sounds[item["source_asset_id"]]
+                    source_duration = audio_duration(public_dir / item["media_file"])
+                    start = (item["source_in_ms"] or 0) / 1000
+                    end = (item["source_out_ms"] or source_duration * 1000) / 1000
+                    if start >= source_duration or end > source_duration + 0.05:
+                        raise ValueError("Sound source interval exceeds the audio file")
+                    if not item["loop"] and (end - start) * 1000 + 35 < item["duration_ms"]:
+                        raise ValueError("Sound item exceeds its audio source")
             props_path.write_text(json.dumps(props, ensure_ascii=False), encoding="utf-8")
             renderer_root = (
                 settings.mediagrid_renderer_root.resolve()
@@ -220,7 +254,8 @@ def render_one() -> bool:
                     str(cli),
                     "render",
                     str(renderer_root / "src" / "index.ts"),
-                    "MediaGridVideo",
+                    "MediaGridTimelineV2" if overlays or sounds or video_layers
+                    else "MediaGridVideo",
                     str(output_path),
                     "--props",
                     str(props_path),
@@ -242,7 +277,7 @@ def render_one() -> bool:
                 command = [
                     "npm",
                     "run",
-                    "render",
+                    "render:v2" if overlays or sounds or video_layers else "render",
                     "--workspace",
                     "@mediagrid/renderer",
                     "--",
@@ -258,8 +293,7 @@ def render_one() -> bool:
             if valid_voice is not None:
                 voiced = temp_dir / f"{job.id}-voiced.mp4"
                 ffmpeg = settings.mediagrid_ffmpeg_path or "ffmpeg"
-                subprocess.run(
-                    [
+                voice_command = [
                         str(ffmpeg),
                         "-y",
                         "-i",
@@ -268,18 +302,23 @@ def render_one() -> bool:
                         str(voice),
                         "-map",
                         "0:v:0",
-                        "-map",
-                        "1:a:0",
                         "-c:v",
                         "copy",
                         "-c:a",
                         "aac",
-                        "-af",
-                        "apad",
-                        "-t",
-                        str(render_duration),
-                        str(voiced),
-                    ],
+                ]
+                if sounds:
+                    voice_command.extend([
+                        "-filter_complex",
+                        "[0:a:0][1:a:0]amix=inputs=2:duration=longest:normalize=0,"
+                        "alimiter=limit=0.95,apad[mix]",
+                        "-map", "[mix]",
+                    ])
+                else:
+                    voice_command.extend(["-map", "1:a:0", "-af", "apad"])
+                voice_command.extend(["-t", str(render_duration), str(voiced)])
+                subprocess.run(
+                    voice_command,
                     check=True,
                     capture_output=True,
                     text=True,
@@ -288,7 +327,16 @@ def render_one() -> bool:
             video_info = validate_video(output_path)
             job.status = JobStatus.SUCCEEDED.value
             job.progress = 1
-            job.result = {"output": str(output_path), **video_info}
+            digest = hashlib.sha256()
+            with output_path.open("rb") as rendered:
+                for chunk in iter(lambda: rendered.read(1024 * 1024), b""):
+                    digest.update(chunk)
+            job.result = {
+                "output": str(output_path), "sha256": digest.hexdigest(),
+                "edl_sha256": edl_sha256, **video_info,
+            }
+            if revision_sha256:
+                job.result["revision_sha256"] = revision_sha256
             job.finished_at = now()
             project.status = ProjectStatus.QC.value
             record_event(db, "RENDER_FINISHED", "project", project.id, after=job.result)
