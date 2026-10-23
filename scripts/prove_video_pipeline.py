@@ -326,6 +326,12 @@ def main() -> None:
         final_project = checked(client.get(f"/api/v1/projects/{project_id}"))
         if final_project["status"] != "QC":
             raise RuntimeError(f"Expected QC, got {final_project['status']}")
+        served = client.get(f"/api/v1/projects/{project_id}/output")
+        expected_hash = render_result["result"].get("sha256")
+        if (served.status_code != 200
+                or served.headers.get("etag") != expected_hash
+                or hashlib.sha256(served.content).hexdigest() != expected_hash):
+            raise RuntimeError("Verified render download does not match the completed job")
 
     video = run_dir / "renders" / f"{project_id}.mp4"
     probe = subprocess.run(

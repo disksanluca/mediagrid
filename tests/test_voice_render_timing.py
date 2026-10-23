@@ -3,8 +3,6 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from apps.api.database import SessionLocal
-from apps.api.models import Project, ProjectStatus
 from workers.render.main import fit_video_to_voice
 
 
@@ -35,7 +33,7 @@ def test_render_extends_scenes_when_voice_exceeds_planned_duration(tmp_path: Pat
 
 
 def test_new_voice_revokes_approval_and_hides_stale_output(
-    client: TestClient, tmp_path: Path, monkeypatch
+    client: TestClient, tmp_path: Path, monkeypatch, seed_completed_render,
 ) -> None:
     from apps.api.config import get_settings
 
@@ -61,14 +59,7 @@ def test_new_voice_revokes_approval_and_hides_stale_output(
     ).json()
     project_id = project["id"]
     client.post(f"/api/v1/projects/{project_id}/plan")
-    with SessionLocal() as db:
-        stored = db.get(Project, project_id)
-        assert stored is not None
-        stored.status = ProjectStatus.QC.value
-        db.commit()
-    render_dir = tmp_path / "renders"
-    render_dir.mkdir()
-    (render_dir / f"{project_id}.mp4").write_bytes(b"old-render")
+    seed_completed_render(project_id, b"old-render")
     assert client.post(
         f"/api/v1/projects/{project_id}/review",
         json={
