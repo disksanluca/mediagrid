@@ -14,5 +14,9 @@ def test_postgres_smoke_requires_ephemeral_local_target() -> None:
         ("postgresql+psycopg://postgres:x@127.0.0.1/mediagrid", "1"),
         ("sqlite:///./data/mediagrid.db", "1"),
     ):
-        with pytest.raises(RuntimeError, match="ephemeral mediagrid_ci"):
+        with pytest.raises(RuntimeError, match="ephemeral CI database"):
             validate_target(url, enabled)
+    restored = allowed.replace("/mediagrid_ci", "/mediagrid_restored")
+    validate_target(restored, "1", database_name="mediagrid_restored")
+    with pytest.raises(RuntimeError):
+        validate_target(allowed, "1", database_name="production")

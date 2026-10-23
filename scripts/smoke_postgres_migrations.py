@@ -5,12 +5,15 @@ import os
 from sqlalchemy.engine import make_url
 
 
-def validate_target(database_url: str, enabled: str | None) -> None:
+def validate_target(database_url: str, enabled: str | None,
+                    *, database_name: str = "mediagrid_ci") -> None:
     url = make_url(database_url)
+    if database_name not in {"mediagrid_ci", "mediagrid_restored"}:
+        raise RuntimeError("PostgreSQL smoke target is not an ephemeral CI database")
     if (enabled != "1" or url.drivername != "postgresql+psycopg"
             or url.host not in {"127.0.0.1", "localhost"}
-            or url.database != "mediagrid_ci"):
-        raise RuntimeError("PostgreSQL smoke requires the opt-in ephemeral mediagrid_ci DB")
+            or url.database != database_name):
+        raise RuntimeError("PostgreSQL smoke requires the opt-in ephemeral CI database")
 
 
 def main() -> None:
