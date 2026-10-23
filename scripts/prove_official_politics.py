@@ -36,8 +36,14 @@ def executable(name: str) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--proposal-id", type=int, default=2648811)
+    parser.add_argument("--voice-name", type=str, default=None,
+                        help="Exact installed pt-BR Windows voice to use")
+    parser.add_argument("--voice-rate", type=int, default=0,
+                        help="System.Speech rate from -5 to 5 (requires --voice-name)")
     parser.add_argument("--output", type=Path, default=ROOT / "data" / "politics-proof")
     args = parser.parse_args()
+    if args.voice_rate and args.voice_name is None:
+        parser.error("--voice-rate requires --voice-name")
     run_dir = (args.output / datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")).resolve()
     run_dir.mkdir(parents=True, exist_ok=False)
     node, ffmpeg, ffprobe = (executable(name) for name in ("node", "ffmpeg", "ffprobe"))
@@ -72,6 +78,10 @@ def main() -> None:
         {"proposal": proposal, "status": status}, ensure_ascii=False, indent=2,
     ), encoding="utf-8")
     with TestClient(app) as client:
+        if args.voice_name is not None:
+            checked(client.put("/api/v1/system/voice", json={
+                "voice_name": args.voice_name, "rate": args.voice_rate,
+            }))
         channel = checked(client.post("/api/v1/channels", json={
             "name": "Prova editorial Política", "slug": "prova-politica",
             "niche": "Política", "default_engine": "politics",
@@ -142,6 +152,8 @@ def main() -> None:
         "width": video["width"], "height": video["height"],
         "video_codec": video["codec_name"], "audio_codec": audio["codec_name"],
         "paid_ai_enabled": False,
+        "voice_name": args.voice_name,
+        "voice_rate": args.voice_rate,
     }
     (run_dir / "evidence.json").write_text(
         json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8",
