@@ -191,6 +191,26 @@ try {
   if ($characterStreams -notcontains "video" -or $characterStreams -notcontains "audio") { throw "Personagem instalado sem vídeo ou áudio." }
   Write-Host "Instalação validou rig SVG, marcas manuais de boca e MP4 com áudio sintético."
 
+  $storyProjectBody = @{channel_id=$channel.id;title="Narrativa 3D";topic="História original de Migo em três tomadas";content_type="narrative_3d";format="horizontal"} | ConvertTo-Json -Compress
+  $storyProject = Invoke-RestMethod "$api/projects" -Method Post -ContentType "application/json" -Body $storyProjectBody
+  $storyUrl = "$api/projects/$($storyProject.id)/narrative-3d"
+  $storyShots = @(
+    @{duration_ms=1500;beat_text="Migo encontra uma luz.";action="notice";camera="wide";lighting="calm"},
+    @{duration_ms=1500;beat_text="Migo alcança a luz.";action="reach";camera="medium";lighting="tense"},
+    @{duration_ms=1500;beat_text="A luz responde ao toque.";action="react";camera="close";lighting="bright"}
+  )
+  $storyBody = @{expected_revision=0;title="Migo encontra a luz";aspect="horizontal";shots=$storyShots;audio_asset_id=$null} | ConvertTo-Json -Depth 10 -Compress
+  $story = Invoke-RestMethod $storyUrl -Method Put -ContentType "application/json" -Body $storyBody
+  if ($story.revision -ne 1 -or $story.rig_version -ne "migo_3d_v1" -or $story.shots.Count -ne 3) { throw "Story 3D não persistiu na instalação." }
+  $storyRead = Invoke-RestMethod $storyUrl
+  if ($storyRead.story_sha256 -ne $story.story_sha256) { throw "Story 3D mudou após leitura." }
+  $blenderState = Invoke-RestMethod "$api/system/blender"
+  if (-not $blenderState.available) {
+    $waitingStory = Invoke-RestMethod "$storyUrl/blocking" -Method Post
+    if ($waitingStory.status -ne "WAITING_FOR_WORKER") { throw "Story 3D sem Blender não ficou aguardando worker." }
+  }
+  Write-Host "Instalação validou storyboard 3D, migração, rig empacotado e dependência opcional explícita."
+
   $asrStatus = Invoke-RestMethod "$api/assets/asr-status"
   if (-not $asrStatus.word_asr_available) { throw "Modelo ASR offline não ficou disponível na instalação." }
   $transcriptBody = @{

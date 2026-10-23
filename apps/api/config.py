@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     mediagrid_ffmpeg_path: Path | None = None
     mediagrid_ffprobe_path: Path | None = None
     mediagrid_browser_path: Path | None = None
+    mediagrid_blender_path: Path | None = None
     dry_run: bool = True
     mediagrid_admin_password: str | None = None
     mediagrid_session_secret: str | None = None

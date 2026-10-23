@@ -1,4 +1,4 @@
-import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, DoctorReport, FootballSequence, FootballShot, GeoMunicipality, HardwareProfile, Job, KnowledgeClaim, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord} from "./types";
+import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, DoctorReport, FootballSequence, FootballShot, GeoMunicipality, HardwareProfile, Job, KnowledgeClaim, Narrative3DSequence, Narrative3DShot, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord} from "./types";
 import {desktopRuntime} from "./desktop";
 
 export interface UploadState {
@@ -115,6 +115,17 @@ export const api = {
   renderFootball: (projectId:string) => request<{job_id:string;status:string}>(`/projects/${projectId}/football/render`,{method:"POST"}),
   footballRenderStatus: (projectId:string) => request<{job_id:string;status:string;error:string|null}|null>(`/projects/${projectId}/football/render-status`),
   footballVideo: (projectId:string,jobId:string) => `${baseUrl}/projects/${projectId}/football/render/${jobId}`,
+  narrative3d: (projectId:string) => request<Narrative3DSequence|null>(`/projects/${projectId}/narrative-3d`),
+  saveNarrative3d: (projectId:string,body:{expected_revision:number;title:string;aspect:"vertical"|"horizontal";shots:Narrative3DShot[];audio_asset_id:string|null}) =>
+    request<Narrative3DSequence>(`/projects/${projectId}/narrative-3d`,{method:"PUT",body:JSON.stringify(body)}),
+  queueNarrative3d: (projectId:string,quality:"blocking"|"final") =>
+    request<{job_id:string;status:string}>(`/projects/${projectId}/narrative-3d/${quality}`,{method:"POST"}),
+  approveNarrative3d: (projectId:string,revision:number) =>
+    request<Narrative3DSequence>(`/projects/${projectId}/narrative-3d/approve-blocking`,{method:"POST",body:JSON.stringify({expected_revision:revision,watched_full_preview:true,character_continuity_checked:true,story_timing_checked:true})}),
+  narrative3dStatus: (projectId:string,quality:"blocking"|"final") =>
+    request<{job_id:string;status:string;progress:number;error:string|null}|null>(`/projects/${projectId}/narrative-3d/${quality}/render-status`),
+  narrative3dVideo: (projectId:string,quality:"blocking"|"final",jobId:string) =>
+    `${baseUrl}/projects/${projectId}/narrative-3d/${quality}/render/${jobId}`,
   claims: (projectId:string) => request<KnowledgeClaim[]>(`/projects/${projectId}/claims`),
   addClaim: (projectId:string,body:Omit<KnowledgeClaim,"id"|"project_id"|"revision"|"status"|"reviewed_at">) =>
     request<KnowledgeClaim>(`/projects/${projectId}/claims`,{method:"POST",body:JSON.stringify(body)}),
@@ -125,6 +136,8 @@ export const api = {
   removeClaim: (projectId:string,claimId:string,revision:number) =>
     request<KnowledgeClaim>(`/projects/${projectId}/claims/${claimId}/remove`,{method:"POST",body:JSON.stringify({expected_revision:revision})}),
   system: () => request<SystemStatus>("/system"),
+  blenderStatus: () => request<{available:boolean;path:string|null;required_version:string}>("/system/blender"),
+  setBlender: (path:string) => request<{available:boolean;path:string;required_version:string}>("/system/blender",{method:"PUT",body:JSON.stringify({path})}),
   hardware: () => request<HardwareProfile>("/system/hardware"),
   doctor: (internet=false) => request<DoctorReport>(`/system/doctor?internet=${internet}`),
   setup: () => request<SetupState>("/system/setup"),

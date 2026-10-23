@@ -1,9 +1,14 @@
 import json
+import subprocess
+import uuid
+from pathlib import Path
 from typing import Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
+from workers.render.narrative_3d import blender_executable
 
 from ..config import get_settings
 from ..database import get_db
@@ -97,3 +102,45 @@ def complete_setup(choice: SetupChoice) -> SetupState:
     temporary.write_text(json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8")
     temporary.replace(path)
     return setup_status()
+
+
+class BlenderChoice(BaseModel):
+    path: str
+
+
+@router.get("/blender")
+def blender_status() -> dict:
+    configured = blender_executable()
+    return {"available": configured is not None,
+            "path": str(configured) if configured else None,
+            "required_version": "4.5 LTS"}
+
+
+@router.put("/blender")
+def set_blender(choice: BlenderChoice) -> dict:
+    if get_settings().mediagrid_mode != "LOCAL":
+        raise HTTPException(403, "Blender selection is local-desktop only")
+    path = Path(choice.path)
+    if (not path.is_absolute() or path.name.lower() != "blender.exe"
+            or not path.is_file()):
+        raise HTTPException(422, "Choose the official Blender 4.5 LTS blender.exe")
+    path = path.resolve()
+    try:
+        result = subprocess.run([str(path), "--background", "--version"],
+                                capture_output=True, text=True, timeout=15, check=False)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise HTTPException(422, "Blender could not be started") from exc
+    if result.returncode or not result.stdout.startswith("Blender 4.5."):
+        raise HTTPException(422, "MediaGrid 3D currently requires Blender 4.5 LTS")
+    settings_path = _setup_path()
+    settings_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        saved = json.loads(settings_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        saved = {}
+    saved["blender_path"] = str(path)
+    temporary = settings_path.with_name(f".{settings_path.name}.{uuid.uuid4().hex}.tmp")
+    temporary.write_text(json.dumps(saved, ensure_ascii=False, indent=2), encoding="utf-8")
+    temporary.replace(settings_path)
+    return {"available": True, "path": str(path),
+            "required_version": "4.5 LTS"}

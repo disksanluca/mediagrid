@@ -45,6 +45,7 @@ def main() -> None:
         "assets", "exports", "renders", "temp", "voice", "transcripts",
         "backups", "uploads", "proxies", "caption-renders", "clip-renders",
         "football-renders",
+        "narrative-renders",
     ):
         (settings.mediagrid_data_dir / directory).mkdir(exist_ok=True)
     existing = set(inspect(engine).get_table_names())

@@ -121,6 +121,22 @@ lip sync. Use `uv run python scripts/prove_video_pipeline.py --character-2d`
 for an isolated technical proof, then inspect the full audio and video before
 using the character in an editorial piece.
 
+For **Narrativa 3D**, create a project in that mode and open its Editor. Write
+three to eight distinct story beats, choose action, camera, light and duration,
+then save the storyboard. Configure a local **Blender 4.5 LTS** executable in
+Settings or set `MEDIAGRID_BLENDER_PATH`. The worker first renders a low resolution
+blocking MP4. Watch the full preview and explicitly confirm character continuity
+and timing before requesting the full resolution final MP4. A changed storyboard
+invalidates both renders and the approval. Without Blender the queued job stays
+`WAITING_FOR_WORKER`; the renderer never reports success for an absent file.
+The original Migo rig and Atelier stage are procedural; each render pins their
+script hash and the storyboard hash. A local owned or licensed audio asset may be
+selected if it covers the whole story. Otherwise the MP4 has an identified silent
+AAC track. This first 3D mode does not yet supply acting, dialogue generation,
+sound design, or an editorially approved film. Inspect the full audiovisual export
+before delivery. Blender is an optional separate GPL installation; it is not
+bundled in the MediaGrid installer.
+
 ## Current development fallback on Windows
 
 See [SETUP.md](SETUP.md) for installation and troubleshooting. On Windows, double-click

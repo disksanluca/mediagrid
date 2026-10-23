@@ -28,6 +28,7 @@ from apps.api.models import (
     FootballSequence,
     Job,
     JobStatus,
+    Narrative3D,
     Project,
     ProjectRevision,
     ProjectStatus,
@@ -42,6 +43,7 @@ from apps.api.transcripts import replace_words
 from workers.render.caption_video import burn_captions
 from workers.render.clips import analyze_asset, render_selected_clip
 from workers.render.football import render_football
+from workers.render.narrative_3d import blender_script, render_narrative, story_sha256
 from workers.render.proxy import build_proxy
 
 logger = logging.getLogger(__name__)
@@ -98,6 +100,7 @@ def recover_interrupted_jobs() -> None:
                 Job.job_type.in_([
                     "RENDER", "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
                     "CLIP_ANALYSIS", "CLIP_RENDER", "FOOTBALL_RENDER",
+                    "NARRATIVE_3D_RENDER",
                 ]),
                 Job.status == JobStatus.RUNNING.value,
             )
@@ -386,6 +389,7 @@ def media_one() -> bool:
                 Job.job_type.in_([
                     "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
                     "CLIP_ANALYSIS", "CLIP_RENDER", "FOOTBALL_RENDER",
+                    "NARRATIVE_3D_RENDER",
                 ]),
             )
             .order_by(Job.priority, Job.created_at)
@@ -498,6 +502,22 @@ def media_one() -> bool:
                         or sequence.project_id != job.project_id):
                     raise ValueError("Football sequence changed after queueing")
                 job.result = render_football(db, sequence, job.id)
+            elif job.job_type == "NARRATIVE_3D_RENDER":
+                sequence = db.get(Narrative3D, job.payload.get("sequence_id"))
+                if (sequence is None or sequence.revision != job.payload.get("revision")
+                        or sequence.project_id != job.project_id
+                        or story_sha256(sequence) != job.payload.get("story_sha256")
+                        or sha256_file(blender_script()) != job.payload.get("rig_sha256")):
+                    raise ValueError("3D story or rig changed after queueing")
+                quality = job.payload.get("quality")
+                if quality not in {"blocking", "final"}:
+                    raise ValueError("Invalid 3D render quality")
+
+                def progress(value: float) -> None:
+                    job.progress = value
+                    db.commit()
+
+                job.result = render_narrative(db, sequence, job.id, quality, progress)
             else:
                 asset_id = job.payload.get("asset_id")
                 asset = db.get(Asset, asset_id) if asset_id else None

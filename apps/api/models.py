@@ -53,6 +53,7 @@ class ProjectStatus(StrEnum):
 
 class JobStatus(StrEnum):
     QUEUED = "QUEUED"
+    WAITING_FOR_WORKER = "WAITING_FOR_WORKER"
     RUNNING = "RUNNING"
     SUCCEEDED = "SUCCEEDED"
     FAILED = "FAILED"
@@ -246,6 +247,26 @@ class KnowledgeClaim(TimestampMixin, Base):
     revision: Mapped[int] = mapped_column(Integer, default=1)
     status: Mapped[str] = mapped_column(String(24), default="REVIEW_REQUIRED")
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class Narrative3D(TimestampMixin, Base):
+    """Original procedural story; blocking approval pins the final render."""
+
+    __tablename__ = "narrative_3d"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), unique=True)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[str] = mapped_column(String(32), default="REVIEW_REQUIRED")
+    aspect: Mapped[str] = mapped_column(String(20))
+    title: Mapped[str] = mapped_column(String(160))
+    shots_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON)
+    rig_version: Mapped[str] = mapped_column(String(40), default="migo_3d_v1")
+    world_version: Mapped[str] = mapped_column(String(40), default="atelier_stage_v1")
+    audio_asset_id: Mapped[str | None] = mapped_column(ForeignKey("assets.id"), nullable=True)
+    audio_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    blocking_job_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    blocking_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
 
 class Job(TimestampMixin, Base):

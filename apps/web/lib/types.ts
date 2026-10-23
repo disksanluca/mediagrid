@@ -54,6 +54,32 @@ export interface FootballSequence {
   score_source_url: string | null;
 }
 
+export interface Narrative3DShot {
+  duration_ms: number;
+  beat_text: string;
+  action: "notice" | "reach" | "react" | "celebrate";
+  camera: "wide" | "medium" | "close";
+  lighting: "calm" | "tense" | "bright";
+}
+
+export interface Narrative3DSequence {
+  id: string;
+  project_id: string;
+  revision: number;
+  status: "REVIEW_REQUIRED" | "APPROVED";
+  title: string;
+  aspect: "vertical" | "horizontal";
+  shots: Narrative3DShot[];
+  rig_version: string;
+  world_version: string;
+  audio_asset_id: string | null;
+  audio_sha256: string | null;
+  blocking_job_id: string | null;
+  blocking_sha256: string | null;
+  story_sha256: string;
+  blender_available?: boolean;
+}
+
 export interface KnowledgeClaim {
   id: string;
   project_id: string;

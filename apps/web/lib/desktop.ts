@@ -50,6 +50,12 @@ export async function desktopChooseDataDir(): Promise<DesktopRuntime | null> {
     : null;
 }
 
+export async function desktopChooseBlender(): Promise<string | null> {
+  const selected = await open({directory:false,multiple:false,title:"Selecione Blender 4.5 LTS",
+    filters:[{name:"Blender executável",extensions:["exe"]}]});
+  return typeof selected==="string"?selected:null;
+}
+
 export async function desktopCreateBackup(options: {assets: boolean; renders: boolean; models: boolean}): Promise<string | null> {
   const date = new Date().toISOString().slice(0, 10);
   const path = await save({title: "Salvar backup MediaGrid", defaultPath: `MediaGrid-${date}.mgrid`, filters: [{name: "Backup MediaGrid", extensions: ["mgrid"]}]});
