@@ -42,7 +42,7 @@ def build_proxy(db: Session, job: Job, asset: Asset) -> ProxyBuild:
     job.progress = 0.05
     db.commit()
     command = [
-        ffmpeg, "-nostdin", "-y", "-v", "error", "-stats_period", "1",
+        ffmpeg, "-nostdin", "-y", "-v", "error",
         "-progress", "pipe:1", "-i", str(source),
         "-map", "0:v:0", "-map", "0:a:0?",
         "-vf", "scale=640:-2:flags=fast_bilinear", "-r", "12",

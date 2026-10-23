@@ -73,9 +73,10 @@ def test_resume_import_and_real_proxy(client: TestClient, tmp_path: Path) -> Non
         session = db.get(UploadSession, upload_id)
         assert asset and asset.sha256 == digest
         assert asset.metadata_json["duration_ms"] >= 3900
+        assert job and job.status == "SUCCEEDED", job.error if job else "Proxy job missing"
         assert asset.metadata_json["proxy_sha256"]
         assert asset.metadata_json["waveform_status"] == "READY"
-        assert job and job.status == "SUCCEEDED" and job.progress == 1
+        assert job.progress == 1
         assert session and session.status == "COMPLETE"
     store = get_settings().mediagrid_data_dir
     assert hashlib.sha256((store / "assets" / asset_id).read_bytes()).hexdigest() == digest

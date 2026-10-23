@@ -231,6 +231,11 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   local. A API congelada reportou `word_asr_available=true`; o worker EXE
   processou um WAV sintético em `ASR_WORDS` com `SUCCEEDED`, 13 palavras e
   três cues. O smoke do instalador Tauri também passou no CI citado acima.
+- O CI Windows posterior revelou que a geração de proxy ainda passava
+  `-stats_period` ao FFmpeg portátil 4.1, que não reconhece essa opção. O
+  worker foi ajustado para usar `-progress pipe:1` sem esse argumento; o teste
+  de ingestão agora exibe o erro do job em caso de falha. A suíte completa foi
+  repetida com os binários portáteis exatos do lockfile.
 - `uv run pytest -q tests`: **63 passed**. `uv run ruff check .`:
   passou. TypeScript do web/renderer e `next build apps/web`: passaram.
 - Nenhuma API paga, VPS ou publicação foi ativada. O custo de inferência local
