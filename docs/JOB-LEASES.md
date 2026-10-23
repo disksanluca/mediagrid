@@ -31,17 +31,22 @@ fila PostgreSQL. Não oferece ainda worker remoto ou VPS utilizável.
   faltar, preserva o WAV anterior e falha o job. Uma queda entre as duas
   substituições pode deixar os arquivos desencontrados; `voice_matches` confere
   o digest do roteiro, mas ainda não valida o hash do próprio WAV.
+- O proxy de ingestão gera MP4 e waveform em caminhos exclusivos, verifica seus
+  hashes e só promove arquivos e metadados `READY` após o fence. O endpoint de
+  download também confere o hash armazenado. Reclaim descarta temporários sem
+  alterar o proxy anterior ou o estado do asset.
 - Os testes cobrem claim distinto por dois workers, rejeição de renovação por
   proprietário errado, heartbeat real, recuperação seletiva e migração
   SQLite de base legada e nova, inclusive rejeição de conclusão após reclaim.
   Também cobrem a preservação do MP4 anterior após reclaim para os cinco tipos
   de render e a falha de promoção do render principal. Para voz, cobrem reclaim
-  e digest ausente sem sobrescrever o WAV anterior.
+  e digest ausente sem sobrescrever o WAV anterior. Para proxy, cobrem reclaim
+  sem sobrescrever o MP4 nem o estado de ingestão.
   A CI executa migração, concorrência de claim, dump e restore em PostgreSQL real
   com serviço temporário; concorrência entre hosts e worker remoto seguem sem prova.
 
 Ainda faltam idempotency key persistida, token de dispositivo, escopo por dono,
-cancelamento do subprocesso, reconciliação de proxy e demais arquivos de mídia
+cancelamento do subprocesso, reconciliação de transcrição legada e demais arquivos de mídia
 e prova ponta a ponta com worker Windows conectado de saída. O rename do MP4 e o
 commit do banco não formam uma transação atômica: uma queda nesse intervalo pode
 deixar um arquivo novo sem estado terminal; falta recuperação/reconciliação para
