@@ -270,6 +270,64 @@ def test_flow_diagram_is_closed_and_preserved_in_preview(client: TestClient) -> 
     assert overlay["steps"] == ["Pesquisa", "Roteiro", "Vídeo"]
 
 
+def test_character_dialogue_cues_are_validated_and_reach_preview(client: TestClient) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Humor 2D", "slug": "humor-test", "niche": "Humor",
+        "default_engine": "music",
+    }).json()
+    project = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Personagem local",
+        "topic": "Primeira fala original e revisada.\n"
+                 "A reação vem na segunda cena.\n"
+                 "Terminamos a conversa com uma frase curta.",
+        "format": "vertical",
+    }).json()
+    project_id = project["id"]
+    assert client.post(f"/api/v1/projects/{project_id}/plan").status_code == 200
+    url = f"/api/v1/projects/{project_id}/edl-v2"
+    timeline = client.get(url).json()
+    character = {
+        "id": "character-1", "start_ms": 0, "duration_ms": 2500,
+        "z_index": 18, "preset": "character_dialogue_v1",
+        "params": {"text": "A reunião virou um meme!", "color": "#dcf769",
+                   "character_id": "migo_v1", "expression": "surprised",
+                   "pose": "shrug", "mouth_cues": [
+                       {"start_ms": 0, "end_ms": 250, "viseme": "closed"},
+                       {"start_ms": 250, "end_ms": 700, "viseme": "round"},
+                       {"start_ms": 700, "end_ms": 1100, "viseme": "open"},
+                   ], "keyframes": [
+                       {"at_ms": 0, "x": .5, "y": .5, "opacity": 0, "scale": .9},
+                       {"at_ms": 350, "x": .5, "y": .5, "opacity": 1, "scale": 1},
+                       {"at_ms": 2500, "x": .5, "y": .5, "opacity": 1, "scale": 1},
+                   ]},
+    }
+    timeline["edl"]["tracks"].append({
+        "id": "character-dialogue", "kind": "caption", "items": [character],
+    })
+    invalid = deepcopy(timeline["edl"])
+    invalid["tracks"][-1]["items"][0]["params"]["mouth_cues"][1]["start_ms"] = 100
+    with pytest.raises(ValidationError, match="Mouth cues must be ordered"):
+        EDLV2.model_validate(invalid)
+    invalid_pose = deepcopy(timeline["edl"])
+    invalid_pose["tracks"][-1]["items"][0]["params"]["pose"] = "unknown"
+    with pytest.raises(ValidationError, match="pose"):
+        EDLV2.model_validate(invalid_pose)
+    out_of_range = deepcopy(timeline["edl"])
+    out_of_range["tracks"][-1]["items"][0]["params"]["mouth_cues"][2]["end_ms"] = 2600
+    with pytest.raises(ValidationError, match="Mouth cues must be ordered"):
+        EDLV2.model_validate(out_of_range)
+    saved = client.put(url, json={
+        "expected_revision": timeline["revision"],
+        "expected_legacy_sha256": timeline["legacy_sha256"],
+        "edl": timeline["edl"],
+    })
+    assert saved.status_code == 200, saved.text
+    overlay = client.get(f"/api/v1/projects/{project_id}/preview").json()["props"]["overlays"][0]
+    assert overlay["preset"] == "character_dialogue_v1"
+    assert overlay["mouth_cues"][1]["viseme"] == "round"
+    assert overlay["pose"] == "shrug"
+
+
 def test_v2_revision_api_preserves_legacy_render_and_rejects_stale_edit(
     client: TestClient,
 ) -> None:

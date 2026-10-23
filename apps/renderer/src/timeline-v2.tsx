@@ -2,6 +2,7 @@ import {AbsoluteFill, Audio, interpolate, OffthreadVideo, Sequence, useCurrentFr
 import {MediaGridVideo} from "./video";
 import type {RenderOverlay, RenderProps, RenderSound, RenderVideoLayer} from "./types";
 import {mediaSource} from "./media-source";
+import {CharacterDialogue} from "./character-dialogue";
 
 function KineticTitle({item}: {item: RenderOverlay}) {
   const frame = useCurrentFrame();
@@ -151,7 +152,8 @@ export function MediaGridTimelineV2(input: Partial<RenderProps>) {
       key={item.id}
       from={Math.round(item.start_ms * fps / 1000)}
       durationInFrames={Math.max(1, Math.round(item.duration_ms * fps / 1000))}
-    >{item.preset === "flow_path_v1" ? <FlowDiagram item={item}/>
+    >{item.preset === "character_dialogue_v1" ? <CharacterDialogue item={item}/>
+      : item.preset === "flow_path_v1" ? <FlowDiagram item={item}/>
       : item.preset === "motion_card_v1" ? <MotionCard item={item}/>
         : <KineticTitle item={item}/>}</Sequence>)}
     {(props.sounds ?? []).map((item) => <Sequence

@@ -26,7 +26,7 @@ export interface RenderProps {
 
 export interface RenderOverlay {
   id: string;
-  preset?: "kinetic_title_v1" | "motion_card_v1" | "flow_path_v1";
+  preset?: "kinetic_title_v1" | "motion_card_v1" | "flow_path_v1" | "character_dialogue_v1";
   start_ms: number;
   duration_ms: number;
   z_index: number;
@@ -37,6 +37,10 @@ export interface RenderOverlay {
   layout?: "stack" | "split";
   steps?: string[];
   source_label?: string | null;
+  character_id?: "migo_v1";
+  expression?: "neutral" | "happy" | "skeptical" | "surprised";
+  pose?: "idle" | "point" | "shrug";
+  mouth_cues?: Array<{start_ms:number;end_ms:number;viseme:"closed"|"open"|"round"|"smile"}>;
   keyframes: Array<{
     at_ms: number;
     x: number;

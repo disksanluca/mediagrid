@@ -1,0 +1,79 @@
+import {AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig} from "remotion";
+import type {RenderOverlay} from "./types";
+
+/** Original versioned SVG rig. Mouth motion follows only editor supplied cues. */
+export function CharacterDialogue({item}: {item: RenderOverlay}) {
+  const frame=useCurrentFrame();
+  const {fps,width,height}=useVideoConfig();
+  const time=frame*1000/fps;
+  const cue=item.mouth_cues?.find((part)=>time>=part.start_ms&&time<part.end_ms);
+  const expression=item.expression??"neutral";
+  const mouth=cue?.viseme??(expression==="happy"?"smile":"closed");
+  const pose=item.pose??"idle";
+  const points=item.keyframes.map((keyframe)=>Math.round(keyframe.at_ms*fps/1000));
+  const value=(key:"x"|"y"|"opacity"|"scale")=>interpolate(frame,points,
+    item.keyframes.map((keyframe)=>keyframe[key]),
+    {extrapolateLeft:"clamp",extrapolateRight:"clamp"});
+  const unit=width/1080;
+  const horizontal=width>height;
+  const bob=Math.sin(frame/9)*5;
+  const browY=expression==="surprised"?-13:expression==="skeptical"?7:0;
+  return <AbsoluteFill style={{zIndex:item.z_index,pointerEvents:"none",background:"#101923",
+    color:"#f8faf6",fontFamily:"Arial, sans-serif"}}>
+    <div style={{position:"absolute",inset:0,opacity:.19,
+      backgroundImage:"radial-gradient(#c8f777 2px, transparent 2px)",
+      backgroundSize:`${36*unit}px ${36*unit}px`}}/>
+    <div style={{position:"absolute",left:`${value("x")*100}%`,top:`${value("y")*100}%`,
+      transform:`translate(-50%,-50%) scale(${value("scale")})`,opacity:value("opacity"),
+      width:horizontal?"74%":"84%",height:horizontal?"88%":"76%",maxWidth:1500,
+      display:"flex",flexDirection:horizontal?"row":"column",alignItems:"center",
+      justifyContent:"center",gap:horizontal?28*unit:8*unit}}>
+      <div style={{order:horizontal?2:0,flex:horizontal?1:undefined,minWidth:0,
+        width:horizontal?"52%":"100%",border:`3px solid ${item.color}`,
+        borderRadius:32*unit,background:"#f7f9f0",color:"#101923",
+        boxShadow:"0 25px 60px #0008",padding:`${(horizontal?40:44)*unit}px ${(horizontal?42:50)*unit}px`,
+        boxSizing:"border-box"}}>
+        <div style={{color:"#51653b",fontSize:25*unit,fontWeight:900,
+          letterSpacing:3*unit,marginBottom:20*unit}}>MIGO / CENA 2D</div>
+        <div style={{fontSize:(horizontal?38:66)*unit,fontWeight:900,lineHeight:1.08,
+          overflowWrap:"break-word"}}>{item.text}</div>
+      </div>
+      <svg viewBox="0 0 480 600" role="img" aria-label="Personagem vetorial Migo"
+        style={{order:horizontal?1:1,width:horizontal?"42%":"73%",maxHeight:horizontal?"100%":"65%",
+          overflow:"visible",filter:"drop-shadow(0 18px 28px #0008)",transform:`translateY(${bob*unit}px)`}}>
+        <ellipse cx="240" cy="575" rx="142" ry="18" fill="#000" opacity=".3"/>
+        <path d="M151 362 Q104 423 130 527 Q240 580 350 527 Q377 422 329 362Z"
+          fill={item.color} stroke="#0a151a" strokeWidth="12"/>
+        <rect x="58" y="119" width="364" height="278" rx="115" fill="#172934"
+          stroke="#0a151a" strokeWidth="13"/>
+        <path d="M117 231 Q139 172 202 178 M277 178 Q340 172 363 231"
+          stroke="#84b6ae" strokeWidth="6" fill="none" opacity=".5"/>
+        <path d={`M135 ${190+browY} L210 ${expression==="skeptical"?205:190+browY}`}
+          stroke={item.color} strokeWidth="13" strokeLinecap="round"/>
+        <path d={`M270 ${expression==="skeptical"?205:190+browY} L346 ${190+browY}`}
+          stroke={item.color} strokeWidth="13" strokeLinecap="round"/>
+        <ellipse cx="172" cy="249" rx="31" ry={expression==="surprised"?39:expression==="happy"?22:29} fill="#f8faf6"/>
+        <ellipse cx="308" cy="249" rx="31" ry={expression==="surprised"?39:expression==="happy"?22:29} fill="#f8faf6"/>
+        <circle cx="176" cy="252" r="12" fill="#101923"/>
+        <circle cx="312" cy="252" r="12" fill="#101923"/>
+        {mouth==="round"?<ellipse cx="240" cy="322" rx="25" ry="34" fill="#090e13"/>
+          :mouth==="open"?<ellipse cx="240" cy="326" rx="55" ry="28" fill="#090e13"/>
+            :mouth==="smile"?<path d="M190 316 Q240 361 290 316" stroke="#f8faf6"
+              strokeWidth="12" strokeLinecap="round" fill="none"/>
+              :<path d="M198 321 L282 321" stroke="#f8faf6" strokeWidth="10"
+                strokeLinecap="round"/>}
+        <path d={pose==="point"?"M154 410 Q64 390 42 215 L84 212 Q112 344 178 440Z":
+          pose==="shrug"?"M154 410 Q50 391 42 335 L78 318 Q105 372 178 440Z":
+            "M154 410 Q72 424 70 529 L111 529 Q115 465 178 440Z"}
+          fill={item.color} stroke="#0a151a" strokeWidth="11"/>
+        <path d={pose==="shrug"?"M326 410 Q430 391 438 335 L402 318 Q375 372 302 440Z":
+          "M326 410 Q408 424 410 529 L369 529 Q365 465 302 440Z"}
+          fill={item.color} stroke="#0a151a" strokeWidth="11"/>
+        <rect x="209" y="88" width="62" height="38" rx="18" fill={item.color}/>
+        <circle cx="240" cy="75" r="27" fill={item.color} stroke="#0a151a" strokeWidth="9"/>
+      </svg>
+    </div>
+    <div style={{position:"absolute",bottom:40*unit,right:48*unit,fontSize:19*unit,
+      letterSpacing:2*unit,color:"#a5b6b0"}}>RIG ORIGINAL · MIGO V1</div>
+  </AbsoluteFill>;
+}

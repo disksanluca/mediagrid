@@ -153,6 +153,44 @@ try {
   if ($motionStreams -notcontains "video" -or $motionStreams -notcontains "audio") { throw "Cartão instalado sem vídeo ou áudio." }
   Write-Host "Instalação validou cartão e diagrama na prévia e em MP4 com áudio."
 
+  $characterProjectBody = @{channel_id=$channel.id;title="Personagem 2D";topic="Rig original com boca marcada manualmente";format="vertical"} | ConvertTo-Json -Compress
+  $characterProject = Invoke-RestMethod "$api/projects" -Method Post -ContentType "application/json" -Body $characterProjectBody
+  $characterScenes = @(
+    @{id="intro";duration_seconds=3.5;narration="Olá";visual_type="image";visual_query="";on_screen_text="Diálogo";transition="cut";asset_id=$imageAsset.id},
+    @{id="end";duration_seconds=1.5;narration="Fim";visual_type="image";visual_query="";on_screen_text="Fim";transition="cut";asset_id=$imageAsset.id}
+  )
+  $characterPlanBody = @{hook="Rig original";angle="Teste técnico instalado";scenes=$characterScenes} | ConvertTo-Json -Depth 10 -Compress
+  Invoke-RestMethod "$api/projects/$($characterProject.id)/plan" -Method Put -ContentType "application/json" -Body $characterPlanBody | Out-Null
+  $characterTimeline = Invoke-RestMethod "$api/projects/$($characterProject.id)/edl-v2"
+  $characterItem = @{id="smoke-character";start_ms=0;duration_ms=3000;z_index=18;preset="character_dialogue_v1";params=@{
+    text="Personagem original em teste.";color="#dcf769";character_id="migo_v1";expression="surprised";pose="shrug";
+    mouth_cues=@(@{start_ms=0;end_ms=500;viseme="closed"},@{start_ms=500;end_ms=1000;viseme="round"},@{start_ms=1000;end_ms=1500;viseme="open"});
+    keyframes=@(@{at_ms=0;x=0.5;y=0.5;opacity=0;scale=0.9},@{at_ms=350;x=0.5;y=0.5;opacity=1;scale=1},@{at_ms=3000;x=0.5;y=0.5;opacity=1;scale=1})
+  }}
+  $characterTimeline.edl.tracks = @($characterTimeline.edl.tracks) + @(@{id="character-dialogue";kind="caption";items=@($characterItem)})
+  $characterEDLBody = @{expected_revision=$characterTimeline.revision;expected_legacy_sha256=$characterTimeline.legacy_sha256;edl=$characterTimeline.edl} | ConvertTo-Json -Depth 20 -Compress
+  Invoke-RestMethod "$api/projects/$($characterProject.id)/edl-v2" -Method Put -ContentType "application/json" -Body $characterEDLBody | Out-Null
+  $characterPreview = Invoke-RestMethod "$api/projects/$($characterProject.id)/preview"
+  if ($characterPreview.props.overlays[0].mouth_cues[1].viseme -ne "round") { throw "Rig 2D não chegou à prévia instalada." }
+  $characterVoicePath = Join-Path $voiceDir "$($characterProject.id).wav"
+  & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "sine=frequency=620:duration=1" -ac 1 -ar 44100 $characterVoicePath
+  if ($LASTEXITCODE -ne 0) { throw "Áudio sintético do rig 2D não foi criado." }
+  $characterHash = [System.Security.Cryptography.SHA256]::HashData([System.Text.Encoding]::UTF8.GetBytes("Olá Fim"))
+  [System.IO.File]::WriteAllText((Join-Path $voiceDir "$($characterProject.id).sha256"), [Convert]::ToHexString($characterHash).ToLowerInvariant())
+  $characterJob = Invoke-RestMethod "$api/projects/$($characterProject.id)/render" -Method Post
+  $characterDone = $false
+  for ($attempt = 0; $attempt -lt 180; $attempt++) {
+    Start-Sleep -Seconds 1
+    $characterState = Invoke-RestMethod "$api/jobs/$($characterJob.job_id)"
+    if ($characterState.status -eq "FAILED") { throw "Render do personagem instalado falhou: $($characterState.error)" }
+    if ($characterState.status -eq "SUCCEEDED") { $characterDone = $true; break }
+  }
+  if (-not $characterDone) { throw "Render do personagem não concluiu em 180 segundos." }
+  $characterVideo = Join-Path $dataDir "renders\$($characterProject.id).mp4"
+  $characterStreams = @(& $ffprobe.FullName -v error -show_entries stream=codec_type -of csv=p=0 $characterVideo | ForEach-Object { $_.Trim() })
+  if ($characterStreams -notcontains "video" -or $characterStreams -notcontains "audio") { throw "Personagem instalado sem vídeo ou áudio." }
+  Write-Host "Instalação validou rig SVG, marcas manuais de boca e MP4 com áudio sintético."
+
   $asrStatus = Invoke-RestMethod "$api/assets/asr-status"
   if (-not $asrStatus.word_asr_available) { throw "Modelo ASR offline não ficou disponível na instalação." }
   $transcriptBody = @{
@@ -316,7 +354,7 @@ $restoredData = Join-Path $env:RUNNER_TEMP "MediaGridSmokeRestored"
 $env:MEDIAGRID_DATA_DIR = $restoredData
 & $service restore --path $archive
 if ($LASTEXITCODE -ne 0) { throw "Restauração pela instalação falhou." }
-foreach ($restored in @("Database\mediagrid.db", "renders\$($project.id).mp4", "football-renders\$($footballSequence.id)-r$($footballSequence.revision).mp4", "assets\$($imageAsset.id)", "assets\$($videoAsset.id)")) {
+foreach ($restored in @("Database\mediagrid.db", "renders\$($project.id).mp4", "renders\$($characterProject.id).mp4", "football-renders\$($footballSequence.id)-r$($footballSequence.revision).mp4", "assets\$($imageAsset.id)", "assets\$($videoAsset.id)")) {
   if (-not (Test-Path (Join-Path $restoredData $restored))) { throw "Restauração sem $restored." }
 }
 Write-Host "Backup e restauração do app instalado preservaram SQLite, MP4 e mídias importadas."
