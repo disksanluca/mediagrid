@@ -173,15 +173,30 @@ try {
   if (@($adPreview.props.overlays | Where-Object { $_.preset -eq "motion_card_v1" }).Count -ne 2) {
     throw "Prévia instalada não recebeu os dois cartões do Motion Ad."
   }
-  $adVoiceJob = Invoke-RestMethod "$api/projects/$($adProject.id)/voice" -Method Post
-  $adVoiceDone = $false
-  for ($attempt = 0; $attempt -lt 120; $attempt++) {
-    Start-Sleep -Seconds 1
-    $adVoiceState = Invoke-RestMethod "$api/jobs/$($adVoiceJob.job_id)"
-    if ($adVoiceState.status -eq "FAILED") { throw "Voz do Motion Ad falhou: $($adVoiceState.error)" }
-    if ($adVoiceState.status -eq "SUCCEEDED") { $adVoiceDone = $true; break }
+  $adVoiceOptions = Invoke-RestMethod "$api/system/voice"
+  if ($adVoiceOptions.available) {
+    $adVoiceJob = Invoke-RestMethod "$api/projects/$($adProject.id)/voice" -Method Post
+    $adVoiceDone = $false
+    for ($attempt = 0; $attempt -lt 120; $attempt++) {
+      Start-Sleep -Seconds 1
+      $adVoiceState = Invoke-RestMethod "$api/jobs/$($adVoiceJob.job_id)"
+      if ($adVoiceState.status -eq "FAILED") { throw "Voz do Motion Ad falhou: $($adVoiceState.error)" }
+      if ($adVoiceState.status -eq "SUCCEEDED") { $adVoiceDone = $true; break }
+    }
+    if (-not $adVoiceDone) { throw "Voz do Motion Ad não concluiu em 120 segundos." }
+    Write-Host "Motion Ad sintetizou voz pt-BR no Windows instalado."
+  } else {
+    # GitHub runners can lack a pt-BR SAPI voice. Keep the installed render
+    # test honest: this is a synthetic audio fixture, not spoken narration.
+    $adVoicePath = Join-Path $voiceDir "$($adProject.id).wav"
+    & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "sine=frequency=660:duration=17" -ac 1 -ar 44100 $adVoicePath
+    if ($LASTEXITCODE -ne 0) { throw "Áudio sintético do Motion Ad não foi criado." }
+    $adScriptText = @($adProject.script.segments) -join " "
+    if (-not $adScriptText.Trim()) { throw "Motion Ad não persistiu a narração." }
+    $adScriptHash = [System.Security.Cryptography.SHA256]::HashData([System.Text.Encoding]::UTF8.GetBytes($adScriptText))
+    [System.IO.File]::WriteAllText((Join-Path $voiceDir "$($adProject.id).sha256"), [Convert]::ToHexString($adScriptHash).ToLowerInvariant())
+    Write-Host "Runner sem voz pt-BR: Motion Ad usa áudio sintético apenas no teste de render instalado."
   }
-  if (-not $adVoiceDone) { throw "Voz do Motion Ad não concluiu em 120 segundos." }
   $adRenderJob = Invoke-RestMethod "$api/projects/$($adProject.id)/render" -Method Post
   $adRenderDone = $false
   for ($attempt = 0; $attempt -lt 180; $attempt++) {
@@ -205,7 +220,7 @@ try {
   if ($adAfter.status -ne "QC" -or $adExport.StatusCode -ne 409) {
     throw "Motion Ad sem alegações aprovadas ficou exportável ou sem QC."
   }
-  Write-Host "Instalação validou briefing Motion Ad, voz local, prévia, MP4 e bloqueio editorial."
+  Write-Host "Instalação validou briefing Motion Ad, prévia, MP4 com áudio e bloqueio editorial."
 
   $characterProjectBody = @{channel_id=$channel.id;title="Personagem 2D";topic="Rig original com boca marcada manualmente";format="vertical"} | ConvertTo-Json -Compress
   $characterProject = Invoke-RestMethod "$api/projects" -Method Post -ContentType "application/json" -Body $characterProjectBody
