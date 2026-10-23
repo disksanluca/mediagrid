@@ -160,6 +160,20 @@ export const api = {
   updateTimeline: (id: string, body: {expected_revision:number;expected_legacy_sha256:string;edl:TimelineResponse["edl"]}) => request<{revision:number;sha256:string;project_id:string}>(`/projects/${id}/edl-v2`, {method:"PUT", body:JSON.stringify(body)}),
   render: (id: string) => request<{job_id: string; status: string}>(`/projects/${id}/render`, {method: "POST"}),
   voice: (id: string) => request<{job_id: string; status: string}>(`/projects/${id}/voice`, {method:"POST"}),
+  importRecordedVoice: async (id: string, file: File, rightsConfirmed: boolean, scriptConfirmed: boolean): Promise<Project> => {
+    const body = new FormData();
+    body.append("file", file);
+    body.append("rights_confirmed", String(rightsConfirmed));
+    body.append("script_confirmed", String(scriptConfirmed));
+    const response = await fetch(`${await resolveBaseUrl()}/projects/${id}/voice/recorded`, {
+      method: "POST", body, cache: "no-store",
+    });
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as {detail?: unknown} | null;
+      throw new Error(errorMessage(payload?.detail, response.status));
+    }
+    return response.json() as Promise<Project>;
+  },
   voiceFile: (id: string) => `${baseUrl}/projects/${id}/voice`,
   retry: (id: string) => request<Job>(`/jobs/${id}/retry`, {method: "POST"}),
   output: (id: string) => `${baseUrl}/projects/${id}/output`,
