@@ -45,6 +45,8 @@ tramitação, context, and media rights before approving the manual export.
 When a Politics channel is selected in **Nova produção**, the default action opens this
 official search. A manual political draft remains possible, but every political project
 requires cited, approved claims before review and export, including older drafts.
+The [isolated Politics pipeline proof](docs/POLITICS-TECHNICAL-PROOF.md) records a
+live Câmara import, local voice, vertical MP4, hashes and the blocked export.
 
 For a Geo channel, **Radar** searches the official [IBGE Localidades API v1.0.0](https://servicodados.ibge.gov.br/api/docs/localidades) by municipality name and creates an editable three-scene plan from the selected municipality, state and administrative regions. It stores the source URL and retrieval time, and the render labels the source as IBGE. This flow does not supply maps, population data or licensed footage. Review the current IBGE entry and add your own rights-cleared visuals in the Editor.
 
