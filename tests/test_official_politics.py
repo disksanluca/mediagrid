@@ -7,8 +7,6 @@ from fastapi.testclient import TestClient
 
 from apps.api import official_politics
 from apps.api.config import get_settings
-from apps.api.database import SessionLocal
-from apps.api.models import Project, ProjectStatus
 from workers.render.main import source_label
 
 
@@ -34,7 +32,7 @@ def official_response(request: httpx.Request) -> httpx.Response:
 
 
 def test_official_politics_creates_editable_sourced_plan(
-    client: TestClient, monkeypatch, tmp_path
+    client: TestClient, monkeypatch, tmp_path, seed_completed_render,
 ) -> None:
     monkeypatch.setattr(get_settings(), "mediagrid_data_dir", tmp_path)
     monkeypatch.setattr(
@@ -112,14 +110,7 @@ def test_official_politics_creates_editable_sourced_plan(
     )
     assert client.post(f"/api/v1/projects/{project['id']}/voice").status_code == 202
     assert client.post(f"/api/v1/projects/{project['id']}/render").status_code == 409
-    with SessionLocal() as db:
-        stored = db.get(Project, project["id"])
-        assert stored is not None
-        stored.status = ProjectStatus.QC.value
-        db.commit()
-    render_dir = tmp_path / "renders"
-    render_dir.mkdir()
-    (render_dir / f"{project['id']}.mp4").write_bytes(b"synthetic-review-gate")
+    seed_completed_render(project["id"], b"synthetic-review-gate")
     review = {
         "source_urls": [claims[0]["source_url"]],
         "facts_confirmed": True, "rights_confirmed": True,

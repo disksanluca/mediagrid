@@ -3,6 +3,7 @@ import json
 import os
 import zipfile
 from datetime import UTC, datetime
+from pathlib import Path
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -84,6 +85,35 @@ def file_hash(path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def verified_render_digest(db: Session, project: Project, output: Path) -> str:
+    """Tie the downloadable MP4 to the current successful render and timeline."""
+    if not output.is_file():
+        raise HTTPException(409, "Rendered MP4 is missing")
+    digest = file_hash(output)
+    edl_digest = legacy_hash(project.edl)
+    current = latest_revision(db, project.id)
+    job = db.scalar(select(Job).where(
+        Job.project_id == project.id,
+        Job.job_type == "RENDER",
+        Job.status == JobStatus.SUCCEEDED.value,
+    ).order_by(Job.finished_at.desc(), Job.created_at.desc()).limit(1))
+    result = (job.result or {}) if job else {}
+    if result.get("sha256") == digest and result.get("edl_sha256") == edl_digest:
+        revision_digest = result.get("revision_sha256")
+        if revision_digest is None or (current and current.sha256 == revision_digest):
+            return digest
+    # Preserve already approved exports made before render-job hashes existed.
+    review = (project.plan or {}).get("review") or {}
+    if (not result.get("sha256")
+            and project.status == ProjectStatus.APPROVED.value
+            and review.get("video_sha256") == digest
+            and review.get("edl_sha256") == edl_digest
+            and (not review.get("revision_sha256")
+                 or (current and current.sha256 == review["revision_sha256"]))):
+        return digest
+    raise HTTPException(409, "Rendered MP4 does not match a completed job")
 
 
 def active_render_for(db: Session, project_id: str) -> Job | None:
@@ -638,7 +668,9 @@ def download_output(project_id: str, db: Session = Depends(get_db)) -> FileRespo
     output = get_settings().mediagrid_data_dir / "renders" / f"{project_id}.mp4"
     if not output.is_file():
         raise HTTPException(status_code=404, detail="Render is not available")
-    return FileResponse(output, media_type="video/mp4", filename=f"mediagrid-{project_id}.mp4")
+    digest = verified_render_digest(db, project, output)
+    return FileResponse(output, media_type="video/mp4", filename=f"mediagrid-{project_id}.mp4",
+                        headers={"ETag": digest})
 
 
 @router.post("/{project_id}/review", response_model=ProjectRead)
@@ -651,8 +683,7 @@ def approve_project_review(
     if project.status != ProjectStatus.QC.value:
         raise HTTPException(409, "A completed render is required before review")
     output = get_settings().mediagrid_data_dir / "renders" / f"{project_id}.mp4"
-    if not output.is_file():
-        raise HTTPException(409, "Rendered MP4 is missing")
+    render_digest = verified_render_digest(db, project, output)
     if not payload.facts_confirmed or not payload.rights_confirmed:
         raise HTTPException(409, "Confirm facts and media rights before approval")
     channel = db.get(Channel, project.channel_id)
@@ -676,7 +707,7 @@ def approve_project_review(
         "notes": payload.notes,
         "caption": payload.caption,
         "edl_sha256": legacy_hash(project.edl),
-        "video_sha256": file_hash(output),
+        "video_sha256": render_digest,
     }
     if requires_claims:
         review["claim_digest"] = claim_digest(claims)
@@ -702,8 +733,7 @@ def export_reviewed_project(project_id: str, db: Session = Depends(get_db)) -> F
         raise HTTPException(409, "Human review and approval are required")
     data_dir = get_settings().mediagrid_data_dir
     video = data_dir / "renders" / f"{project_id}.mp4"
-    if not video.is_file():
-        raise HTTPException(404, "Rendered MP4 is missing")
+    verified_render_digest(db, project, video)
     if review.get("edl_sha256") != legacy_hash(project.edl) or (
         review.get("video_sha256") != file_hash(video)
     ):

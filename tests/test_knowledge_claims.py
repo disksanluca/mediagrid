@@ -9,11 +9,11 @@ from fastapi.testclient import TestClient
 
 from apps.api.config import get_settings
 from apps.api.database import SessionLocal
-from apps.api.models import Project, ProjectStatus
+from apps.api.models import Project
 
 
 def test_manual_politics_requires_claims_even_for_legacy_video(
-    client: TestClient, monkeypatch, tmp_path: Path
+    client: TestClient, monkeypatch, tmp_path: Path, seed_completed_render,
 ) -> None:
     monkeypatch.setattr(get_settings(), "mediagrid_data_dir", tmp_path)
     channel = client.post("/api/v1/channels", json={
@@ -28,14 +28,7 @@ def test_manual_politics_requires_claims_even_for_legacy_video(
     project_id = response.json()["id"]
     assert response.json()["content_type"] == "knowledge"
     client.post(f"/api/v1/projects/{project_id}/plan")
-    with SessionLocal() as db:
-        stored = db.get(Project, project_id)
-        assert stored is not None
-        stored.status = ProjectStatus.QC.value
-        db.commit()
-    render_dir = tmp_path / "renders"
-    render_dir.mkdir()
-    (render_dir / f"{project_id}.mp4").write_bytes(b"synthetic-politics-video")
+    seed_completed_render(project_id, b"synthetic-politics-video")
     review = {
         "source_urls": ["https://example.org/registro"],
         "facts_confirmed": True, "rights_confirmed": True,
@@ -51,7 +44,7 @@ def test_manual_politics_requires_claims_even_for_legacy_video(
 
 
 def test_claim_ledger_blocks_uncited_or_changed_knowledge_export(
-    client: TestClient, monkeypatch, tmp_path: Path
+    client: TestClient, monkeypatch, tmp_path: Path, seed_completed_render,
 ) -> None:
     monkeypatch.setattr(get_settings(), "mediagrid_data_dir", tmp_path)
     channel = client.post("/api/v1/channels", json={
@@ -90,14 +83,7 @@ def test_claim_ledger_blocks_uncited_or_changed_knowledge_export(
         "excerpt_matches": True, "context_checked": True,
     }).status_code == 422
 
-    with SessionLocal() as db:
-        stored = db.get(Project, project_id)
-        assert stored is not None
-        stored.status = ProjectStatus.QC.value
-        db.commit()
-    render_dir = tmp_path / "renders"
-    render_dir.mkdir()
-    (render_dir / f"{project_id}.mp4").write_bytes(b"synthetic-knowledge-video")
+    seed_completed_render(project_id, b"synthetic-knowledge-video")
     review = {
         "source_urls": [claim_body["source_url"]],
         "facts_confirmed": True, "rights_confirmed": True,
