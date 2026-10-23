@@ -187,6 +187,33 @@ class TranscriptWord(Base):
     edited: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
+class ClipCandidate(TimestampMixin, Base):
+    """A suggested original interval with versioned human selection and crop."""
+
+    __tablename__ = "clip_candidates"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    asset_id: Mapped[str] = mapped_column(ForeignKey("assets.id"), index=True)
+    source_sha256: Mapped[str] = mapped_column(String(64))
+    transcript_revision: Mapped[int] = mapped_column(Integer)
+    analysis_version: Mapped[str] = mapped_column(String(40))
+    start_ms: Mapped[int] = mapped_column(BigInteger)
+    end_ms: Mapped[int] = mapped_column(BigInteger)
+    context_start_ms: Mapped[int] = mapped_column(BigInteger)
+    context_end_ms: Mapped[int] = mapped_column(BigInteger)
+    word_start_index: Mapped[int] = mapped_column(Integer)
+    word_end_index: Mapped[int] = mapped_column(Integer)
+    score: Mapped[float] = mapped_column(Float)
+    reason_codes: Mapped[list[str]] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(String(24), default="SUGGESTED")
+    selected_start_ms: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    selected_end_ms: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    aspect: Mapped[str] = mapped_column(String(20), default="source")
+    focus_x: Mapped[float] = mapped_column(Float, default=0.5)
+    focus_y: Mapped[float] = mapped_column(Float, default=0.5)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+
+
 class Job(TimestampMixin, Base):
     __tablename__ = "jobs"
 

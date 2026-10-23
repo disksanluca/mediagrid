@@ -155,6 +155,16 @@ export interface TimedTranscript {
   revision:number; status:string; words:TranscriptWord[]; cues:CaptionCue[];
 }
 
+export interface ClipCandidate {
+  id:string; asset_id:string; source_sha256:string; source_url:string|null;
+  transcript_revision:number; analysis_version:string;
+  start_ms:number; end_ms:number; context_start_ms:number; context_end_ms:number;
+  word_start_index:number; word_end_index:number; score:number; reason_codes:string[];
+  status:string; selected_start_ms:number|null; selected_end_ms:number|null;
+  aspect:"source"|"vertical"; focus_x:number; focus_y:number; revision:number;
+  context_before:string; spoken_text:string; context_after:string;
+}
+
 export interface SystemStatus {
   mode: string;
   paid_ai_allowed: boolean;

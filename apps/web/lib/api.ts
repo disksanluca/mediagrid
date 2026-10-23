@@ -1,4 +1,4 @@
-import type {Asset, CaptionCue, Channel, ContentPlan, DoctorReport, GeoMunicipality, HardwareProfile, Job, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord} from "./types";
+import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, DoctorReport, GeoMunicipality, HardwareProfile, Job, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord} from "./types";
 import {desktopRuntime} from "./desktop";
 
 export interface UploadState {
@@ -98,6 +98,15 @@ export const api = {
   renderCaptions: (id:string,revision:number) => request<{job_id:string;status:string}>(`/assets/${id}/captions/render`,{method:"POST",body:JSON.stringify({expected_revision:revision})}),
   captionRenderStatus: (id:string) => request<{job_id:string;status:string;error:string|null}|null>(`/assets/${id}/captions/render-status`),
   captionVideo: (id:string,jobId:string) => `${baseUrl}/assets/${id}/captions/render/${jobId}`,
+  analyzeClips: (id:string) => request<{job_id:string;status:string}>(`/assets/${id}/clips/analyze`,{method:"POST"}),
+  clips: (id:string) => request<ClipCandidate[]>(`/assets/${id}/clips`),
+  updateClip: (assetId:string,clipId:string,body:{expected_revision:number;action:"edit"|"select"|"reject";start_ms?:number;end_ms?:number;aspect?:"source"|"vertical";focus_x?:number;focus_y?:number}) =>
+    request<ClipCandidate>(`/assets/${assetId}/clips/${clipId}`,{method:"PATCH",body:JSON.stringify(body)}),
+  renderClip: (assetId:string,clipId:string,revision:number) =>
+    request<{job_id:string;status:string}>(`/assets/${assetId}/clips/${clipId}/render`,{method:"POST",body:JSON.stringify({expected_revision:revision})}),
+  clipRenderStatus: (assetId:string,clipId:string) =>
+    request<{job_id:string;status:string;error:string|null}|null>(`/assets/${assetId}/clips/${clipId}/render-status`),
+  clipVideo: (assetId:string,clipId:string,jobId:string) => `${baseUrl}/assets/${assetId}/clips/${clipId}/render/${jobId}`,
   system: () => request<SystemStatus>("/system"),
   hardware: () => request<HardwareProfile>("/system/hardware"),
   doctor: (internet=false) => request<DoctorReport>(`/system/doctor?internet=${internet}`),

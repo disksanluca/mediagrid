@@ -24,6 +24,7 @@ from apps.api.local_media import narration_text, synthesize_voice, transcribe_me
 from apps.api.models import (
     Asset,
     Channel,
+    ClipCandidate,
     Job,
     JobStatus,
     Project,
@@ -38,6 +39,7 @@ from apps.api.scene_media import stage_scene_assets, stage_sound_assets
 from apps.api.services import claim_next_job, record_event
 from apps.api.transcripts import replace_words
 from workers.render.caption_video import burn_captions
+from workers.render.clips import analyze_asset, render_selected_clip
 from workers.render.proxy import build_proxy
 
 logger = logging.getLogger(__name__)
@@ -93,6 +95,7 @@ def recover_interrupted_jobs() -> None:
             select(Job).where(
                 Job.job_type.in_([
                     "RENDER", "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
+                    "CLIP_ANALYSIS", "CLIP_RENDER",
                 ]),
                 Job.status == JobStatus.RUNNING.value,
             )
@@ -378,7 +381,10 @@ def media_one() -> bool:
             select(Job)
             .where(
                 Job.status == JobStatus.QUEUED.value,
-                Job.job_type.in_(["VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER"]),
+                Job.job_type.in_([
+                    "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
+                    "CLIP_ANALYSIS", "CLIP_RENDER",
+                ]),
             )
             .order_by(Job.priority, Job.created_at)
             .limit(1)
@@ -461,6 +467,29 @@ def media_one() -> bool:
                         or job.payload.get("revision") != transcript.revision):
                     raise ValueError("Caption source or review changed after queueing")
                 job.result = burn_captions(asset, transcript, job.id)
+            elif job.job_type == "CLIP_ANALYSIS":
+                asset_id = job.payload.get("asset_id")
+                asset = db.get(Asset, asset_id) if asset_id else None
+                transcript = db.scalar(select(Transcript).where(Transcript.asset_id == asset_id))
+                if asset is None or transcript is None:
+                    raise ValueError("Clip source or transcript not found")
+                if (job.payload.get("sha256") != asset.sha256
+                        or job.payload.get("transcript_revision") != transcript.revision):
+                    raise ValueError("Clip source or transcript changed after queueing")
+                job.result = analyze_asset(db, asset, transcript)
+            elif job.job_type == "CLIP_RENDER":
+                asset_id = job.payload.get("asset_id")
+                candidate_id = job.payload.get("candidate_id")
+                asset = db.get(Asset, asset_id) if asset_id else None
+                candidate = db.get(ClipCandidate, candidate_id) if candidate_id else None
+                transcript = db.scalar(select(Transcript).where(Transcript.asset_id == asset_id))
+                if asset is None or transcript is None or candidate is None:
+                    raise ValueError("Clip source, transcript or selection not found")
+                if (job.payload.get("sha256") != asset.sha256
+                        or job.payload.get("revision") != candidate.revision
+                        or job.payload.get("transcript_revision") != transcript.revision):
+                    raise ValueError("Clip source or human selection changed after queueing")
+                job.result = render_selected_clip(asset, transcript, candidate, job.id)
             else:
                 asset_id = job.payload.get("asset_id")
                 asset = db.get(Asset, asset_id) if asset_id else None

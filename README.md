@@ -68,6 +68,17 @@ the previous captioned MP4. In development, install `uv sync --extra asr` and po
 installer bundles a pinned base model for offline use; no inference account is needed.
 This flow is technical and requires a full human listen/watch before publication.
 
+For a rights-cleared video with an approved timed transcript, open **Biblioteca → Cortes**.
+**Analisar fala** stores explainable speech-window suggestions, their source hash and
+surrounding context. Listen to the original, adjust the in/out points and vertical
+crop if needed, save the edit, then explicitly select a candidate. **Renderizar
+corte** creates a captioned MP4 with source audio; download is offered only for
+the current selected revision after the worker verifies the file hash. A changed
+transcript or source invalidates older cuts. The score orders speech windows; it
+does not measure editorial quality or predict reach. Review every frame and the
+full audio before publishing. Without owned or licensed footage, use synthetic
+media only for technical testing.
+
 ## Current development fallback on Windows
 
 See [SETUP.md](SETUP.md) for installation and troubleshooting. On Windows, double-click
