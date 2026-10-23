@@ -1,11 +1,13 @@
 """Source-backed geography drafts from IBGE Localidades API v1.0.0."""
 
+import hashlib
+import json
 import unicodedata
 from datetime import UTC, datetime
 
 import httpx
 
-from .models import Channel, Project, ProjectStatus
+from .models import Channel, KnowledgeClaim, Project, ProjectStatus
 from .schemas import ContentPlan, Scene
 from .services import record_event
 
@@ -102,7 +104,7 @@ def import_municipality(db, channel: Channel, municipality: dict[str, str | int]
         title=f"{name} ({state}) — regiões do IBGE",
         topic=f"Localização administrativa de {name} segundo o IBGE",
         format="vertical",
-        content_type="video",
+        content_type="knowledge",
         status=ProjectStatus.SCRIPTED.value,
     )
     db.add(project)
@@ -148,7 +150,41 @@ def import_municipality(db, channel: Channel, municipality: dict[str, str | int]
             transition="fade",
         ),
     ]
-    fetched_at = datetime.now(UTC).isoformat()
+    checked_at = datetime.now(UTC)
+    fetched_at = checked_at.isoformat()
+    source_snapshot = {key: municipality[key] for key in (
+        "id", "name", "state_code", "state_name", "region_name",
+        "immediate_name", "intermediate_name",
+    )}
+    source_digest = hashlib.sha256(json.dumps(
+        source_snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
+    source_url = str(municipality["source_url"])
+    source_title = f"IBGE Localidades — {name} ({state})"
+    evidence = (
+        f"municipio-id: {municipality['id']}; municipio-nome: {name}; "
+        f"UF-nome: {municipality['state_name']}; UF-sigla: {state}"
+    )
+    claims = [
+        KnowledgeClaim(project_id=project.id, scene_id=scenes[0].id,
+                       text=scenes[0].narration, source_url=source_url,
+                       source_title=source_title, published_at=None,
+                       source_checked_at=checked_at, support_excerpt=evidence),
+        KnowledgeClaim(project_id=project.id, scene_id=scenes[1].id,
+                       text=scenes[1].narration, source_url=source_url,
+                       source_title=source_title, published_at=None,
+                       source_checked_at=checked_at,
+                       support_excerpt=f"regiao-imediata-nome: {municipality['immediate_name']}"),
+        KnowledgeClaim(project_id=project.id, scene_id=scenes[2].id,
+                       text=scenes[2].narration, source_url=source_url,
+                       source_title=source_title, published_at=None,
+                       source_checked_at=checked_at,
+                       support_excerpt=(
+                           f"regiao-intermediaria-nome: {municipality['intermediate_name']}; "
+                           f"regiao-nome: {municipality['region_name']}"
+                       )),
+    ]
+    db.add_all(claims)
     plan = ContentPlan(
         project_id=project.id,
         engine="geo",
@@ -164,10 +200,11 @@ def import_municipality(db, channel: Channel, municipality: dict[str, str | int]
         ],
         source_refs=[
             {
-                "title": f"IBGE Localidades — {name} ({state})",
-                "url": str(municipality["source_url"]),
-                "api_url": str(municipality["source_url"]),
+                "title": source_title,
+                "url": source_url,
+                "api_url": source_url,
                 "fetched_at": fetched_at,
+                "snapshot_sha256": source_digest,
             }
         ],
     )
@@ -195,6 +232,7 @@ def import_municipality(db, channel: Channel, municipality: dict[str, str | int]
         "OFFICIAL_MUNICIPALITY_IMPORTED",
         "project",
         project.id,
-        after={"source_url": municipality["source_url"], "fetched_at": fetched_at},
+        after={"source_url": source_url, "fetched_at": fetched_at,
+               "snapshot_sha256": source_digest},
     )
     return project

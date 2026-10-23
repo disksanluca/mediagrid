@@ -2,7 +2,7 @@
 
 import hashlib
 import json
-from datetime import date
+from datetime import UTC, date
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field, HttpUrl, model_validator
@@ -21,7 +21,7 @@ class ClaimWrite(BaseModel):
     text: str = Field(min_length=5, max_length=300)
     source_url: HttpUrl
     source_title: str = Field(min_length=3, max_length=240)
-    published_at: date
+    published_at: date | None = None
     support_excerpt: str = Field(min_length=10, max_length=500)
 
     @model_validator(mode="after")
@@ -29,7 +29,7 @@ class ClaimWrite(BaseModel):
         if not all((self.text.strip(), self.source_title.strip(),
                     self.support_excerpt.strip())):
             raise ValueError("Claim, source title and evidence excerpt must be nonempty")
-        if self.published_at > date.today():
+        if self.published_at and self.published_at > date.today():
             raise ValueError("Source publication date cannot be in the future")
         return self
 
@@ -57,11 +57,15 @@ def current_claims(db: Session, project_id: str) -> list[KnowledgeClaim]:
 
 
 def serialize(claim: KnowledgeClaim) -> dict:
+    checked_at = claim.source_checked_at
+    if checked_at is not None and checked_at.tzinfo is None:
+        checked_at = checked_at.replace(tzinfo=UTC)
     return {
         "id": claim.id, "project_id": claim.project_id,
         "scene_id": claim.scene_id, "text": claim.text,
         "source_url": claim.source_url, "source_title": claim.source_title,
-        "published_at": claim.published_at.isoformat(),
+        "published_at": claim.published_at.isoformat() if claim.published_at else None,
+        "source_checked_at": checked_at.isoformat() if checked_at else None,
         "support_excerpt": claim.support_excerpt,
         "revision": claim.revision, "status": claim.status,
         "reviewed_at": claim.reviewed_at.isoformat() if claim.reviewed_at else None,
@@ -153,6 +157,9 @@ def edit_claim(project_id: str, claim_id: str, payload: ClaimUpdate,
         raise HTTPException(409, "Claim changed; reload before saving")
     scene_check(project, payload.scene_id)
     invalidate_review(db, project)
+    if (claim.source_url != str(payload.source_url)
+            or claim.support_excerpt != payload.support_excerpt.strip()):
+        claim.source_checked_at = None
     claim.scene_id = payload.scene_id
     claim.text = payload.text.strip()
     claim.source_url = str(payload.source_url)

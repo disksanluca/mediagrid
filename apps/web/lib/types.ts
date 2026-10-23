@@ -87,7 +87,8 @@ export interface KnowledgeClaim {
   text: string;
   source_url: string;
   source_title: string;
-  published_at: string;
+  published_at: string | null;
+  source_checked_at: string | null;
   support_excerpt: string;
   revision: number;
   status: "REVIEW_REQUIRED" | "APPROVED" | "REMOVED";

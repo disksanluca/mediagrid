@@ -127,9 +127,9 @@ export const api = {
   narrative3dVideo: (projectId:string,quality:"blocking"|"final",jobId:string) =>
     `${baseUrl}/projects/${projectId}/narrative-3d/${quality}/render/${jobId}`,
   claims: (projectId:string) => request<KnowledgeClaim[]>(`/projects/${projectId}/claims`),
-  addClaim: (projectId:string,body:Omit<KnowledgeClaim,"id"|"project_id"|"revision"|"status"|"reviewed_at">) =>
+  addClaim: (projectId:string,body:Omit<KnowledgeClaim,"id"|"project_id"|"revision"|"status"|"reviewed_at"|"source_checked_at">) =>
     request<KnowledgeClaim>(`/projects/${projectId}/claims`,{method:"POST",body:JSON.stringify(body)}),
-  saveClaim: (projectId:string,claimId:string,body:Omit<KnowledgeClaim,"id"|"project_id"|"revision"|"status"|"reviewed_at"> & {expected_revision:number}) =>
+  saveClaim: (projectId:string,claimId:string,body:Omit<KnowledgeClaim,"id"|"project_id"|"revision"|"status"|"reviewed_at"|"source_checked_at"> & {expected_revision:number}) =>
     request<KnowledgeClaim>(`/projects/${projectId}/claims/${claimId}`,{method:"PUT",body:JSON.stringify(body)}),
   approveClaim: (projectId:string,claimId:string,revision:number) =>
     request<KnowledgeClaim>(`/projects/${projectId}/claims/${claimId}/approve`,{method:"POST",body:JSON.stringify({expected_revision:revision,source_opened:true,excerpt_matches:true,context_checked:true})}),
