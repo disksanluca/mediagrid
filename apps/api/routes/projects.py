@@ -17,7 +17,15 @@ from ..database import get_db
 from ..edl_v2 import EDLV2, from_legacy, scene_projection
 from ..engines import get_engine
 from ..local_media import voice_matches
-from ..models import Channel, Job, JobStatus, Project, ProjectRevision, ProjectStatus
+from ..models import (
+    ACTIVE_JOB_STATUSES,
+    Channel,
+    Job,
+    JobStatus,
+    Project,
+    ProjectRevision,
+    ProjectStatus,
+)
 from ..render_plan import fit_video_to_voice, probe_source, render_props
 from ..scene_media import scene_asset, sound_asset, validate_scene_assets
 from ..schemas import (
@@ -510,7 +518,7 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict[str, st
         select(Job).where(
             Job.project_id == project_id,
             Job.job_type == "RENDER",
-            Job.status.in_([JobStatus.QUEUED.value, JobStatus.RUNNING.value]),
+            Job.status.in_(ACTIVE_JOB_STATUSES),
         )
     ).first()
     if active:
@@ -519,7 +527,7 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict[str, st
         select(Job).where(
             Job.project_id == project_id,
             Job.job_type == "VOICE",
-            Job.status.in_([JobStatus.QUEUED.value, JobStatus.RUNNING.value]),
+            Job.status.in_(ACTIVE_JOB_STATUSES),
         )
     )
     if active_voice:
@@ -574,7 +582,7 @@ def queue_voice(project_id: str, db: Session = Depends(get_db)) -> dict[str, str
         select(Job).where(
             Job.project_id == project_id,
             Job.job_type == "VOICE",
-            Job.status.in_([JobStatus.QUEUED.value, JobStatus.RUNNING.value]),
+            Job.status.in_(ACTIVE_JOB_STATUSES),
         )
     )
     if active:
@@ -583,7 +591,7 @@ def queue_voice(project_id: str, db: Session = Depends(get_db)) -> dict[str, str
         select(Job).where(
             Job.project_id == project_id,
             Job.job_type == "RENDER",
-            Job.status.in_([JobStatus.QUEUED.value, JobStatus.RUNNING.value]),
+            Job.status.in_(ACTIVE_JOB_STATUSES),
         )
     )
     if active_render:

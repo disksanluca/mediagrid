@@ -32,6 +32,8 @@ def blender_script() -> Path:
 
 def blender_executable() -> Path | None:
     settings = get_settings()
+    if settings.mediagrid_mode != "LOCAL":
+        return None
     configured = settings.mediagrid_blender_path
     saved = settings.mediagrid_data_dir / "settings.json"
     if configured is None and saved.is_file():

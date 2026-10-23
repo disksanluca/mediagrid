@@ -71,6 +71,7 @@ def test_3d_story_validates_and_waits_for_missing_worker(
     assert client.get(f"{url}/blocking/render/{waiting.json()['job_id']}").status_code == 409
     revised = {**body, "expected_revision": 1, "title": "Migo encontra a luz"}
     assert client.put(url, json=revised).json()["revision"] == 2
+    assert client.get(f"/api/v1/jobs/{waiting.json()['job_id']}").json()["status"] == "CANCELLED"
     assert client.get(f"{url}/blocking/render-status").json() is None
     portrait = {**body, "expected_revision": 2, "aspect": "vertical"}
     assert client.put(url, json=portrait).status_code == 200
@@ -112,3 +113,17 @@ def test_3d_blender_blocking_and_final_are_real(
     revised = {**body, "expected_revision": 1, "title": "Migo mudou o roteiro"}
     assert client.put(url, json=revised).status_code == 200
     assert client.get(f"{url}/final/render/{final_job['job_id']}").status_code == 409
+
+
+def test_waiting_3d_job_becomes_queued_when_local_blender_is_configured(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("apps.api.routes.narrative_3d.blender_executable", lambda: None)
+    _, url, body = create_story(client)
+    assert client.put(url, json=body).status_code == 200
+    waiting = client.post(f"{url}/blocking").json()
+    assert waiting["status"] == "WAITING_FOR_WORKER"
+    monkeypatch.setattr("apps.api.routes.narrative_3d.blender_executable",
+                        lambda: Path("C:/Tools/blender.exe"))
+    ready = client.post(f"{url}/blocking").json()
+    assert ready == {"job_id": waiting["job_id"], "status": "QUEUED"}

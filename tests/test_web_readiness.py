@@ -1,10 +1,14 @@
 """Server topology must fail closed until its prerequisites are configured."""
 
 import pytest
+from fastapi.testclient import TestClient
 
 from apps.api.config import Settings, get_settings
+from apps.api.database import SessionLocal
 from apps.api.main import validate_runtime_config
+from apps.api.models import Job
 from workers.render.main import main as local_worker_main
+from workers.render.narrative_3d import blender_executable
 
 
 def server_settings(**overrides) -> Settings:
@@ -41,3 +45,37 @@ def test_local_worker_refuses_server_database(monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.setattr(get_settings(), "mediagrid_mode", "SERVER")
     with pytest.raises(RuntimeError, match="cannot process server jobs"):
         local_worker_main(["--once"])
+    assert blender_executable() is None
+
+
+def test_server_jobs_wait_without_desktop_worker(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Canal Web", "slug": "canal-web", "niche": "Conhecimento",
+        "default_engine": "geo",
+    }).json()
+    project = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Pauta com fatos",
+        "topic": "\n".join([
+            "O primeiro trecho traz uma premissa editorial a conferir.",
+            "O segundo trecho depende de uma fonte antes da publicação.",
+            "O terceiro trecho será revisado pela pessoa responsável.",
+        ]),
+    }).json()
+    plan = client.post(f"/api/v1/projects/{project['id']}/plan")
+    assert plan.status_code == 200
+    monkeypatch.setattr(get_settings(), "mediagrid_mode", "SERVER")
+    monkeypatch.setattr("apps.api.main.auth.is_authenticated", lambda _: True)
+    queued = client.post(f"/api/v1/projects/{project['id']}/voice")
+    assert queued.status_code == 202, queued.text
+    assert queued.json()["status"] == "WAITING_FOR_WORKER"
+    assert client.post(f"/api/v1/projects/{project['id']}/voice").status_code == 409
+    with SessionLocal() as db:
+        job = db.get(Job, queued.json()["job_id"])
+        assert job is not None
+        job.status = "FAILED"
+        db.commit()
+    retried = client.post(f"/api/v1/jobs/{queued.json()['job_id']}/retry")
+    assert retried.status_code == 200
+    assert retried.json()["status"] == "WAITING_FOR_WORKER"

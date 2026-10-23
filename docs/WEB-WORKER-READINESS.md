@@ -22,6 +22,12 @@ autorização por recurso já funcionam. O desktop local continua em SQLite.
   IA paga desligada. A chave `MEDIAGRID_SERVER_EXPERIMENTAL=true` ainda é
   exigida para testes isolados; o padrão é falhar antes da migração. Isso evita
   executar um worker de mídia no VPS sem GPU ou expor o protótipo por acidente.
+- Jobs de mídia criados em modo servidor ficam `WAITING_FOR_WORKER`; requisições
+  repetidas não geram duplicatas e retry de falha volta ao mesmo estado. O
+  status de ingestão e os eventos registram a espera. O Editor não oferece a
+  configuração de Blender do servidor. Uma alteração do storyboard 3D cancela
+  o job antigo em espera. Nenhum job passa a `QUEUED` sem um worker remoto
+  autorizado, que ainda não existe.
 
 ## Contrato necessário antes de um VPS
 
@@ -45,6 +51,10 @@ Nenhum host, conta, custo mensal, domínio ou armazenamento externo foi
 escolhido ou ativado. Esta etapa não altera publicação manual nem instala uma
 nova versão no PC do usuário.
 
-Validação local deste gate: `uv run pytest -q tests` (73 passed, 1 skipped;
-Blender opt-in não configurado nesta rodada) e `uv run ruff check .` passaram.
+Validação local: `uv run pytest -q tests` (75 passed, 1 skipped; Blender opt-in
+não configurado nessa rodada), `uv run ruff check .`, TypeScript de `apps/web`
+e `git diff --check` passaram. O teste de job de voz em modo servidor cobre
+deduplicação e retry; o teste 3D cobre cancelamento após revisão e promoção
+quando Blender local é configurado. O CI Windows instalado desta branch será
+registrado após a publicação do PR.
 Não foi executado teste PostgreSQL ou web end-to-end nesta etapa.

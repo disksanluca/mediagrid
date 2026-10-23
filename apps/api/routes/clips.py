@@ -12,7 +12,7 @@ from ..captions import Cue, probe_media
 from ..config import get_settings
 from ..database import get_db
 from ..ingestion import sha256_file
-from ..models import Asset, ClipCandidate, Job, JobStatus, Transcript
+from ..models import ACTIVE_JOB_STATUSES, Asset, ClipCandidate, Job, JobStatus, Transcript
 from ..services import record_event
 from ..transcripts import words_for
 from .transcripts import source_asset
@@ -108,7 +108,7 @@ def queue_analysis(asset_id: str, db: Session = Depends(get_db)) -> dict:
     for existing in jobs:
         if existing.payload.get("transcript_revision") != transcript.revision:
             continue
-        if existing.status in {"QUEUED", "RUNNING", "SUCCEEDED"}:
+        if existing.status in {*ACTIVE_JOB_STATUSES, "SUCCEEDED"}:
             return {"job_id": existing.id, "status": existing.status}
     job = Job(job_type="CLIP_ANALYSIS", payload={
         "asset_id": asset.id, "sha256": asset.sha256,
@@ -116,7 +116,7 @@ def queue_analysis(asset_id: str, db: Session = Depends(get_db)) -> dict:
     })
     db.add(job)
     db.flush()
-    record_event(db, "CLIP_ANALYSIS_QUEUED", "job", job.id,
+    record_event(db, f"CLIP_ANALYSIS_{job.status}", "job", job.id,
                  after={"asset_id": asset.id, "revision": transcript.revision})
     db.commit()
     return {"job_id": job.id, "status": job.status}
@@ -201,7 +201,7 @@ def queue_clip_render(asset_id: str, candidate_id: str,
     for existing in jobs:
         if existing.payload.get("revision") != candidate.revision:
             continue
-        if existing.status in {JobStatus.QUEUED.value, JobStatus.RUNNING.value}:
+        if existing.status in ACTIVE_JOB_STATUSES:
             return {"job_id": existing.id, "status": existing.status}
         if existing.status == JobStatus.SUCCEEDED.value:
             output = clip_output(candidate.id, candidate.revision)
@@ -214,7 +214,7 @@ def queue_clip_render(asset_id: str, candidate_id: str,
     })
     db.add(job)
     db.flush()
-    record_event(db, "CLIP_RENDER_QUEUED", "job", job.id,
+    record_event(db, f"CLIP_RENDER_{job.status}", "job", job.id,
                  after={"candidate_id": candidate.id, "revision": candidate.revision})
     db.commit()
     return {"job_id": job.id, "status": job.status}

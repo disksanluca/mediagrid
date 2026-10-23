@@ -13,7 +13,7 @@ from ..captions import Cue, Word, probe_media, to_srt, to_vtt, validate_timing
 from ..config import get_settings
 from ..database import get_db
 from ..ingestion import sha256_file
-from ..models import Asset, Job, JobStatus, Transcript
+from ..models import ACTIVE_JOB_STATUSES, Asset, Job, JobStatus, Transcript
 from ..services import record_event
 from ..transcripts import replace_words, serialize
 
@@ -61,7 +61,7 @@ def queue_words(asset_id: str, db: Session = Depends(get_db)) -> dict:
         raise HTTPException(409, "Transcript exists; edit it without overwriting human corrections")
     active = db.scalar(select(Job).where(
         Job.job_type == "ASR_WORDS",
-        Job.status.in_([JobStatus.QUEUED.value, JobStatus.RUNNING.value]),
+        Job.status.in_(ACTIVE_JOB_STATUSES),
         Job.payload["asset_id"].as_string() == asset_id,
     ))
     if active:
@@ -71,7 +71,8 @@ def queue_words(asset_id: str, db: Session = Depends(get_db)) -> dict:
     })
     db.add(job)
     db.flush()
-    record_event(db, "ASR_WORDS_QUEUED", "job", job.id, after={"asset_id": asset_id})
+    record_event(db, f"ASR_WORDS_{job.status}", "job", job.id,
+                 after={"asset_id": asset_id})
     db.commit()
     return {"job_id": job.id, "status": job.status}
 
@@ -199,7 +200,7 @@ def queue_caption_render(
     for existing in jobs:
         if existing.payload.get("revision") != transcript.revision:
             continue
-        if existing.status in {JobStatus.QUEUED.value, JobStatus.RUNNING.value}:
+        if existing.status in ACTIVE_JOB_STATUSES:
             return {"job_id": existing.id, "status": existing.status}
         if existing.status == JobStatus.SUCCEEDED.value:
             output = caption_output(asset_id, transcript.revision)
@@ -210,7 +211,7 @@ def queue_caption_render(
     })
     db.add(job)
     db.flush()
-    record_event(db, "CAPTION_RENDER_QUEUED", "job", job.id,
+    record_event(db, f"CAPTION_RENDER_{job.status}", "job", job.id,
                  after={"asset_id": asset_id, "revision": transcript.revision})
     db.commit()
     return {"job_id": job.id, "status": job.status}

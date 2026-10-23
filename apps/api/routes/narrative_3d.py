@@ -136,6 +136,16 @@ def save_story(project_id: str, payload: StoryWrite,
         sequence = Narrative3D(project_id=project_id)
         db.add(sequence)
     else:
+        waiting_jobs = db.scalars(select(Job).where(
+            Job.project_id == project_id,
+            Job.job_type == "NARRATIVE_3D_RENDER",
+            Job.payload["sequence_id"].as_string() == sequence.id,
+            Job.status == JobStatus.WAITING_FOR_WORKER.value,
+        )).all()
+        for waiting_job in waiting_jobs:
+            waiting_job.status = JobStatus.CANCELLED.value
+            waiting_job.error = "3D story changed before a worker became available"
+            record_event(db, "NARRATIVE_3D_WAIT_CANCELLED", "job", waiting_job.id)
         sequence.revision += 1
     sequence.status = "REVIEW_REQUIRED"
     project.format = payload.aspect
@@ -172,7 +182,7 @@ def queue(project_id: str, quality: Literal["blocking", "final"], db: Session) -
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from exc
     existing = render_job(db, sequence, quality)
-    if existing and existing.status in {"QUEUED", "RUNNING"}:
+    if existing and existing.status in {JobStatus.QUEUED.value, JobStatus.RUNNING.value}:
         return {"job_id": existing.id, "status": existing.status}
     output = narrative_output(sequence.id, sequence.revision, quality)
     if (existing and existing.status == "SUCCEEDED" and output.is_file()
