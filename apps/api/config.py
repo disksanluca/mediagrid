@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -23,6 +24,7 @@ class Settings(BaseSettings):
     mediagrid_ffmpeg_path: Path | None = None
     mediagrid_ffprobe_path: Path | None = None
     mediagrid_browser_path: Path | None = None
+    mediagrid_render_concurrency: int = Field(default=4, ge=1, le=16)
     mediagrid_blender_path: Path | None = None
     dry_run: bool = True
     mediagrid_admin_password: str | None = None

@@ -76,13 +76,49 @@ function OfficialPoliticsScene({scene,accent,title,sourceLabel,reference,checked
   </AbsoluteFill>;
 }
 
+function WikimediaTrendsScene({scene,accent,article,views,rank,observedOn,sourceLabel,index,total}:{scene:RenderScene;accent:string;article:string;views:number;rank:number;observedOn:string;sourceLabel?:string|null;index:number;total:number}) {
+  const frame=useCurrentFrame();
+  const {fps}=useVideoConfig();
+  const enter=spring({frame,fps,config:{damping:20,stiffness:110}});
+  const progress=Math.min(1,frame/Math.max(1,Math.round(scene.duration*fps)));
+  const date=`${observedOn.slice(8,10)}/${observedOn.slice(5,7)}/${observedOn.slice(0,4)}`;
+  const displayArticle=article.length>78?`${article.slice(0,77)}…`:article;
+  const shownViews=Math.round(interpolate(frame,[0,Math.round(fps*1.1)],[0,views],{extrapolateRight:"clamp"})).toLocaleString("pt-BR");
+  const isViews=scene.scene_id==="wiki-views";
+  const isRank=scene.scene_id==="wiki-rank";
+  return <AbsoluteFill style={{background:"radial-gradient(circle at 82% 44%, #254031 0%, #101812 60%, #0B0E0C 100%)",color:"#F1F3ED",fontFamily:"system-ui, sans-serif",overflow:"hidden"}}>
+    <SceneMedia scene={scene} fps={fps}/>
+    {scene.media_file&&<AbsoluteFill style={{background:"linear-gradient(90deg,rgba(11,14,12,.96),rgba(11,14,12,.63))"}}/>}
+    <div style={{position:"absolute",left:86,right:86,top:106,display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:21,letterSpacing:6,fontWeight:800}}><span>MEDIAGRID</span><span style={{color:accent,fontFamily:"ui-monospace,monospace",letterSpacing:3}}>{String(index+1).padStart(2,"0")} / {String(total).padStart(2,"0")}</span></div>
+    <div style={{position:"absolute",top:300,left:86,right:86,display:"flex",alignItems:"center",gap:18,color:accent,fontSize:21,letterSpacing:3,fontWeight:700}}><span style={{width:13,height:13,borderRadius:"50%",background:accent}}/>RADAR DE LEITURA<span style={{height:1,flex:1,background:"#516456"}}/></div>
+    <div style={{position:"absolute",left:86,right:86,top:480,opacity:enter,transform:`translateY(${(1-enter)*65}px)`}}>
+      {isViews?<>
+        <div style={{fontSize:27,color:"#B8C2B8",marginBottom:28}}>ARTIGO NA WIKIPÉDIA EM PORTUGUÊS</div>
+        <div style={{fontSize:displayArticle.length>48?68:82,fontWeight:800,lineHeight:1.04,letterSpacing:-2,overflowWrap:"anywhere",maxWidth:900}}>{displayArticle}</div>
+        <div style={{marginTop:88,borderTop:`4px solid ${accent}`,paddingTop:37}}><div style={{fontSize:views>=1_000_000_000?80:views>=1_000_000?100:128,fontWeight:850,letterSpacing:-5,fontVariantNumeric:"tabular-nums",lineHeight:1}}>{shownViews}</div><div style={{fontSize:31,color:accent,marginTop:13}}>visualizações da página · {date}</div></div>
+      </>:isRank?<>
+        <div style={{fontSize:27,color:"#B8C2B8",marginBottom:25}}>POSIÇÃO NO RELATÓRIO DIÁRIO</div>
+        <div style={{fontSize:245,fontWeight:850,letterSpacing:-10,lineHeight:.95,color:accent}}>#{rank}</div>
+        <div style={{fontSize:58,fontWeight:750,lineHeight:1.09,marginTop:63,overflowWrap:"anywhere"}}>{displayArticle}</div>
+        <div style={{fontSize:28,color:"#B8C2B8",marginTop:38}}>Páginas mais vistas · {date}</div>
+      </>:<>
+        <div style={{fontSize:27,color:accent,marginBottom:37}}>O QUE ESSE NÚMERO MEDE</div>
+        <div style={{fontSize:74,fontWeight:800,lineHeight:1.08,letterSpacing:-2}}>Acessos à página da Wikipédia.</div>
+        <div style={{marginTop:74,borderLeft:`5px solid ${accent}`,paddingLeft:29,fontSize:42,lineHeight:1.23,color:"#D4DDD2"}}>Não é audiência no Instagram<br/>nem interesse geral.</div>
+      </>}
+    </div>
+    <div style={{position:"absolute",left:86,right:86,bottom:172,borderTop:"1px solid #516456",paddingTop:26,display:"flex",justifyContent:"space-between",alignItems:"center",gap:24,fontSize:21,color:"#B8C2B8"}}><span>{sourceLabel||"Fonte: Wikimedia Analytics"}</span><span>{date}</span></div>
+    <div style={{position:"absolute",left:86,right:86,bottom:114,height:4,background:"#2D3B30"}}><div style={{width:`${100*(index+progress)/total}%`,height:"100%",background:accent}}/></div>
+  </AbsoluteFill>;
+}
+
 export function MediaGridVideo(input: Partial<RenderProps>) {
   const props = {...fallback, ...input};
   const {fps} = useVideoConfig();
   let start = 0;
   return <AbsoluteFill>{props.scenes.map((scene,index) => {
     const durationInFrames = Math.max(1, Math.round(scene.duration * fps));
-    const item = <Sequence key={scene.scene_id} from={start} durationInFrames={durationInFrames}>{props.editorial_style==="official_politics"&&props.format==="vertical"?<OfficialPoliticsScene scene={scene} accent={props.accent} title={props.title} sourceLabel={props.source_label} reference={props.official_reference} checkedAt={props.source_checked_at} index={index} total={props.scenes.length}/>:<Scene scene={scene} accent={props.accent} title={props.title} sourceLabel={props.source_label}/>}</Sequence>;
+    const item = <Sequence key={scene.scene_id} from={start} durationInFrames={durationInFrames}>{props.editorial_style==="official_politics"&&props.format==="vertical"?<OfficialPoliticsScene scene={scene} accent={props.accent} title={props.title} sourceLabel={props.source_label} reference={props.official_reference} checkedAt={props.source_checked_at} index={index} total={props.scenes.length}/>:props.editorial_style==="wikimedia_trends"&&props.format==="vertical"&&props.wiki_article&&props.wiki_views&&props.wiki_rank&&props.wiki_observed_on?<WikimediaTrendsScene scene={scene} accent={props.accent} article={props.wiki_article} views={props.wiki_views} rank={props.wiki_rank} observedOn={props.wiki_observed_on} sourceLabel={props.source_label} index={index} total={props.scenes.length}/>:<Scene scene={scene} accent={props.accent} title={props.title} sourceLabel={props.source_label}/>}</Sequence>;
     start += durationInFrames;
     return item;
   })}</AbsoluteFill>;

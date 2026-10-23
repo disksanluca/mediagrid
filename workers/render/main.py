@@ -62,6 +62,7 @@ from workers.render.narrative_3d import (
     render_narrative,
     story_sha256,
 )
+from workers.render.power import keep_system_awake
 from workers.render.proxy import ProxyBuild, build_proxy
 
 logger = logging.getLogger(__name__)
@@ -331,8 +332,13 @@ def render_one() -> bool:
                 browser = shutil.which("chromium") or shutil.which("google-chrome")
             if browser:
                 command.append(f"--browser-executable={browser}")
+            command.append(
+                f"--concurrency={min(settings.mediagrid_render_concurrency, os.cpu_count() or 1)}"
+            )
+            command.append("--disallow-parallel-encoding")
             command.append(f"--public-dir={public_dir}")
-            subprocess.run(command, check=True, cwd=renderer_root if renderer_root else None)
+            with keep_system_awake():
+                subprocess.run(command, check=True, cwd=renderer_root if renderer_root else None)
             if valid_voice is not None:
                 voiced = temp_dir / f"{attempt_id}-voiced.mp4"
                 ffmpeg = settings.mediagrid_ffmpeg_path or "ffmpeg"
@@ -673,6 +679,11 @@ def main(argv: list[str] | None = None) -> None:
     while True:
         backup_local_database()
         if not media_one() and not render_one():
+            # A laptop may resume after its five-minute lease expired while
+            # Remotion was blocked. Requeue that attempt only after the idle
+            # loop confirms there is no job to process; fencing still rejects
+            # any late artifact from the old owner.
+            recover_interrupted_jobs()
             time.sleep(2)
 
 
