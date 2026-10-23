@@ -1,10 +1,12 @@
 """Read-only Câmara dos Deputados data for source-backed political drafts."""
 
-from datetime import UTC, datetime
+import hashlib
+import json
+from datetime import UTC, date, datetime
 
 import httpx
 
-from .models import Channel, Project, ProjectStatus
+from .models import Channel, KnowledgeClaim, Project, ProjectStatus
 from .schemas import ContentPlan, Scene
 from .services import record_event
 
@@ -21,6 +23,33 @@ def short_caption(text: str, limit: int = 60) -> str:
 def summary_headline(text: str) -> str:
     first_clause = " ".join(text.split()).split(",", 1)[0].rstrip(" .;:")
     return first_clause if 20 <= len(first_clause) <= 70 else short_caption(text)
+
+
+def _record_date(value: object) -> date:
+    try:
+        recorded = date.fromisoformat(str(value)[:10])
+    except ValueError as exc:
+        raise ValueError("Câmara record has no valid date") from exc
+    if recorded > datetime.now(UTC).date():
+        raise ValueError("Câmara record date is in the future")
+    return recorded
+
+
+def _summary_chunks(summary: str, limit: int = 260) -> list[str]:
+    chunks: list[str] = []
+    current = ""
+    for word in summary.split():
+        if len(word) > limit:
+            raise ValueError("Câmara summary contains an oversized token")
+        candidate = f"{current} {word}".strip()
+        if len(candidate) > limit:
+            chunks.append(current)
+            current = word
+        else:
+            current = candidate
+    if current:
+        chunks.append(current)
+    return chunks
 
 
 def official_client() -> httpx.Client:
@@ -106,7 +135,7 @@ def build_politics_plan(
     summary = str(proposal["summary"])
     status_text = status.get("descricaoTramitacao") or status.get("descricaoSituacao")
     status_date = str(status.get("dataHora") or "")[:10]
-    if isinstance(status_text, str) and 0 < len(status_text.strip()) <= 300 and status_date:
+    if isinstance(status_text, str) and 0 < len(status_text.strip()) <= 240 and status_date:
         close = (
             f"Em {status_date[8:10]}/{status_date[5:7]}/{status_date[:4]}, "
             f"a tramitação registrada era: {status_text.strip()}."
@@ -124,13 +153,11 @@ def build_politics_plan(
             transition="impact",
         ),
     ]
-    words = summary.split()
-    for index in range(0, len(words), 70):
-        excerpt = " ".join(words[index : index + 70])
+    for index, excerpt in enumerate(_summary_chunks(summary)):
         narration = f"A ementa oficial informa: {excerpt}" if index == 0 else excerpt
         scenes.append(
             Scene(
-                id=f"official-summary-{index // 70 + 1}",
+                id=f"official-summary-{index + 1}",
                 duration_seconds=max(8, min(60, round(len(narration.split()) / 2.2 + 2))),
                 narration=narration,
                 visual_type="quote",
@@ -151,7 +178,7 @@ def build_politics_plan(
             on_screen_text=(
                 short_caption(status_text)
                 if isinstance(status_text, str)
-                and 0 < len(status_text.strip()) <= 300
+                and 0 < len(status_text.strip()) <= 240
                 and status_date
                 else "Confira a tramitação"
             ),
@@ -159,6 +186,10 @@ def build_politics_plan(
         )
     )
     fetched_at = datetime.now(UTC).isoformat()
+    source_digest = hashlib.sha256(json.dumps(
+        {"proposal": proposal, "status": status}, ensure_ascii=False,
+        sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
     return ContentPlan(
         project_id=project.id,
         engine="politics",
@@ -179,6 +210,7 @@ def build_politics_plan(
                 "url": str(proposal["source_url"]),
                 "api_url": str(proposal["api_url"]),
                 "fetched_at": fetched_at,
+                "source_sha256": source_digest,
             }
         ],
     )
@@ -186,17 +218,54 @@ def build_politics_plan(
 
 def import_proposal(db, channel: Channel, proposal: dict[str, str | int], status: dict) -> Project:
     label = f"PL {proposal['number']}/{proposal['year']}"
+    if len(str(proposal["presented_at"])) > 32:
+        raise ValueError("Câmara presentation date is too long")
+    presented = _record_date(proposal["presented_at"])
+    status_text = status.get("descricaoTramitacao") or status.get("descricaoSituacao")
+    if status.get("dataHora") and len(str(status["dataHora"])) > 32:
+        raise ValueError("Câmara status date is too long")
+    status_date = (_record_date(status["dataHora"])
+                   if isinstance(status_text, str) and 0 < len(status_text.strip()) <= 240
+                   and status.get("dataHora") else None)
     project = Project(
         channel_id=channel.id,
         title=f"{label}: {str(proposal['summary'])[:150]}",
         topic=str(proposal["summary"]),
         format="vertical",
-        content_type="video",
+        content_type="knowledge",
         status=ProjectStatus.SCRIPTED.value,
     )
     db.add(project)
     db.flush()
     plan = build_politics_plan(project, channel, proposal, status)
+    source_title = f"Câmara dos Deputados — {label}"
+    source_url = str(proposal["source_url"])
+    intro_evidence = (f"siglaTipo: PL; numero: {proposal['number']}; "
+                      f"ano: {proposal['year']}; "
+                      f"dataApresentacao: {proposal['presented_at']}")
+    claims = [KnowledgeClaim(
+        project_id=project.id, scene_id="official-id",
+        text=plan.scenes[0].narration, source_url=source_url,
+        source_title=source_title, published_at=presented,
+        support_excerpt=intro_evidence,
+    )]
+    for scene in plan.scenes[1:-1]:
+        excerpt = scene.narration.removeprefix("A ementa oficial informa: ")
+        claims.append(KnowledgeClaim(
+            project_id=project.id, scene_id=scene.id,
+            text=scene.narration, source_url=source_url,
+            source_title=source_title, published_at=presented,
+            support_excerpt=excerpt,
+        ))
+    if status_date is not None:
+        claims.append(KnowledgeClaim(
+            project_id=project.id, scene_id="official-status",
+            text=plan.scenes[-1].narration, source_url=source_url,
+            source_title=source_title, published_at=status_date,
+            support_excerpt=(f"descricaoTramitacao: {status_text.strip()}; "
+                             f"dataHora: {status['dataHora']}"),
+        ))
+    db.add_all(claims)
     project.plan = plan.model_dump()
     project.script = {"language": channel.language, "segments": [s.narration for s in plan.scenes]}
     project.edl = {
@@ -220,6 +289,8 @@ def import_proposal(db, channel: Channel, proposal: dict[str, str | int], status
         after={
             "source_url": proposal["source_url"],
             "fetched_at": plan.source_refs[0]["fetched_at"],
+            "source_sha256": plan.source_refs[0]["source_sha256"],
+            "claims_review_required": len(claims),
         },
     )
     return project

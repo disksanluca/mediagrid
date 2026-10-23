@@ -48,7 +48,11 @@ def create_from_official_proposal(
         raise HTTPException(503, "Não foi possível abrir a proposição na Câmara") from exc
     if len(str(proposal["summary"])) > 1200:
         raise HTTPException(422, "Ementa extensa demais para um roteiro curto; escolha outra pauta")
-    project = import_proposal(db, channel, proposal, current_status)
-    db.commit()
+    try:
+        project = import_proposal(db, channel, proposal, current_status)
+        db.commit()
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(503, "Registro oficial incompleto para gerar evidências") from exc
     db.refresh(project)
     return project

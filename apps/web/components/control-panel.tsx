@@ -260,6 +260,7 @@ function ProjectEditor({project,isFootball,knowledgeEligible,assets,jobs,busy,on
     {timeline&&<FlowDiagramEditor projectId={project.id} timeline={timeline} selectedScene={selectedScene} busy={busy} disabled={unsaved||activeRender} onRun={onRun} onSaved={setTimeline}/>}
     {timeline&&<CharacterDialogueEditor projectId={project.id} timeline={timeline} selectedScene={selectedScene} busy={busy} disabled={unsaved||activeRender} onRun={onRun} onSaved={setTimeline}/>}
     {knowledgeEligible&&project.plan&&<KnowledgeClaimsEditor projectId={project.id} scenes={scenes} onProjectRefresh={onRefresh}/>}
+    {project.plan?.origin==="OFFICIAL_SOURCE"&&project.plan.engine==="politics"&&<div className="atelier-note">As alegações importadas da Câmara estão pendentes de conferência. Abra cada fonte, compare o trecho e aprove as alegações antes da revisão final e da exportação.</div>}
     {voiceReady&&<VoiceWaveform projectId={project.id}/>}
     {timelineError&&<p className="small-note">Timeline: {timelineError}</p>}
     {project.plan?.source_refs?.length?<section className="panel"><div className="panel-head"><div><h3>Fontes do roteiro</h3><p>Dados consultados ao criar esta pauta. Confira a situação atual antes de publicar.</p></div></div><div className="panel-body">{project.plan.source_refs.map((source)=><p key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title} ↗</a><span className="small-note"> · Consultado em {new Date(source.fetched_at).toLocaleString("pt-BR")}</span></p>)}</div></section>:null}

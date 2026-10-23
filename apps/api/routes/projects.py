@@ -721,6 +721,7 @@ def export_reviewed_project(project_id: str, db: Session = Depends(get_db)) -> F
         "title": project.title,
         "channel_id": project.channel_id,
         "approved_review": review,
+        "source_refs": (project.plan or {}).get("source_refs", []),
         "knowledge_claims": [serialize_claim(claim) for claim in claims],
         "publication": "manual",
         "platform_status": "not_published",
