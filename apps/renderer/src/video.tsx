@@ -27,7 +27,7 @@ function Scene({scene, accent, title, sourceLabel}: {scene: RenderScene; accent:
     {scene.media_file && <AbsoluteFill style={{background: "linear-gradient(90deg, rgba(8,12,10,.88), rgba(8,12,10,.49) 75%, rgba(8,12,10,.3))"}}/>}
     <div style={{position: "absolute", top: "6%", left: "8%", fontSize: 22, letterSpacing: 8, color: accent, fontWeight: 800}}>MEDIAGRID</div>
     <div style={{height: 4, width: `${lineWidth}%`, maxWidth: 220, background: accent, marginBottom: 38}}/>
-    <div style={{fontSize: 74, lineHeight: 1.02, fontWeight: 900, maxWidth: 1300, ...motion}}>{scene.on_screen_text ?? title}</div>
+    <div style={{fontSize: 74, lineHeight: 1.02, fontWeight: 900, maxWidth: 1300, whiteSpace: "pre-line", overflowWrap: "anywhere", ...motion}}>{scene.on_screen_text ?? title}</div>
     {sourceLabel && <div style={{position: "absolute", bottom: "7%", left: "8%", fontSize: 22, color: "#aab4a7", letterSpacing: 1.5}}>{sourceLabel}</div>}
   </AbsoluteFill>;
 }

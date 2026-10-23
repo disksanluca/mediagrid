@@ -177,6 +177,16 @@ export interface GeoMunicipality {
   source_url: string;
 }
 
+export interface WikiTopPage {
+  article: string;
+  title: string;
+  views: number;
+  rank: number;
+  day: string;
+  source_url: string;
+  article_url: string;
+}
+
 export interface Job {
   id: string;
   project_id: string | null;

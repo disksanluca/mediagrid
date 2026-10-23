@@ -701,14 +701,14 @@ def approve_project_review(
                               or claim.source_url.rstrip("/") not in submitted_urls
                               for claim in claims)):
             raise HTTPException(409, "Approve every cited claim and include its source URL")
-        if (channel is not None and channel.default_engine == "geo"
+        if (channel is not None and channel.default_engine in {"geo", "trends"}
                 and (project.plan or {}).get("source_refs")):
             if scene_ids - {claim.scene_id for claim in claims}:
-                raise HTTPException(409, "Cite every sourced Geo scene before approval")
+                raise HTTPException(409, "Cite every sourced scene before approval")
             narration = {str(scene.get("id")): str(scene.get("narration"))
                          for scene in (project.plan or {}).get("scenes", [])}
             if any(claim.text != narration.get(claim.scene_id) for claim in claims):
-                raise HTTPException(409, "Update Geo claims to match the current script")
+                raise HTTPException(409, "Update claims to match the current script")
     review = {
         "approved_at": datetime.now(UTC).isoformat(),
         "source_urls": [str(url) for url in payload.source_urls],

@@ -56,6 +56,12 @@ claim against the live source before approving the render; new Geo and Trends
 reviews require citations. Already approved Geo/Trends exports keep their prior
 review if untouched. See [Geo evidence gate](docs/GEO-EVIDENCE-GATE.md).
 
+For a Trends channel, **Radar → Trends · leituras na Wikipédia** imports a dated
+[Wikimedia pageview report](https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/reference/page-views.html).
+The draft states recorded views and rank on Portuguese Wikipedia with individual
+source claims. These are Wikipedia page requests, not Instagram analytics or
+proof of a wider trend. See [Trends evidence](docs/TRENDS-WIKIMEDIA.md).
+
 For a Geo channel, **Radar** searches the official [IBGE Localidades API v1.0.0](https://servicodados.ibge.gov.br/api/docs/localidades) by municipality name and creates an editable three-scene plan from the selected municipality, state and administrative regions. It stores the source URL and retrieval time, and the render labels the source as IBGE. This flow does not supply maps, population data or licensed footage. Review the current IBGE entry and add your own rights-cleared visuals in the Editor.
 
 In **Biblioteca**,
