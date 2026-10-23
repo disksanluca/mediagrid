@@ -589,6 +589,8 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="MediaGrid local worker")
     parser.add_argument("--once", action="store_true", help="Process at most one queued job")
     args = parser.parse_args(argv)
+    if get_settings().mediagrid_mode != "LOCAL":
+        raise RuntimeError("The local media worker cannot process server jobs directly")
     recover_interrupted_jobs()
     backup_local_database()
     if args.once:

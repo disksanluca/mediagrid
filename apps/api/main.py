@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from . import auth
-from .config import get_settings
+from .config import Settings, get_settings
 from .migrate import main as migrate
 from .routes import (
     assets,
@@ -28,13 +28,28 @@ from .routes import (
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
-    if settings.mediagrid_mode != "LOCAL" and not auth.auth_configured():
-        raise RuntimeError(
-            "Public mode requires MEDIAGRID_ADMIN_PASSWORD and MEDIAGRID_SESSION_SECRET"
-        )
+    validate_runtime_config(settings)
     migrate()
     structlog.get_logger().info("mediagrid_started")
     yield
+
+
+def validate_runtime_config(settings: Settings) -> None:
+    """Reject unsafe server configuration before any migration or request."""
+    if settings.mediagrid_mode == "LOCAL":
+        return
+    if not (settings.mediagrid_admin_password and settings.mediagrid_session_secret):
+        raise RuntimeError(
+            "Server mode requires MEDIAGRID_ADMIN_PASSWORD and MEDIAGRID_SESSION_SECRET"
+        )
+    if not settings.database_url.startswith("postgresql+psycopg://"):
+        raise RuntimeError("Server mode requires PostgreSQL via postgresql+psycopg://")
+    if not (settings.mediagrid_public_url or "").startswith("https://"):
+        raise RuntimeError("Server mode requires an HTTPS MEDIAGRID_PUBLIC_URL")
+    if settings.allow_paid_ai or not settings.dry_run:
+        raise RuntimeError("Server mode requires ALLOW_PAID_AI=false and DRY_RUN=true")
+    if not settings.mediagrid_server_experimental:
+        raise RuntimeError("Server worker protocol is unfinished; server mode is experimental")
 
 
 app = FastAPI(

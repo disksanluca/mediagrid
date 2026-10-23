@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     app_name: str = "MediaGrid Core"
     mediagrid_mode: str = "LOCAL"
+    mediagrid_server_experimental: bool = False
     allow_paid_ai: bool = False
     database_url: str = "sqlite:///./data/mediagrid.db"
     mediagrid_data_dir: Path = Path("./data")
