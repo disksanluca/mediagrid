@@ -151,7 +151,7 @@ export interface ContentPlan {
   scenes: Scene[];
   requires_fact_review: boolean;
   review_checks: string[];
-  source_refs?: Array<{title:string;url:string;api_url?:string;fetched_at:string}>;
+  source_refs?: Array<{title:string;url:string;api_url?:string;fetched_at:string;source_sha256?:string}>;
   review?: {approved_at:string;source_urls:string[];facts_confirmed:boolean;rights_confirmed:boolean;notes:string;caption?:string|null};
 }
 
