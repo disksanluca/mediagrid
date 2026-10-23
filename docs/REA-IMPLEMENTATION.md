@@ -234,6 +234,46 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
 - Nenhuma API paga, VPS ou publicação foi ativada. O custo de inferência local
   foi zero em API; consumo elétrico e tempo em outras máquinas não foram medidos.
 
+## Marco 4 — máquina de cortes (prova técnica local)
+
+- A migração `0005_clip_candidates` persiste sugestões explicáveis por asset,
+  SHA-256, revisão da transcrição e versão do algoritmo. Inclui contexto antes
+  e depois, razões e pontuação, seleção/rejeição humana, limites e crop com
+  revisão otimista. O baseline ordena janelas por cobertura de fala, pergunta,
+  troca de falante e limites de frase; não promete achar os melhores momentos,
+  detectar cenas ou prever alcance.
+- A API exige vídeo com direitos `OWNED`/`LICENSED`, transcrição temporizada
+  aprovada e áudio. Edição impede cortar palavra ou cue aprovado. Jobs
+  `CLIP_ANALYSIS` e `CLIP_RENDER` usam SQLite e worker local. O download só
+  aceita job concluído, seleção vigente e SHA-256 do MP4 intacto; editar a
+  transcrição torna os candidatos anteriores obsoletos. A Biblioteca oferece
+  player da fonte, contexto, entrada/saída, foco manual, seleção e download.
+- O render FFmpeg preserva áudio, queima as legendas aprovadas e verifica
+  duração, streams e hash. O formato vertical usa crop manual e recusa
+  ampliação acima de 3×. O smoke do instalador foi ampliado para análise,
+  seleção e MP4 vertical com mídia sintética; ainda aguarda execução no CI
+  desta branch.
+- `uv run pytest -q tests`: **65 passaram**. `uv run ruff check .`, TypeScript
+  Web/Renderer, `next build apps/web` e análise sintática do smoke PowerShell:
+  passaram. `uv run python scripts/prove_clips.py` executou upload, aprovação,
+  análise, revisão e dois renders em banco isolado. Prova em
+  `data/rea-proof/20261023T001742Z-clips`, fonte sintética de 32 s SHA-256
+  `412ddaf885227a050c30c89308d1da064dcaec91e81697385345f0995b1b65b4`.
+  Dois candidatos geraram MP4 distintos H.264/AAC: vertical 1080×1920,
+  29,933 s, SHA-256
+  `45333a579c40e5ce64b2e02d82de6c8270ae98195c90c080ab6d9193388b7b9f`;
+  proporção da fonte, 19,933 s, SHA-256
+  `73a6df4b3f884b60ae35a17f0fb40362774f4f06c7803fa3c9684c32c039500c`.
+  FFprobe confirmou vídeo e áudio. Um quadro vertical foi inspecionado, com
+  legenda legível e margem inferior. A interface foi inspecionada no navegador.
+  O áudio sintético é um tom, portanto não comprova ritmo, fala natural ou
+  qualidade editorial. Não há filmagem/trilha autorizada para o aceite criativo
+  de podcast, debate ou futebol.
+- Migração: tabela nova, sem modificar arquivos ou colunas legadas. `.env.example`
+  não requer nova variável. REAL local: API, SQLite, worker, FFmpeg e UI.
+  PAPER/MOCK: nenhum corte foi contabilizado como produto criativo. Custo de
+  API paga: zero; tempo e energia de produção em outros PCs não foram medidos.
+
 ## Ordem restante e gates
 
 1. Fechar Marco 1: validação visual/auditiva no desktop empacotado.
@@ -241,8 +281,9 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
    renderer v2 não suportar os novos elementos.
 2. Ingestão longa com hash, probe, direitos, proxy e retomada.
 3. Fechar Marco 3 no instalador Windows e fazer QA auditivo/visual humano.
-4. Máquina de cortes com contexto e seleção humana; depois Motion Ad,
-   Explainer, Football Edit, conhecimento com evidências, Humor 2D e 3D.
+4. Fechar Marco 4 com filmagem autorizada, revisão integral de dois cortes e
+   smoke do instalador. Depois Motion Ad, Explainer, Football Edit,
+   conhecimento com evidências, Humor 2D e 3D.
 5. Web/VPS apenas depois de auth por recurso, PostgreSQL, fila com leases,
    worker Windows de saída e backup testados. Sem worker, o estado deverá ser
    `WAITING_FOR_WORKER` real.
@@ -287,7 +328,7 @@ Saídas ficam em `data/rea-proof` e são ignoradas pelo Git.
 
 REAL local: FastAPI, SQLite, jobs, voz Windows, Remotion/FFmpeg e ZIP manual.
 PAPER/MOCK: nenhum resultado desta etapa foi contabilizado como produção.
-Bloqueados/pendentes: smoke do novo instalador, Blender instalado/testado, VPS, OAuth de
-publicação, mídia autorizada para provas criativas e revisão humana final.
+Bloqueados/pendentes: smoke do instalador atualizado no CI, Blender instalado/testado,
+VPS, OAuth de publicação, mídia autorizada para provas criativas e revisão humana final.
 Custo de API paga nesta etapa: zero. Tempo/custo de GPU, VPS e provedores não
 foram medidos; não há estimativa fictícia.

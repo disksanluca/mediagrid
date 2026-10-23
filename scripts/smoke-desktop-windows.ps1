@@ -132,6 +132,57 @@ try {
   if ($captionedStreams -notcontains "video" -or $captionedStreams -notcontains "audio") { throw "MP4 legendado sem vídeo ou áudio." }
   Write-Host "Instalação validou modelo ASR offline e MP4 legendado com revisão humana."
 
+  $clipSource = Join-Path $env:RUNNER_TEMP "mediagrid-clip-source.mp4"
+  & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "color=c=blue:s=1280x720:r=15:d=20" -f lavfi -i "sine=frequency=330:duration=20" -c:v libx264 -preset ultrafast -c:a aac -shortest $clipSource
+  if ($LASTEXITCODE -ne 0) { throw "FFmpeg portátil não criou fonte longa para corte." }
+  $clipAsset = (& curl.exe -sS -f -F "file=@$clipSource;type=video/mp4" -F "rights_status=OWNED" "$api/assets" | ConvertFrom-Json)
+  if ($LASTEXITCODE -ne 0 -or -not $clipAsset.id) { throw "Upload da fonte de corte falhou." }
+  $clipWords = @()
+  for ($i = 0; $i -lt 20; $i++) {
+    $wordText = if ($i -eq 9 -or $i -eq 19) { "frase." } else { "palavra" }
+    $clipWords += @{start_ms=$i*1000;end_ms=$i*1000+900;text=$wordText}
+  }
+  $clipCues = @(
+    @{start_ms=0;end_ms=9900;text="Primeira frase de teste."},
+    @{start_ms=10000;end_ms=19900;text="Segunda frase de teste."}
+  )
+  $clipTranscriptBody = @{expected_revision=0;language="pt";words=$clipWords;cues=$clipCues} | ConvertTo-Json -Depth 10 -Compress
+  $clipTranscript = Invoke-RestMethod "$api/assets/$($clipAsset.id)/transcript-v2" -Method Put -ContentType "application/json" -Body $clipTranscriptBody
+  $clipApproveBody = @{expected_revision=$clipTranscript.revision} | ConvertTo-Json -Compress
+  Invoke-RestMethod "$api/assets/$($clipAsset.id)/captions/approve" -Method Post -ContentType "application/json" -Body $clipApproveBody | Out-Null
+  $analysisJob = Invoke-RestMethod "$api/assets/$($clipAsset.id)/clips/analyze" -Method Post
+  $analysisDone = $false
+  for ($attempt = 0; $attempt -lt 120; $attempt++) {
+    Start-Sleep -Seconds 1
+    $analysisState = Invoke-RestMethod "$api/jobs/$($analysisJob.job_id)"
+    if ($analysisState.status -eq "FAILED") { throw "Análise de cortes falhou: $($analysisState.error)" }
+    if ($analysisState.status -eq "SUCCEEDED") { $analysisDone = $true; break }
+  }
+  if (-not $analysisDone) { throw "Análise de cortes não concluiu em 120 segundos." }
+  $clipCandidates = @(Invoke-RestMethod "$api/assets/$($clipAsset.id)/clips")
+  if ($clipCandidates.Count -lt 1) { throw "Nenhum candidato de corte foi persistido." }
+  $candidate = $clipCandidates[0]
+  $editBody = @{expected_revision=$candidate.revision;action="edit";aspect="vertical";focus_x=0.6} | ConvertTo-Json -Compress
+  $candidate = Invoke-RestMethod "$api/assets/$($clipAsset.id)/clips/$($candidate.id)" -Method Patch -ContentType "application/json" -Body $editBody
+  $selectBody = @{expected_revision=$candidate.revision;action="select"} | ConvertTo-Json -Compress
+  $candidate = Invoke-RestMethod "$api/assets/$($clipAsset.id)/clips/$($candidate.id)" -Method Patch -ContentType "application/json" -Body $selectBody
+  $clipRenderBody = @{expected_revision=$candidate.revision} | ConvertTo-Json -Compress
+  $cutJob = Invoke-RestMethod "$api/assets/$($clipAsset.id)/clips/$($candidate.id)/render" -Method Post -ContentType "application/json" -Body $clipRenderBody
+  $cutDone = $false
+  for ($attempt = 0; $attempt -lt 120; $attempt++) {
+    Start-Sleep -Seconds 1
+    $cutState = Invoke-RestMethod "$api/jobs/$($cutJob.job_id)"
+    if ($cutState.status -eq "FAILED") { throw "Render do corte falhou: $($cutState.error)" }
+    if ($cutState.status -eq "SUCCEEDED") { $cutDone = $true; break }
+  }
+  if (-not $cutDone) { throw "Render do corte não concluiu em 120 segundos." }
+  $cutVideo = Join-Path $env:RUNNER_TEMP "mediagrid-cut.mp4"
+  Invoke-WebRequest "$api/assets/$($clipAsset.id)/clips/$($candidate.id)/render/$($cutJob.job_id)" -OutFile $cutVideo
+  $cutWidth = & $ffprobe.FullName -v error -select_streams v:0 -show_entries stream=width -of csv=p=0 $cutVideo
+  $cutHeight = & $ffprobe.FullName -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 $cutVideo
+  if ($cutWidth.Trim() -ne "1080" -or $cutHeight.Trim() -ne "1920") { throw "Corte instalado não saiu em 1080x1920." }
+  Write-Host "Instalação validou análise, seleção humana e render de corte vertical."
+
   # Synthetic CI review verifies the package flow; editorial approval remains a human action.
   $caption = "Legenda de teste para publicação manual."
   $reviewBody = @{

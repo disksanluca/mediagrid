@@ -98,6 +98,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .timed-row input { min-width:0; width:100%; padding:9px 10px; background:#0b100d; color:var(--text); border:1px solid #3a463b; border-radius:7px; font:inherit; }
 .timed-row input:focus-visible { outline:2px solid var(--green); outline-offset:1px; }
 .timed-header { color:var(--muted); font-size:10px; font-weight:700; margin:16px 0 6px; text-transform:uppercase; letter-spacing:.08em; }
+.clip-layout { display:grid; grid-template-columns:minmax(240px,.8fr) minmax(0,1.2fr); gap:16px; margin-top:16px; }
+.clip-candidates { display:grid; align-content:start; gap:8px; max-height:680px; overflow:auto; }
+.clip-card { display:grid; gap:7px; width:100%; padding:12px; text-align:left; color:var(--text); background:#111913; border:1px solid var(--line); border-radius:9px; }
+.clip-card.selected { border-color:var(--green); background:#1b2a1e; }
+.clip-card span,.clip-card small { color:var(--muted); font-size:11px; }
+.clip-card strong { font-size:12px; line-height:1.5; }
+.clip-review video { display:block; width:min(100%,640px); max-height:340px; margin-bottom:12px; background:#080a09; }
+.clip-context { margin:14px 0; padding:14px; border:1px solid var(--line); border-radius:9px; }
+.clip-context span { color:var(--green); font-size:10px; font-weight:800; letter-spacing:.12em; }
+.clip-context p { margin:5px 0 13px; line-height:1.5; }
+.clip-context p:last-child { margin-bottom:0; }
+.clip-fields { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.clip-fields label { display:grid; gap:6px; color:var(--muted); font-size:11px; }
+.clip-fields input,.clip-fields select { min-width:0; width:100%; padding:9px 10px; background:#0b100d; color:var(--text); border:1px solid #3a463b; border-radius:7px; }
+@media(max-width:900px) { .clip-layout { grid-template-columns:1fr; } .clip-candidates { max-height:320px; } }
 @media(max-width:600px) { .timed-row { grid-template-columns:75px 75px minmax(90px,1fr); } .timed-row button { grid-column:1 / -1; } }
 .row:last-child { border-bottom:0; }
 .row-button { width:100%; background:transparent; color:inherit; text-align:left; }
