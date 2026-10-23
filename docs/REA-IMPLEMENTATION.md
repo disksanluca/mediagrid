@@ -453,6 +453,55 @@ externa ou serviço pago foi acionado.
   audiovisual permanece técnica: a voz sintética da prova não foi escrita
   para o personagem nem alinhada aos cues.
 
+## Marco 9 — narrativa 3D original (primeira entrega vertical)
+
+- Branch `feat/rea-narrative-3d`, sobre o Marco 8. Migração Alembic
+  `0008_narrative_3d` cria uma tabela nova para storyboard, revisão, hashes do
+  rig/mundo e áudio, job de blocking e aprovação. Não altera projetos ou EDL
+  existentes. O backup local inclui `narrative-renders/`; a migração de cópia
+  legada foi coberta no teste de migrações. `.env.example` documenta o caminho
+  opcional do Blender.
+- API e Editor salvam três a oito tomadas com duração, beat, ação, câmera e luz.
+  A API rejeita formatos 3D fora de 9:16/16:9 e mantém a orientação do projeto
+  igual à revisão salva do storyboard.
+  Revisão concorrente é rejeitada; editar invalida aprovação e downloads antigos.
+  O worker valida o hash do storyboard e do script, direitos e hash de áudio,
+  espaço em disco, versão do Blender e cada sequência de PNG. Produz blocking
+  de 12 fps e final de 24 fps, H.264/AAC; áudio não fornecido vira silêncio
+  identificado. A aprovação exige atestar visualização integral, continuidade
+  e ritmo. Na ausência de Blender o job fica `WAITING_FOR_WORKER` e pode ser
+  reativado após configurar o executável. O smoke Windows instalado verifica
+  storyboard/migração e o estado de dependência; seu resultado no CI ainda será
+  registrado após a branch ser publicada.
+- Runtime testado: Blender portable oficial `4.5.14 LTS` (SHA-256 do ZIP
+  `b9533d2397ac1984db4466fb23a7a4649391cca93f6e84209f9bcc60d071c8b9`),
+  sem cópia no Git ou instalador. A licença é GPL. Fontes oficiais:
+  [download 4.5](https://download.blender.org/release/Blender4.5/),
+  [linha de comando](https://docs.blender.org/manual/en/4.5/advanced/command_line/index.html)
+  e [licença](https://www.blender.org/about/license/).
+- Prova local sintética: `MEDIAGRID_TEST_BLENDER=<blender.exe> uv run pytest -q
+  tests/test_narrative_3d.py` passou (2 testes em 80,92 s). O arquivo final
+  ignorado pelo Git em `data/narrative-renders/800421a2-529a-4b6f-9286-62e882213da2-r1-final.mp4`
+  tem 4,5 s, 1280×720, H.264/AAC, 24 fps, 293049 bytes e SHA-256
+  `6d52207a2639ed9c64e913b0dd796b813a661f73a3d4e2db31e49c6d6249785f`.
+  O quadro da última tomada foi inspecionado após corrigir o enquadramento da
+  antena do personagem. A faixa AAC é silêncio, não som autoral aprovado.
+  Uma tentativa anterior após suspensão prolongada do PC estourou o timeout
+  do Blender; a repetição acordada passou. Não há validação criativa humana.
+- Validação da branch: `uv run pytest -q tests` (71 passed, 1 skipped porque o
+  teste Blender é opt-in), `uv run ruff check .`, `tsc --noEmit` de `apps/web`,
+  `next build` 16.3.8, `git diff --check` e parser PowerShell passaram. O
+  teste Blender opt-in passou separadamente. A validação visual do React em
+  navegador local foi impedida pela política da superfície de automação; o
+  build e os testes de API não substituem essa verificação. O smoke do
+  instalador ainda precisa do CI desta branch.
+- REAL local: banco, API, Editor React, worker Blender/FFmpeg, blocking,
+  aprovação, hash e MP4 técnico. PAPER: atuação, desenho de som, narrativa
+  longa, prova audiovisual com mídia autorizada e execução em PC instalado.
+  MOCK: nenhum resultado desta etapa é apresentado como produção. Custo de API
+  paga zero; tempo de render desta prova foi medido pelo teste, sem previsão de
+  custo operacional em máquinas diferentes. Sem VPS, deploy ou publicação.
+
 ## Ordem restante e gates
 
 1. Fechar Marco 1: validação visual/auditiva no desktop empacotado.
@@ -507,7 +556,8 @@ Saídas ficam em `data/rea-proof` e são ignoradas pelo Git.
 
 REAL local: FastAPI, SQLite, jobs, voz Windows, Remotion/FFmpeg e ZIP manual.
 PAPER/MOCK: nenhum resultado desta etapa foi contabilizado como produção.
-Bloqueados/pendentes: smoke do instalador atualizado no CI, Blender instalado/testado,
-VPS, OAuth de publicação, mídia autorizada para provas criativas e revisão humana final.
+Bloqueados/pendentes: smoke do instalador 3D atualizado no CI, execução do
+Blender no PC final do usuário, VPS, OAuth de publicação, mídia autorizada para
+provas criativas e revisão humana final.
 Custo de API paga nesta etapa: zero. Tempo/custo de GPU, VPS e provedores não
 foram medidos; não há estimativa fictícia.

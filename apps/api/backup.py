@@ -15,7 +15,7 @@ from pathlib import Path, PurePosixPath
 BACKUP_VERSION = 1
 DATA_FOLDERS = (
     "assets", "exports", "renders", "caption-renders", "clip-renders",
-    "football-renders", "voice", "transcripts", "models",
+    "football-renders", "narrative-renders", "voice", "transcripts", "models",
 )
 
 
@@ -57,6 +57,7 @@ def create_backup(
         "caption-renders": include_renders,
         "clip-renders": include_renders,
         "football-renders": include_renders,
+        "narrative-renders": include_renders,
         "voice": True,
         "transcripts": True,
         "models": include_models,
