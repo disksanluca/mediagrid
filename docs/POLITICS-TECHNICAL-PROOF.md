@@ -37,3 +37,25 @@ feita escuta humana integral da narração. Este MP4 prova o pipeline e o bloque
 editorial, **não** prova neutralidade, clareza jornalística, ritmo, qualidade
 criativa ou que o vídeo esteja pronto para Instagram. O próximo refinamento
 visual deve manter o registro da fonte e a revisão de alegações.
+
+## Refinamento editorial do render vertical
+
+A composição oficial agora usa os tokens do Atelier Premium v3: fundo escuro,
+acento sálvia, metadados monoespaçados e separadores finos. O quadro informa
+o número do PL, a função da cena, a narração efetivamente salva no EDL,
+fonte, data da consulta e progresso. O mesmo componente Remotion é usado no
+Player e no MP4; mídia escolhida no Editor continua atrás da camada legível.
+O texto de apoio aparece apenas até 240 caracteres, sem truncar uma alegação.
+Após uma edição no Editor, a origem passa a `MANUAL`, mas a composição mantém
+essa identidade enquanto o plano guarda a referência da Câmara; o teste de
+preview cobre os dois estados.
+
+Uma nova prova isolada do mesmo PL em 23/10/2026 ficou em
+`data/rea-proof/politics-20261023T193409Z-0b876124/`. `VOICE` e `RENDER`
+terminaram `SUCCEEDED`; o projeto ficou em `QC` e a revisão permaneceu 409.
+O MP4 tem H.264/AAC, 1080×1920, 43,13 s e SHA-256
+`bc5a5ff630ad4dcdbae15a144688f541d80286f54ab797ffc2b95febd0d95bd9`.
+Os quadros em 2, 17 e 38 s foram inspecionados: manchete, narração, fonte e
+data são legíveis e não invadem as margens. A prova continua sem filmagem,
+arte licenciada ou escuta editorial integral. É uma composição tipográfica
+para pesquisa e revisão, não aprovação criativa para publicar.
