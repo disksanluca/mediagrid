@@ -34,6 +34,9 @@ def test_legacy_database_upgrade_and_downgrade(tmp_path: Path) -> None:
         session.commit()
         project_id = project.id
     legacy_engine.dispose()
+    with sqlite3.connect(database) as connection:
+        for column in ("lease_owner", "lease_expires_at", "heartbeat_at"):
+            connection.execute(f"ALTER TABLE jobs DROP COLUMN {column}")
 
     root = Path(__file__).resolve().parents[1]
     env = {
@@ -47,8 +50,10 @@ def test_legacy_database_upgrade_and_downgrade(tmp_path: Path) -> None:
     )
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == (
-            "0008_narrative_3d",
+            "0009_job_leases",
         )
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)")}
+        assert {"lease_owner", "lease_expires_at", "heartbeat_at"} <= columns
         saved_edl = connection.execute(
             "SELECT edl FROM projects WHERE id=?", (project_id,)
         ).fetchone()[0]
@@ -77,3 +82,26 @@ def test_legacy_database_upgrade_and_downgrade(tmp_path: Path) -> None:
         assert saved_title == (
             "Projeto preservado",
         )
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)")}
+        assert not {"lease_owner", "lease_expires_at", "heartbeat_at"} & columns
+
+
+def test_fresh_database_starts_at_current_schema(tmp_path: Path) -> None:
+    database = tmp_path / "fresh.db"
+    root = Path(__file__).resolve().parents[1]
+    env = {
+        **os.environ,
+        "DATABASE_URL": f"sqlite:///{database.as_posix()}",
+        "MEDIAGRID_DATA_DIR": str(tmp_path),
+    }
+    subprocess.run(
+        [sys.executable, "-m", "apps.api.migrate"],
+        cwd=root, env=env, check=True, capture_output=True, text=True,
+    )
+    with sqlite3.connect(database) as connection:
+        assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == (
+            "0009_job_leases",
+        )
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)")}
+        assert {"lease_owner", "lease_expires_at", "heartbeat_at"} <= columns
+        assert connection.execute("SELECT COUNT(*) FROM narrative_3d").fetchone() == (0,)
