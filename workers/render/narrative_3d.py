@@ -91,7 +91,8 @@ def _checked(command: list[str], *, cwd: Path, timeout: int, label: str) -> None
 
 
 def render_narrative(db: Session, sequence: Narrative3D, job_id: str, quality: str,
-                     progress: Callable[[float], None] | None = None) -> dict:
+                     progress: Callable[[float], None] | None = None,
+                     staged_output: Path | None = None) -> dict:
     started = time.monotonic()
     blender = blender_executable()
     if blender is None:
@@ -188,7 +189,7 @@ def render_narrative(db: Session, sequence: Narrative3D, job_id: str, quality: s
         if not has_audio or abs(actual_ms - total_ms) > 300:
             raise ValueError("3D final duration or audio stream is invalid")
         digest = sha256_file(final_temp)
-        final_temp.replace(output)
+        final_temp.replace(staged_output or output)
         if progress:
             progress(0.95)
         return {
@@ -202,7 +203,7 @@ def render_narrative(db: Session, sequence: Narrative3D, job_id: str, quality: s
             "audio_kind": "licensed_asset" if audio else "silence",
             "blender_version": version.splitlines()[0],
             "elapsed_seconds": round(time.monotonic() - started, 2),
-            "output_bytes": output.stat().st_size,
+            "output_bytes": (staged_output or output).stat().st_size,
         }
     finally:
         shutil.rmtree(scratch, ignore_errors=True)

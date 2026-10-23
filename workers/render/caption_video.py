@@ -14,7 +14,8 @@ def caption_output(asset_id: str, revision: int) -> Path:
     return get_settings().mediagrid_data_dir / "caption-renders" / f"{asset_id}-r{revision}.mp4"
 
 
-def burn_captions(asset: Asset, transcript: Transcript, job_id: str) -> dict:
+def burn_captions(asset: Asset, transcript: Transcript, job_id: str,
+                  staged_output: Path | None = None) -> dict:
     settings = get_settings()
     if not asset.media_type.startswith("video/"):
         raise ValueError("Caption video requires a video asset")
@@ -60,7 +61,7 @@ def burn_captions(asset: Asset, transcript: Transcript, job_id: str) -> dict:
         if abs(rendered_duration - duration_ms) > 500 or rendered_audio != has_audio:
             raise ValueError("Caption MP4 duration or audio streams changed")
         digest = sha256_file(partial)
-        partial.replace(output)
+        partial.replace(staged_output or output)
         return {
             "output": str(output), "sha256": digest,
             "asset_id": asset.id, "source_sha256": asset.sha256,

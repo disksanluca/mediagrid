@@ -29,6 +29,7 @@ def finish_render_attempt(
                 job.status = JobStatus.FAILED.value
                 job.error = f"Render artifact could not be promoted: {exc}"
                 job.result = None
+                job.progress = 0
                 job.finished_at = now()
                 project.status = ProjectStatus.FAILED.value
                 project.error = job.error
@@ -38,6 +39,33 @@ def finish_render_attempt(
                 )
             else:
                 record_event(db, "RENDER_FINISHED", "project", project.id,
+                             after=job.result)
+        db.commit()
+        return True
+    finally:
+        staged.unlink(missing_ok=True)
+
+
+def finish_media_render_attempt(
+    db: Session, job: Job, lease_owner: str, staged: Path, final: Path,
+) -> bool:
+    """Promote a clip/caption/football/3D MP4 under its current job lease."""
+    try:
+        if not fence_job_completion(db, job.id, lease_owner):
+            db.rollback()
+            return False
+        if job.status == JobStatus.SUCCEEDED.value:
+            try:
+                staged.replace(final)
+            except OSError as exc:
+                job.status = JobStatus.FAILED.value
+                job.error = f"Media artifact could not be promoted: {exc}"
+                job.result = None
+                job.progress = 0
+                record_event(db, f"{job.job_type}_FAILED", "job", job.id,
+                             after={"error": job.error})
+            else:
+                record_event(db, f"{job.job_type}_FINISHED", "job", job.id,
                              after=job.result)
         db.commit()
         return True

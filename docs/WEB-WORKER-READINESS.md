@@ -14,11 +14,12 @@ autorização por recurso já funcionam. O desktop local continua em SQLite.
   backup/restauração com PostgreSQL temporário. Não há VPS escolhido nem prova
   de operação com dois hosts persistentes.
 - A fila usa a tabela `jobs` e `FOR UPDATE SKIP LOCKED` no claim. Há lease,
-  heartbeat e fence de conclusão; o `RENDER` promove seu MP4 temporário somente
-  após o fence. Ainda faltam cancelamento de subprocesso remoto, token revogável
+  heartbeat e fence de conclusão; `RENDER`, legendas, cortes, Football Edit e 3D
+  promovem seus MP4s temporários somente após o fence. Ainda faltam cancelamento
+  de subprocesso remoto, token revogável
   de dispositivo, transporte autenticado de inputs/artefatos e reconciliação
-  após queda entre rename e commit. Outros jobs de mídia ainda escrevem arquivos
-  compartilhados antes do fence. Os arquivos estão no disco local do host da
+  após queda entre rename e commit. Voz, proxy e outros jobs de mídia ainda
+  escrevem arquivos compartilhados antes do fence. Os arquivos estão no disco local do host da
   API; o desktop não pode acessá-los de forma autenticada por saída.
 - O worker local agora recusa modo não local. No modo servidor a API só inicia
   com credenciais, URL pública HTTPS, PostgreSQL explícito, `DRY_RUN=true` e

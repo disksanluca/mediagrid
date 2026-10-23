@@ -6,10 +6,12 @@ from datetime import timedelta
 from pathlib import Path
 from threading import Barrier
 
+import pytest
+
 from apps.api.database import SessionLocal
 from apps.api.models import Job, JobStatus, Project, ProjectStatus, now
 from apps.api.services import claim_next_job, fence_job_completion, renew_job_lease
-from workers.render.artifacts import finish_render_attempt
+from workers.render.artifacts import finish_media_render_attempt, finish_render_attempt
 from workers.render.lease import start_lease_heartbeat
 from workers.render.main import recover_interrupted_jobs
 
@@ -250,3 +252,56 @@ def test_missing_staged_render_cannot_report_success(client, tmp_path: Path) -> 
         assert failed.result is None
         assert project.status == ProjectStatus.FAILED.value
         assert not final.exists()
+
+
+@pytest.mark.parametrize("job_type", [
+    "CAPTION_RENDER", "CLIP_RENDER", "FOOTBALL_RENDER", "NARRATIVE_3D_RENDER",
+])
+def test_stale_media_render_cannot_replace_newer_video(
+    client, tmp_path: Path, job_type: str,
+) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Media lease", "slug": "media-lease", "niche": "Teste",
+        "default_engine": "music",
+    }).json()
+    project_id = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Arquivo de mídia",
+        "topic": "Tentativa antiga não pode trocar o MP4",
+    }).json()["id"]
+    final = tmp_path / f"{job_type}.mp4"
+    final.write_bytes(b"previous-video")
+    with SessionLocal() as db:
+        db.add(Job(project_id=project_id, job_type=job_type, payload={}))
+        db.commit()
+        stale = claim_next_job(db, job_type, worker_id="media-a")
+        assert stale is not None
+        job_id, old_token = stale.id, stale.lease_owner
+        db.commit()
+        with SessionLocal() as other:
+            claimed = other.get(Job, job_id)
+            assert claimed is not None
+            claimed.lease_expires_at = now() - timedelta(seconds=1)
+            other.commit()
+        recover_interrupted_jobs()
+        with SessionLocal() as other:
+            fresh = claim_next_job(other, job_type, worker_id="media-b")
+            assert fresh is not None
+            new_token = fresh.lease_owner
+            other.commit()
+        stage = tmp_path / "old.mp4"
+        stage.write_bytes(b"old-attempt")
+        stale.status = JobStatus.SUCCEEDED.value
+        stale.result = {"output": str(final)}
+        assert not finish_media_render_attempt(db, stale, old_token, stage, final)
+        assert not stage.exists()
+        assert final.read_bytes() == b"previous-video"
+    with SessionLocal() as db:
+        fresh = db.get(Job, job_id)
+        assert fresh is not None
+        stage = tmp_path / "new.mp4"
+        stage.write_bytes(b"new-attempt")
+        fresh.status = JobStatus.SUCCEEDED.value
+        fresh.result = {"output": str(final)}
+        assert finish_media_render_attempt(db, fresh, new_token, stage, final)
+        assert not stage.exists()
+    assert final.read_bytes() == b"new-attempt"
