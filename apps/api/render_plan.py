@@ -76,6 +76,34 @@ def render_props(
             for item in video_tracks
         ],
     }
+    plan = project.plan or {}
+    if project.format == "vertical" and plan.get("engine") == "politics":
+        for source in plan.get("source_refs", []):
+            if not isinstance(source, dict):
+                continue
+            api_url = source.get("api_url")
+            if (not isinstance(api_url, str)
+                    or urlparse(api_url).hostname != "dadosabertos.camara.leg.br"):
+                continue
+            reference = re.search(r"\bPL \d{1,6}/\d{4}\b", str(source.get("title", "")))
+            fetched_at = str(source.get("fetched_at", ""))
+            props["editorial_style"] = "official_politics"
+            props["official_reference"] = reference.group() if reference else "PROPOSIÇÃO"
+            spoken = {
+                item["scene_id"]: item["text"]
+                for item in project.edl["tracks"]["audio"]
+                if isinstance(item.get("scene_id"), str)
+                and isinstance(item.get("text"), str)
+            }
+            for scene in props["scenes"]:
+                narration = spoken.get(scene["scene_id"], "").strip()
+                if 0 < len(narration) <= 240:
+                    scene["supporting_text"] = narration
+            if re.match(r"^\d{4}-\d{2}-\d{2}T", fetched_at):
+                props["source_checked_at"] = fetched_at[:10]
+            if accent == "#c5ccd6":
+                props["accent"] = "#D0E5BC"
+            break
     if overlays:
         props["overlays"] = [
             {

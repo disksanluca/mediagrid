@@ -80,6 +80,19 @@ def test_official_politics_creates_editable_sourced_plan(
     assert all(claim["status"] == "REVIEW_REQUIRED" for claim in claims)
     assert all(claim["source_url"] == project["plan"]["source_refs"][0]["url"]
                for claim in claims)
+    preview = client.get(f"{base}/preview")
+    assert preview.status_code == 200, preview.text
+    props = preview.json()["props"]
+    assert props["editorial_style"] == "official_politics"
+    assert props["official_reference"] == "PL 42/2026"
+    assert props["source_checked_at"]
+    assert props["accent"] == "#D0E5BC"
+    assert [scene["on_screen_text"] for scene in props["scenes"]] == [
+        scene["on_screen_text"] for scene in project["plan"]["scenes"]
+    ]
+    assert [scene["supporting_text"] for scene in props["scenes"]] == [
+        scene["narration"] for scene in project["plan"]["scenes"]
+    ]
 
     plan = project["plan"]
     plan["scenes"][0]["narration"] += " Texto revisado."
@@ -91,6 +104,12 @@ def test_official_politics_creates_editable_sourced_plan(
     assert updated.json()["plan"]["origin"] == "MANUAL"
     assert updated.json()["plan"]["source_refs"] == plan["source_refs"]
     assert source_label(updated.json()["plan"]) == "Fonte: Câmara dos Deputados"
+    revised_preview = client.get(f"{base}/preview")
+    assert revised_preview.status_code == 200, revised_preview.text
+    assert revised_preview.json()["props"]["editorial_style"] == "official_politics"
+    assert revised_preview.json()["props"]["scenes"][0]["supporting_text"].endswith(
+        "Texto revisado."
+    )
     assert client.post(f"/api/v1/projects/{project['id']}/voice").status_code == 202
     assert client.post(f"/api/v1/projects/{project['id']}/render").status_code == 409
     with SessionLocal() as db:

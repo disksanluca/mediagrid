@@ -4,6 +4,7 @@ export interface RenderScene {
   visual_type: string;
   transition: "impact" | "slide" | "cut" | "zoom" | "fade";
   on_screen_text?: string;
+  supporting_text?: string;
   asset_id?: string | null;
   media_kind?: "image" | "video";
   media_file?: string;
@@ -17,6 +18,9 @@ export interface RenderProps {
   format: "horizontal" | "vertical" | "square";
   accent: string;
   source_label?: string | null;
+  editorial_style?: "official_politics";
+  official_reference?: string;
+  source_checked_at?: string;
   scenes: RenderScene[];
   overlays?: RenderOverlay[];
   sounds?: RenderSound[];
