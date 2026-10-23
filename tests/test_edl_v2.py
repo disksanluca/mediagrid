@@ -223,6 +223,53 @@ def test_motion_card_is_versioned_and_reaches_shared_preview(client: TestClient)
     assert client.get(url).json()["renderer"] == "timeline-v2"
 
 
+def test_flow_diagram_is_closed_and_preserved_in_preview(client: TestClient) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Explainer", "slug": "explainer-test", "niche": "geo",
+        "default_engine": "geo",
+    }).json()
+    project = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Explainer local",
+        "topic": "Começamos pela pesquisa da fonte.\n"
+                 "Depois organizamos o roteiro.\n"
+                 "Por fim montamos o vídeo.",
+        "format": "horizontal",
+    }).json()
+    project_id = project["id"]
+    assert client.post(f"/api/v1/projects/{project_id}/plan").status_code == 200
+    url = f"/api/v1/projects/{project_id}/edl-v2"
+    timeline = client.get(url).json()
+    diagram = {
+        "id": "flow-1", "start_ms": 0, "duration_ms": 4000,
+        "z_index": 16, "preset": "flow_path_v1",
+        "params": {"text": "Da ideia ao quadro",
+                   "steps": ["Pesquisa", "Roteiro", "Vídeo"],
+                   "color": "#dcf769", "source_label": None,
+                   "keyframes": [
+                       {"at_ms": 0, "x": 0.5, "y": 0.5, "opacity": 0, "scale": 0.85},
+                       {"at_ms": 500, "x": 0.5, "y": 0.5, "opacity": 1, "scale": 1},
+                       {"at_ms": 4000, "x": 0.5, "y": 0.5, "opacity": 1, "scale": 1},
+                   ]},
+    }
+    timeline["edl"]["tracks"].append({
+        "id": "flow-diagrams", "kind": "caption", "items": [diagram],
+    })
+    bad = deepcopy(timeline["edl"])
+    bad["tracks"][-1]["items"][0]["params"]["steps"][1] = " "
+    with pytest.raises(ValidationError, match="short, nonempty"):
+        EDLV2.model_validate(bad)
+    saved = client.put(url, json={
+        "expected_revision": timeline["revision"],
+        "expected_legacy_sha256": timeline["legacy_sha256"],
+        "edl": timeline["edl"],
+    })
+    assert saved.status_code == 200, saved.text
+    preview = client.get(f"/api/v1/projects/{project_id}/preview").json()
+    overlay = preview["props"]["overlays"][0]
+    assert overlay["preset"] == "flow_path_v1"
+    assert overlay["steps"] == ["Pesquisa", "Roteiro", "Vídeo"]
+
+
 def test_v2_revision_api_preserves_legacy_render_and_rejects_stale_edit(
     client: TestClient,
 ) -> None:

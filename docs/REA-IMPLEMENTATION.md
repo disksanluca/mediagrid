@@ -275,6 +275,10 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   explícito se FFmpeg/FFprobe ainda não estiverem instalados na etapa de testes.
   O smoke posterior usa os binários portáteis do instalador para testar análise,
   seleção e render real; sua execução e resultado são gate separado.
+- Migração: tabela nova, sem modificar arquivos ou colunas legadas. `.env.example`
+  não requer nova variável. REAL local: API, SQLite, worker, FFmpeg e UI.
+  PAPER/MOCK: nenhum corte foi contabilizado como produto criativo. Custo de
+  API paga: zero; tempo e energia de produção em outros PCs não foram medidos.
 
 ## Marco 5 — cartão de motion integrado (primeira entrega vertical)
 
@@ -308,10 +312,31 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   diagrama/mapa vinculado a fontes, amostra de anúncio e explainer com mídia
   autorizada e revisão audiovisual integral. Este cartão não satisfaz sozinho
   o aceite criativo do marco.
-- Migração: tabela nova, sem modificar arquivos ou colunas legadas. `.env.example`
-  não requer nova variável. REAL local: API, SQLite, worker, FFmpeg e UI.
-  PAPER/MOCK: nenhum corte foi contabilizado como produto criativo. Custo de
-  API paga: zero; tempo e energia de produção em outros PCs não foram medidos.
+
+## Marco 5 — diagrama de fluxo editável (segunda entrega vertical)
+
+- `flow_path_v1` adiciona um diagrama conceitual de 2–4 etapas ao EDL v2,
+  com título, rótulos curtos, cor, tempo, keyframes e crédito visível opcional.
+  O esquema fechado recusa etapa vazia, texto excessivo, duração menor que 3 s
+  e posição fora da área segura. O Editor salva revisões reais; `Player` e
+  render usam as mesmas props. Sem crédito, o vídeo declara que o diagrama é
+  conceitual e pede confirmação de fontes/alegações. A revisão humana da
+  entrega continua exigindo URLs e confirmação factual/direitos.
+- `uv run python scripts/prove_video_pipeline.py --motion-card --flow-diagram
+  --synthetic-sound --format vertical` concluiu VOICE/RENDER em
+  `data/rea-proof/20261023T003747Z`: H.264/AAC 1080×1920, 31,0 s, SHA-256
+  `839ffa6ef72637d98052186b537a2e6c1171c666e33144f06cdbf6d35b752d1d`.
+  A prova horizontal em `data/rea-proof/20261023T003912Z` produziu
+  1920×1080, 31,0 s, SHA-256
+  `cc1b46bff6bc9d728ac7eac100e6476aaa783b6d931202d29cf441432b25b484`.
+  FFprobe e quadros em 12,5 s foram inspecionados; a primeira quebra ruim de
+  rótulos no horizontal foi corrigida e os quadros finais mostram as etapas
+  legíveis. Áudio sintético e voz local não constituem aceite editorial.
+- O smoke do instalador desta branch inclui cartão e diagrama no mesmo projeto,
+  prévia e MP4 com áudio; CI ainda pendente. Sem migração adicional de banco
+  nem variável nova no `.env.example`. REAL local: EDL/API/SQLite/UI/Remotion.
+  PAPER/MOCK: nenhum explainer factual concluído ou resultado de audiência.
+  Custo de API paga: zero; tempo/energia de produção externa não medidos.
 
 ## Ordem restante e gates
 

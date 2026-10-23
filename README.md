@@ -85,6 +85,11 @@ the EDL revision. The Remotion preview and MP4 use the same card props; the
 existing local voice and licensed music/SFX tracks can be mixed with it.
 Changing the card invalidates the previous render and editorial approval.
 This is one motion component, not a complete automated ad or explainer.
+Use **Editor → Diagrama de ideias** to add a conceptual two to four step flow.
+Its labels, title, color, timing and visible credit are saved with the EDL;
+the preview and MP4 animate the same sequence. Add source URLs in human review
+when the diagram makes factual claims. Without a source, the video labels it a
+conceptual diagram and blocks manual delivery until the existing source review.
 
 ## Current development fallback on Windows
 

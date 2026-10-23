@@ -26,7 +26,7 @@ export interface RenderProps {
 
 export interface RenderOverlay {
   id: string;
-  preset?: "kinetic_title_v1" | "motion_card_v1";
+  preset?: "kinetic_title_v1" | "motion_card_v1" | "flow_path_v1";
   start_ms: number;
   duration_ms: number;
   z_index: number;
@@ -35,6 +35,8 @@ export interface RenderOverlay {
   label?: string;
   body?: string;
   layout?: "stack" | "split";
+  steps?: string[];
+  source_label?: string | null;
   keyframes: Array<{
     at_ms: number;
     x: number;
