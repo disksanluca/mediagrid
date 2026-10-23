@@ -1,5 +1,6 @@
 """Wikimedia pageview drafts must preserve scope and block unreviewed export."""
 
+import copy
 from pathlib import Path
 
 import httpx
@@ -7,6 +8,9 @@ from fastapi.testclient import TestClient
 
 from apps.api import official_trends
 from apps.api.config import get_settings
+from apps.api.database import SessionLocal
+from apps.api.models import Channel, Project
+from apps.api.render_plan import render_props
 from workers.render.main import source_label
 
 DAY = "2025-05-01"
@@ -58,6 +62,9 @@ def test_wikimedia_search_import_review_and_export(
     assert len(project["plan"]["scenes"]) == 3
     assert len(project["plan"]["source_refs"][0]["snapshot_sha256"]) == 64
     assert project["plan"]["source_refs"][0]["data_license"] == "CC0 1.0"
+    assert project["plan"]["source_refs"][0]["article"] == "São_Paulo"
+    assert project["plan"]["source_refs"][0]["views"] == "17234"
+    assert project["plan"]["source_refs"][0]["rank"] == "2"
     assert "17.234" in project["plan"]["scenes"][0]["narration"]
     assert project["plan"]["scenes"][0]["on_screen_text"].startswith("São Paulo\n")
     assert "não audiência no Instagram" in project["plan"]["scenes"][2]["narration"]
@@ -66,6 +73,35 @@ def test_wikimedia_search_import_review_and_export(
         scene["narration"] for scene in project["plan"]["scenes"]
     ]
     assert len(project["edl"]["tracks"]["video"]) == 3
+    with SessionLocal() as db:
+        saved = db.get(Project, project_id)
+        saved_channel = db.get(Channel, channel["id"])
+        assert saved is not None and saved_channel is not None
+        props = render_props(saved, saved_channel, saved.edl["tracks"]["video"], [], [], [])
+        assert props["editorial_style"] == "wikimedia_trends"
+        assert (props["wiki_article"], props["wiki_views"], props["wiki_rank"]) == (
+            "São Paulo", 17234, 2,
+        )
+        edited_edl = dict(saved.edl)
+        edited_edl["tracks"] = dict(saved.edl["tracks"])
+        edited_edl["tracks"]["captions"] = [
+            dict(item) for item in saved.edl["tracks"]["captions"]
+        ]
+        edited_edl["tracks"]["captions"][0]["text"] = "Legenda editada"
+        saved.edl = edited_edl
+        edited_props = render_props(
+            saved, saved_channel, saved.edl["tracks"]["video"], [], [], [],
+        )
+        assert "editorial_style" not in edited_props
+        assert edited_props["scenes"][0]["on_screen_text"] == "Legenda editada"
+        saved.edl = project["edl"]
+        altered_plan = copy.deepcopy(saved.plan)
+        altered_plan["source_refs"][0]["views"] = "99999"
+        saved.plan = altered_plan
+        untrusted_props = render_props(
+            saved, saved_channel, saved.edl["tracks"]["video"], [], [], [],
+        )
+        assert "editorial_style" not in untrusted_props
     base = f"/api/v1/projects/{project_id}"
     claims = client.get(f"{base}/claims").json()
     assert len(claims) == 3

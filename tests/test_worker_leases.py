@@ -1,11 +1,13 @@
 """A second worker must not steal a live claim during recovery."""
 
 import hashlib
+import importlib
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from pathlib import Path
 from threading import Barrier
+from types import SimpleNamespace
 
 import pytest
 
@@ -21,6 +23,28 @@ from workers.render.artifacts import (
 from workers.render.lease import start_lease_heartbeat
 from workers.render.main import recover_interrupted_jobs
 from workers.render.proxy import ProxyBuild
+
+
+def test_idle_worker_recovers_lease_lost_after_startup(monkeypatch) -> None:
+    worker_main = importlib.import_module("workers.render.main")
+    recoveries = []
+
+    class EndLoop(Exception):
+        pass
+
+    monkeypatch.setattr(worker_main, "get_settings", lambda: SimpleNamespace(
+        mediagrid_mode="LOCAL",
+    ))
+    monkeypatch.setattr(worker_main, "recover_interrupted_jobs",
+                        lambda: recoveries.append(True))
+    monkeypatch.setattr(worker_main, "backup_local_database", lambda: None)
+    monkeypatch.setattr(worker_main, "media_one", lambda: False)
+    monkeypatch.setattr(worker_main, "render_one", lambda: False)
+    monkeypatch.setattr(worker_main.time, "sleep",
+                        lambda _: (_ for _ in ()).throw(EndLoop))
+    with pytest.raises(EndLoop):
+        worker_main.main([])
+    assert len(recoveries) == 2
 
 
 def test_claim_and_recover_only_expired_leases() -> None:

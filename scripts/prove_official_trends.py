@@ -98,7 +98,10 @@ def main() -> None:
             raise RuntimeError("Render worker did not claim the job")
         render = checked(client.get(f"/api/v1/jobs/{render_id}"))
         if render["status"] != "SUCCEEDED":
-            raise RuntimeError(f"Render failed: {render['error']}")
+            raise RuntimeError(
+                f"Render not complete: status={render['status']}, "
+                f"attempt={render['attempt']}, error={render['error']}"
+            )
         project = checked(client.get(f"/api/v1/projects/{project_id}"))
         served = client.get(f"/api/v1/projects/{project_id}/output")
         video_digest = render["result"]["sha256"]

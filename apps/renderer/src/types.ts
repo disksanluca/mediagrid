@@ -18,9 +18,13 @@ export interface RenderProps {
   format: "horizontal" | "vertical" | "square";
   accent: string;
   source_label?: string | null;
-  editorial_style?: "official_politics";
+  editorial_style?: "official_politics" | "wikimedia_trends";
   official_reference?: string;
   source_checked_at?: string;
+  wiki_article?: string;
+  wiki_views?: number;
+  wiki_rank?: number;
+  wiki_observed_on?: string;
   scenes: RenderScene[];
   overlays?: RenderOverlay[];
   sounds?: RenderSound[];

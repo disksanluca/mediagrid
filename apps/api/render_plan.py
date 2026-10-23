@@ -1,9 +1,11 @@
 """Shared, deterministic props for the browser preview and local renderer."""
 
+import hashlib
 import json
 import re
 import subprocess
 import wave
+from datetime import date
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -103,6 +105,70 @@ def render_props(
                     scene["supporting_text"] = narration
             if re.match(r"^\d{4}-\d{2}-\d{2}T", fetched_at):
                 props["source_checked_at"] = fetched_at[:10]
+            if accent == "#c5ccd6":
+                props["accent"] = "#D0E5BC"
+            break
+    if (project.format == "vertical" and plan.get("engine") == "trends"
+            and plan.get("origin") == "OFFICIAL_SOURCE"):
+        for source in plan.get("source_refs", []):
+            if not isinstance(source, dict):
+                continue
+            api_url = source.get("api_url")
+            article = source.get("article")
+            title = source.get("article_title")
+            views = source.get("views")
+            rank = source.get("rank")
+            observed_on = source.get("observed_on")
+            digest = source.get("snapshot_sha256")
+            display_day = (f"{observed_on[8:10]}/{observed_on[5:7]}/"
+                           f"{observed_on[:4]}") if isinstance(observed_on, str) else ""
+            views_text = f"{int(views):,}".replace(",", ".") if (
+                isinstance(views, str) and re.fullmatch(r"[1-9]\d{0,11}", views)) else ""
+            expected_title = (f"{title[:50]}{'…' if len(title) > 50 else ''}"
+                              if isinstance(title, str) else "")
+            if (not isinstance(api_url, str)
+                    or urlparse(api_url).hostname != "wikimedia.org"
+                    or not isinstance(article, str) or not 0 < len(article) <= 140
+                    or not isinstance(title, str) or not 0 < len(title) <= 140
+                    or title != article.replace("_", " ")
+                    or not isinstance(views, str) or not re.fullmatch(r"[1-9]\d{0,11}", views)
+                    or not isinstance(rank, str) or not re.fullmatch(r"[1-9]\d{0,3}", rank)
+                    or not isinstance(observed_on, str)
+                    or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", observed_on)
+                    or not isinstance(digest, str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", digest)
+                    or captions.get("wiki-views") != (
+                        f"{expected_title}\n{views_text} visualizações · {display_day}")
+                    or captions.get("wiki-rank") != f"Posição {rank} · Wikipédia PT"
+                    or captions.get("wiki-limits") != "Sinal de leitura, não audiência social"):
+                continue
+            try:
+                date.fromisoformat(observed_on)
+            except ValueError:
+                continue
+            if api_url != (
+                "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/"
+                "pt.wikipedia.org/all-access/"
+                f"{observed_on[:4]}/{observed_on[5:7]}/{observed_on[8:10]}"
+            ):
+                continue
+            snapshot = {
+                "project": "pt.wikipedia", "access": "all-access",
+                "day": observed_on, "article": article,
+                "views": int(views), "rank": int(rank),
+            }
+            actual_digest = hashlib.sha256(json.dumps(
+                snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+            ).encode("utf-8")).hexdigest()
+            if actual_digest != digest:
+                continue
+            props.update({
+                "editorial_style": "wikimedia_trends",
+                "wiki_article": title,
+                "wiki_views": int(views),
+                "wiki_rank": int(rank),
+                "wiki_observed_on": observed_on,
+            })
             if accent == "#c5ccd6":
                 props["accent"] = "#D0E5BC"
             break

@@ -26,6 +26,16 @@ fila PostgreSQL. Não oferece ainda worker remoto ou VPS utilizável.
   também usa tentativa exclusiva e promoção após o fence. Uma tentativa vencida
   apaga seu temporário. Falha na promoção marca o job como `FAILED`, sem devolver
   sucesso; no render do projeto também marca o projeto como `FAILED`.
+- Se um computador Windows retomar após perder o lease durante Remotion, o
+  artefato tardio continua descartado. Quando o loop do worker volta a ficar
+  ocioso, ele recupera jobs expirados e os coloca novamente na fila, respeitando
+  `max_attempts`. A prova Trends de 23/10/2026 observou uma tentativa vencida
+  recusada e uma execução posterior bem-sucedida. O processo de Remotion limita
+  concorrência a `MEDIAGRID_RENDER_CONCURRENCY` (padrão 4) e desativa codificação
+  paralela; [opções oficiais](https://www.remotion.dev/docs/cli/render).
+  Durante esse subprocesso, o Windows recebe um pedido temporário para evitar
+  suspensão automática por ociosidade, limpo em `finally` conforme a
+  [documentação da Microsoft](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setthreadexecutionstate).
 - A voz local gera WAV e digest do roteiro em temporários exclusivos. O worker
   promove primeiro o WAV e depois o digest somente após o fence. Se o digest
   faltar, preserva o WAV anterior e falha o job. Uma queda entre as duas
