@@ -64,6 +64,10 @@ def main() -> None:
     if not voice_available():
         raise RuntimeError("Windows speech synthesis is unavailable")
     proposal, status = fetch_proposal(args.proposal_id)
+    source_digest = hashlib.sha256(json.dumps(
+        {"proposal": proposal, "status": status}, ensure_ascii=False,
+        sort_keys=True, separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
     (run_dir / "source.json").write_text(json.dumps(
         {"proposal": proposal, "status": status}, ensure_ascii=False, indent=2,
     ), encoding="utf-8")
@@ -77,6 +81,8 @@ def main() -> None:
         }))
         project_id = project["id"]
         plan = project["plan"]
+        if plan["source_refs"][0]["source_sha256"] != source_digest:
+            raise RuntimeError("Official record changed between the proof fetch and import")
         claims = checked(client.get(f"/api/v1/projects/{project_id}/claims"))
         if (plan["origin"] != "OFFICIAL_SOURCE" or len(plan["scenes"]) < 3
                 or len(claims) < 2 or any(
@@ -119,7 +125,7 @@ def main() -> None:
     evidence = {
         "proposal_id": args.proposal_id,
         "source_url": proposal["source_url"],
-        "source_record_sha256": hashlib.sha256((run_dir / "source.json").read_bytes()).hexdigest(),
+        "source_record_sha256": source_digest,
         "project_id": project_id,
         "plan_origin": plan["origin"],
         "scene_count": len(plan["scenes"]),

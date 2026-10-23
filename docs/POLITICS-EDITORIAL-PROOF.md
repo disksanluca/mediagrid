@@ -31,6 +31,10 @@ H.264/AAC, 1080×1920, 43,133 s, SHA-256
 O título da cena principal passou a “O reajuste anual dos valores do Programa
 Bolsa Família”, extraído da ementa. Quadros em 13 s e 29 s foram inspecionados:
 texto legível, composição tipográfica ainda simples e bastante espaço vazio.
+Uma segunda execução em `20261023T202812Z` confirmou o mesmo MP4 e verificou
+que o SHA-256 canônico do registro lido para a prova coincide com o digest
+salvo no plano importado; se o registro mudar entre as duas consultas, a
+prova falha em vez de atribuir a fonte errada ao vídeo.
 
 ## Limites
 
