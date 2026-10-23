@@ -102,6 +102,17 @@ tool does not recognize goals or players, choose music, or publish automatically
 Inspect the entire export before use; without authorized footage and music,
 only synthetic technical tests are possible.
 
+For a factual explainer in a Geo, Politics or Trends project, use
+**Editor → Alegações e fontes**. Attach each factual statement to a scene,
+source URL, publication date and the supporting excerpt. Open the source and
+confirm its context before approving that individual claim. Adding a claim
+turns the project into a knowledge explainer: final review requires every
+current claim approved and its URL in the source list. The Editor adds the
+claim URLs to the final review request automatically. The manual export
+records the reviewed claim ledger and its digest. Editing or removing a claim,
+or changing the script or timeline, revokes the relevant review. MediaGrid
+does not verify truth by itself or fetch arbitrary URLs on the user's behalf.
+
 ## Current development fallback on Windows
 
 See [SETUP.md](SETUP.md) for installation and troubleshooting. On Windows, double-click

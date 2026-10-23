@@ -1,4 +1,4 @@
-import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, DoctorReport, FootballSequence, FootballShot, GeoMunicipality, HardwareProfile, Job, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord} from "./types";
+import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, DoctorReport, FootballSequence, FootballShot, GeoMunicipality, HardwareProfile, Job, KnowledgeClaim, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord} from "./types";
 import {desktopRuntime} from "./desktop";
 
 export interface UploadState {
@@ -115,6 +115,15 @@ export const api = {
   renderFootball: (projectId:string) => request<{job_id:string;status:string}>(`/projects/${projectId}/football/render`,{method:"POST"}),
   footballRenderStatus: (projectId:string) => request<{job_id:string;status:string;error:string|null}|null>(`/projects/${projectId}/football/render-status`),
   footballVideo: (projectId:string,jobId:string) => `${baseUrl}/projects/${projectId}/football/render/${jobId}`,
+  claims: (projectId:string) => request<KnowledgeClaim[]>(`/projects/${projectId}/claims`),
+  addClaim: (projectId:string,body:Omit<KnowledgeClaim,"id"|"project_id"|"revision"|"status"|"reviewed_at">) =>
+    request<KnowledgeClaim>(`/projects/${projectId}/claims`,{method:"POST",body:JSON.stringify(body)}),
+  saveClaim: (projectId:string,claimId:string,body:Omit<KnowledgeClaim,"id"|"project_id"|"revision"|"status"|"reviewed_at"> & {expected_revision:number}) =>
+    request<KnowledgeClaim>(`/projects/${projectId}/claims/${claimId}`,{method:"PUT",body:JSON.stringify(body)}),
+  approveClaim: (projectId:string,claimId:string,revision:number) =>
+    request<KnowledgeClaim>(`/projects/${projectId}/claims/${claimId}/approve`,{method:"POST",body:JSON.stringify({expected_revision:revision,source_opened:true,excerpt_matches:true,context_checked:true})}),
+  removeClaim: (projectId:string,claimId:string,revision:number) =>
+    request<KnowledgeClaim>(`/projects/${projectId}/claims/${claimId}/remove`,{method:"POST",body:JSON.stringify({expected_revision:revision})}),
   system: () => request<SystemStatus>("/system"),
   hardware: () => request<HardwareProfile>("/system/hardware"),
   doctor: (internet=false) => request<DoctorReport>(`/system/doctor?internet=${internet}`),

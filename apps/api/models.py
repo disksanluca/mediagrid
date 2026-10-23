@@ -1,5 +1,5 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -7,6 +7,7 @@ from sqlalchemy import (
     JSON,
     BigInteger,
     Boolean,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -227,6 +228,24 @@ class FootballSequence(TimestampMixin, Base):
     shots_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
     score_label: Mapped[str | None] = mapped_column(String(80), nullable=True)
     score_source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class KnowledgeClaim(TimestampMixin, Base):
+    """One cited factual assertion requiring individual human review."""
+
+    __tablename__ = "knowledge_claims"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), index=True)
+    scene_id: Mapped[str] = mapped_column(String(100))
+    text: Mapped[str] = mapped_column(Text)
+    source_url: Mapped[str] = mapped_column(Text)
+    source_title: Mapped[str] = mapped_column(String(240))
+    published_at: Mapped[date] = mapped_column(Date)
+    support_excerpt: Mapped[str] = mapped_column(Text)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[str] = mapped_column(String(24), default="REVIEW_REQUIRED")
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class Job(TimestampMixin, Base):
