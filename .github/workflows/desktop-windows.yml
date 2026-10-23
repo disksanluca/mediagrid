@@ -40,7 +40,7 @@ on:
 jobs:
   desktop:
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -50,7 +50,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: npm ci
       - run: uv python install 3.12
-      - run: uv sync --frozen
+      - run: uv sync --frozen --extra asr
       - name: Test local Python services
         shell: pwsh
         run: |

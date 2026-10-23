@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_model: str = "llama3.2"
     whisper_model_path: Path | None = None
+    mediagrid_asr_model_dir: Path | None = None
     whisper_cli_path: str = "whisper-cli"
     mediagrid_renderer_root: Path | None = None
     mediagrid_node_path: Path | None = None

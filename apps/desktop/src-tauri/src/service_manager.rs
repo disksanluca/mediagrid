@@ -306,6 +306,7 @@ fn service_command(
         let renderer_entry = renderer.join("src").join("index.ts");
         let ffmpeg = runtime.join("bin").join("ffmpeg.exe");
         let ffprobe = runtime.join("bin").join("ffprobe.exe");
+        let asr_model = runtime.join("models").join("faster-whisper-base");
         let browser_relative = fs::read_to_string(runtime.join("browser-path.txt"))
             .map_err(|error| format!("Missing local renderer browser path: {error}"))?;
         let browser = renderer.join(browser_relative.trim());
@@ -322,6 +323,12 @@ fn service_command(
         command.env("MEDIAGRID_FFMPEG_PATH", ffmpeg);
         command.env("MEDIAGRID_FFPROBE_PATH", ffprobe);
         command.env("MEDIAGRID_BROWSER_PATH", browser);
+        for required in [asr_model.join("config.json"), asr_model.join("model.bin")] {
+            if !required.is_file() {
+                return Err(format!("Missing local ASR model file: {}", required.display()));
+            }
+        }
+        command.env("MEDIAGRID_ASR_MODEL_DIR", asr_model);
     }
     #[cfg(windows)]
     {

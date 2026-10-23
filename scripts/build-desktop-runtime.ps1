@@ -21,6 +21,12 @@ if (-not (Test-Path $ffmpeg) -or -not (Test-Path $ffprobe)) { throw "FFmpeg port
 New-Item -ItemType Directory -Force -Path (Join-Path $runtime "bin") | Out-Null
 Copy-Item $ffmpeg (Join-Path $runtime "bin\ffmpeg.exe")
 Copy-Item $ffprobe (Join-Path $runtime "bin\ffprobe.exe")
+$filters = & (Join-Path $runtime "bin\ffmpeg.exe") -hide_banner -filters 2>&1
+if (-not ($filters | Select-String -Pattern "\ssubtitles\s")) {
+    throw "O FFmpeg portátil precisa do filtro subtitles/libass para exportar MP4 legendado."
+}
+uv run --project $projectRoot --extra asr python (Join-Path $projectRoot "scripts\bundle_asr_model.py") --target (Join-Path $runtime "models\faster-whisper-base")
+if ($LASTEXITCODE -ne 0) { throw "Falha ao preparar modelo ASR local verificado." }
 
 & (Join-Path $runtime "node.exe") "node_modules\@remotion\cli\remotion-cli.js" browser ensure
 if ($LASTEXITCODE -ne 0) { throw "Falha ao preparar o navegador local do renderer." }
@@ -28,4 +34,4 @@ $browser = Get-ChildItem (Join-Path $renderer "node_modules\.remotion") -Filter 
 if (-not $browser) { throw "Navegador local do renderer não foi encontrado no pacote." }
 $browserRelativePath = $browser.FullName.Substring($renderer.Length + 1)
 Set-Content -Path (Join-Path $runtime "browser-path.txt") -Value $browserRelativePath -NoNewline
-Write-Host "Runtime local pronto: Node, Remotion, FFmpeg, FFprobe e Chromium."
+Write-Host "Runtime local pronto: Node, Remotion, FFmpeg, FFprobe, Chromium e ASR offline."

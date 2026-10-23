@@ -1,4 +1,4 @@
-import type {Asset, Channel, ContentPlan, DoctorReport, GeoMunicipality, HardwareProfile, Job, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimelineResponse} from "./types";
+import type {Asset, CaptionCue, Channel, ContentPlan, DoctorReport, GeoMunicipality, HardwareProfile, Job, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord} from "./types";
 import {desktopRuntime} from "./desktop";
 
 export interface UploadState {
@@ -54,6 +54,7 @@ export const api = {
   channels: () => request<Channel[]>("/channels"),
   projects: () => request<Project[]>("/projects"),
   jobs: () => request<Job[]>("/jobs"),
+  job: (id:string) => request<Job>(`/jobs/${id}`),
   assets: () => request<Asset[]>("/assets"),
   createUpload: (body: {name:string;media_type:string;size_bytes:number;rights_status:string;creator:string|null;source_url:string|null;license_name:string|null;commercial_use:boolean}) =>
     request<UploadState>("/assets/uploads", {method:"POST", body:JSON.stringify(body)}),
@@ -81,6 +82,22 @@ export const api = {
     if (!response.ok) throw new Error("Transcrição ainda não disponível.");
     return response.text();
   },
+  asrStatus: () => request<{word_asr_available:boolean;engine:string}>("/assets/asr-status"),
+  transcribeWords: (id:string) => request<{job_id:string;status:string}>(`/assets/${id}/transcribe-words`, {method:"POST"}),
+  transcriptV2: async (id:string): Promise<TimedTranscript|null> => {
+    const response=await fetch(`${await resolveBaseUrl()}/assets/${id}/transcript-v2`,{cache:"no-store"});
+    if(response.status===404)return null;
+    if(!response.ok){const body=(await response.json().catch(()=>null)) as {detail?:unknown}|null;throw new Error(errorMessage(body?.detail,response.status));}
+    return response.json() as Promise<TimedTranscript>;
+  },
+  saveTranscript: (id:string, body:{expected_revision:number;language:string;words:TranscriptWord[];cues:CaptionCue[]}) =>
+    request<TimedTranscript>(`/assets/${id}/transcript-v2`,{method:"PUT",body:JSON.stringify(body)}),
+  approveCaptions: (id:string, revision:number) =>
+    request<TimedTranscript>(`/assets/${id}/captions/approve`,{method:"POST",body:JSON.stringify({expected_revision:revision})}),
+  captionFile: (id:string,format:"srt"|"vtt") => `${baseUrl}/assets/${id}/captions.${format}`,
+  renderCaptions: (id:string,revision:number) => request<{job_id:string;status:string}>(`/assets/${id}/captions/render`,{method:"POST",body:JSON.stringify({expected_revision:revision})}),
+  captionRenderStatus: (id:string) => request<{job_id:string;status:string;error:string|null}|null>(`/assets/${id}/captions/render-status`),
+  captionVideo: (id:string,jobId:string) => `${baseUrl}/assets/${id}/captions/render/${jobId}`,
   system: () => request<SystemStatus>("/system"),
   hardware: () => request<HardwareProfile>("/system/hardware"),
   doctor: (internet=false) => request<DoctorReport>(`/system/doctor?internet=${internet}`),

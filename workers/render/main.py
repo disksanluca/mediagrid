@@ -14,9 +14,12 @@ from uuid import uuid4
 from fastapi import HTTPException
 from sqlalchemy import select
 
+from apps.api.asr_words import transcribe_words
+from apps.api.captions import group_words, probe_media, validate_timing
 from apps.api.config import get_settings
 from apps.api.database import SessionLocal
 from apps.api.edl_v2 import EDLV2, scene_projection
+from apps.api.ingestion import sha256_file
 from apps.api.local_media import narration_text, synthesize_voice, transcribe_media, voice_matches
 from apps.api.models import (
     Asset,
@@ -26,12 +29,15 @@ from apps.api.models import (
     Project,
     ProjectRevision,
     ProjectStatus,
+    Transcript,
     now,
 )
 from apps.api.render_plan import fit_video_to_voice, render_props
 from apps.api.render_plan import source_label as source_label
 from apps.api.scene_media import stage_scene_assets, stage_sound_assets
 from apps.api.services import claim_next_job, record_event
+from apps.api.transcripts import replace_words
+from workers.render.caption_video import burn_captions
 from workers.render.proxy import build_proxy
 
 logger = logging.getLogger(__name__)
@@ -85,7 +91,9 @@ def recover_interrupted_jobs() -> None:
     with SessionLocal() as db:
         jobs = db.scalars(
             select(Job).where(
-                Job.job_type.in_(["RENDER", "VOICE", "TRANSCRIBE", "PROXY"]),
+                Job.job_type.in_([
+                    "RENDER", "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
+                ]),
                 Job.status == JobStatus.RUNNING.value,
             )
         ).all()
@@ -370,7 +378,7 @@ def media_one() -> bool:
             select(Job)
             .where(
                 Job.status == JobStatus.QUEUED.value,
-                Job.job_type.in_(["VOICE", "TRANSCRIBE", "PROXY"]),
+                Job.job_type.in_(["VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER"]),
             )
             .order_by(Job.priority, Job.created_at)
             .limit(1)
@@ -381,6 +389,7 @@ def media_one() -> bool:
         job.attempt += 1
         job.started_at = now()
         db.commit()
+        output = None
         try:
             if job.job_type == "VOICE":
                 project = db.get(Project, job.project_id) if job.project_id else None
@@ -399,6 +408,59 @@ def media_one() -> bool:
                     raise ValueError("Proxy asset not found")
                 job.result = build_proxy(db, job, asset)
                 output = settings.mediagrid_data_dir / "proxies" / f"{asset.id}.mp4"
+            elif job.job_type == "ASR_WORDS":
+                asset_id = job.payload.get("asset_id")
+                asset = db.get(Asset, asset_id) if asset_id else None
+                if asset is None:
+                    raise ValueError("ASR asset not found")
+                source = settings.mediagrid_data_dir / "assets" / asset.id
+                if not source.is_file() or sha256_file(source) != asset.sha256:
+                    raise ValueError("ASR original changed after import")
+                if job.payload.get("sha256") != asset.sha256:
+                    raise ValueError("ASR job source hash mismatch")
+                if db.scalar(select(Transcript).where(Transcript.asset_id == asset.id)):
+                    raise ValueError("Transcript already exists; human edits are preserved")
+                def progress(value: float) -> None:
+                    job.progress = min(0.95, 0.05 + 0.9 * value)
+                    db.commit()
+                words, language, version = transcribe_words(source, progress)
+                cues = group_words(words)
+                duration_ms, _ = probe_media(source)
+                validate_timing(words, cues, duration_ms)
+                db.expire_all()
+                if db.scalar(select(Transcript).where(Transcript.asset_id == asset.id)):
+                    raise ValueError("Transcript appeared during ASR; human edits are preserved")
+                model_dir = settings.mediagrid_asr_model_dir
+                if model_dir is None:
+                    raise ValueError("Local ASR model disappeared during transcription")
+                model_id = f"sha256:{sha256_file(model_dir / 'model.bin')}"
+                transcript = Transcript(
+                    asset_id=asset.id, source_sha256=asset.sha256,
+                    engine="FASTER_WHISPER_CPU", model_id=model_id,
+                    model_version=version, language=language, revision=1,
+                    status="REVIEW_REQUIRED" if words else "NO_SPEECH_DETECTED",
+                    cues_json=[cue.model_dump() for cue in cues],
+                )
+                db.add(transcript)
+                db.flush()
+                replace_words(db, transcript, words)
+                job.result = {
+                    "asset_id": asset.id, "transcript_id": transcript.id,
+                    "source_sha256": asset.sha256, "words": len(words),
+                    "cues": len(cues), "status": transcript.status,
+                    "engine": transcript.engine, "model_version": version,
+                    "model_id": model_id,
+                }
+            elif job.job_type == "CAPTION_RENDER":
+                asset_id = job.payload.get("asset_id")
+                asset = db.get(Asset, asset_id) if asset_id else None
+                transcript = db.scalar(select(Transcript).where(Transcript.asset_id == asset_id))
+                if asset is None or transcript is None:
+                    raise ValueError("Caption asset or transcript not found")
+                if (job.payload.get("sha256") != asset.sha256
+                        or job.payload.get("revision") != transcript.revision):
+                    raise ValueError("Caption source or review changed after queueing")
+                job.result = burn_captions(asset, transcript, job.id)
             else:
                 asset_id = job.payload.get("asset_id")
                 asset = db.get(Asset, asset_id) if asset_id else None
@@ -411,9 +473,12 @@ def media_one() -> bool:
                 transcribe_media(source, output)
             job.status = JobStatus.SUCCEEDED.value
             job.progress = 1
-            job.result = {**(job.result or {}), "output": str(output)}
+            job.result = {
+                **(job.result or {}), **({"output": str(output)} if output else {}),
+            }
             record_event(db, f"{job.job_type}_FINISHED", "job", job.id, after=job.result)
-        except (OSError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
+        except (OSError, ValueError, RuntimeError, ImportError,
+                subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             job.status = JobStatus.FAILED.value
             job.error = str(exc)
             if job.job_type == "PROXY":
