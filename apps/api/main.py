@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from . import auth
 from .config import get_settings
 from .migrate import main as migrate
-from .routes import assets, channels, geo, jobs, politics, projects, system
+from .routes import assets, channels, geo, jobs, politics, projects, system, transcripts
 
 
 @asynccontextmanager
@@ -79,6 +79,7 @@ for router in (
     politics.router,
     geo.router,
     assets.router,
+    transcripts.router,
     jobs.router,
     system.router,
 ):

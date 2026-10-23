@@ -140,6 +140,21 @@ export interface Asset {
   created_at: string;
 }
 
+export interface TranscriptWord {
+  start_ms:number; end_ms:number; text:string;
+  confidence:number|null; speaker_id:string|null; edited:boolean;
+}
+
+export interface CaptionCue {
+  start_ms:number; end_ms:number; text:string; speaker_id:string|null;
+}
+
+export interface TimedTranscript {
+  asset_id:string; source_sha256:string; engine:string;
+  model_id:string; model_version:string; language:string;
+  revision:number; status:string; words:TranscriptWord[]; cues:CaptionCue[];
+}
+
 export interface SystemStatus {
   mode: string;
   paid_ai_allowed: boolean;

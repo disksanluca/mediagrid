@@ -188,13 +188,59 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   Sem mídia autorizada, cortes e Football Edit permanecem bloqueados para
   aceite criativo. Nenhum deploy, publicação ou custo de API paga ocorreu.
 
+## Marco 3 — ASR local e legendas corrigíveis (prova técnica)
+
+- A migração `0004_transcripts` acrescenta `transcripts` e `transcript_words`.
+  Cada transcrição guarda hash da mídia original, motor/versão/idioma, revisão,
+  estado editorial, palavras com tempo/confiança e cues corrigíveis. A API
+  rejeita tempos fora da mídia, sobreposição de legendas e salvamentos sobre
+  revisão concorrente. Uma edição revoga a aprovação e o MP4 anterior.
+- O job `ASR_WORDS` usa `faster-whisper==1.2.1` em CPU/int8 com modelo local,
+  sem chamada de inferência à nuvem ou download em execução. Lê áudio em
+  blocos de cinco minutos para conter memória. Sem fala, persiste
+  `NO_SPEECH_DETECTED`; falhas são `FAILED` com erro real. A interface mostra
+  player, forma de onda quando existe, palavras e cues editáveis, revisão e
+  SRT/VTT só após aprovação humana.
+- O job `CAPTION_RENDER` grava legendas aprovadas no MP4 local com FFmpeg/libass,
+  preserva áudio quando presente e verifica duração, streams e SHA-256. O
+  download é revogado se o original, a aprovação ou o arquivo gerado mudar.
+  Direitos `OWNED`/`LICENSED` são exigidos antes de criar esse derivado.
+- O instalador passa a incluir o motor ASR e o modelo MIT
+  `Systran/faster-whisper-base` fixado em
+  `ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66`. O build confere SHA-256
+  `d01c3014881c9c6f3133c182f3d2887eb6ca1c789a7538c5c007196857a0a6a9`
+  do `model.bin` e o filtro `subtitles` do FFmpeg portátil. O download do
+  modelo ocorre somente no build do instalador; o aplicativo instalado
+  executa offline. O smoke test Windows do novo pacote ainda precisa terminar
+  no CI antes de confirmar esta etapa no desktop empacotado.
+- `uv run python scripts/prove_word_asr.py --model-dir CAMINHO_DO_MODELO`
+  executou o fluxo API → worker → SQLite → revisão → SRT → MP4 em banco
+  isolado com vídeo e voz sintéticos. Em
+  `data/rea-proof/20261023T000056Z-asr`, obteve 13 palavras, três cues,
+  idioma `pt`, modelo `1.2.1`, MP4 de 6,772 s com SHA-256
+  `a2f17454e434d0755b22d61ef5400a7eb6232120f21f79d8700cced48f7df4a5`.
+  Um quadro em 2 s foi inspecionado e mostra a legenda sobre o vídeo.
+  A audição humana completa e o teste com mídia autorizada ainda faltam.
+- A mesma prova com o FFmpeg portátil `@ffmpeg-installer/win32-x64@4.1.0`
+  gerou `data/rea-proof/20261023T000517Z-asr`: 13 palavras, três cues,
+  MP4 com 7,533 s e SHA-256
+  `7a3e52dc1e510fa86e7e39b1e9007c5f12b5b2ac40ffdbce65c09ccd9f3d4386`.
+  `pwsh -NoProfile -File scripts/build-desktop-sidecar.ps1` concluiu o EXE
+  local. A API congelada reportou `word_asr_available=true`; o worker EXE
+  processou um WAV sintético em `ASR_WORDS` com `SUCCEEDED`, 13 palavras e
+  três cues. Isto ainda não substitui o smoke do instalador Tauri.
+- `uv run pytest -q tests`: **63 passed**. `uv run ruff check .`:
+  passou. TypeScript do web/renderer e `next build apps/web`: passaram.
+- Nenhuma API paga, VPS ou publicação foi ativada. O custo de inferência local
+  foi zero em API; consumo elétrico e tempo em outras máquinas não foram medidos.
+
 ## Ordem restante e gates
 
 1. Fechar Marco 1: validação visual/auditiva no desktop empacotado.
    Manter a projeção estrita enquanto o
    renderer v2 não suportar os novos elementos.
 2. Ingestão longa com hash, probe, direitos, proxy e retomada.
-3. Voz humana/local, ASR por palavra e captions corrigíveis.
+3. Fechar Marco 3 no instalador Windows e fazer QA auditivo/visual humano.
 4. Máquina de cortes com contexto e seleção humana; depois Motion Ad,
    Explainer, Football Edit, conhecimento com evidências, Humor 2D e 3D.
 5. Web/VPS apenas depois de auth por recurso, PostgreSQL, fila com leases,
@@ -224,7 +270,12 @@ fixado, com render local; a documentação atual recomenda `@remotion/media`
 para novos usos. A migração de pacote ficará para uma mudança versionada.
 A [licença oficial](https://www.remotion.dev/docs/license/faq) depende do tipo
 e porte da organização; nenhuma licença paga foi ativada. FFmpeg, Câmara,
-IBGE e provedores de ASR não tiveram protocolos alterados nesta etapa.
+IBGE não tiveram protocolos externos alterados nesta etapa. Para as legendas,
+foram verificados o filtro [subtitles/libass](https://ffmpeg.org/ffmpeg-filters.html#subtitles),
+o [código e licença MIT do faster-whisper](https://github.com/SYSTRAN/faster-whisper),
+o [modelo MIT fixado](https://huggingface.co/Systran/faster-whisper-base/tree/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66)
+e o [download por revisão do Hugging Face Hub](https://huggingface.co/docs/huggingface_hub/main/en/guides/download)
+em 22/10/2026. A versão de runtime é `faster-whisper 1.2.1`; modelo de 148 MB.
 
 ## Operação, integrações e custos
 
@@ -236,7 +287,7 @@ Saídas ficam em `data/rea-proof` e são ignoradas pelo Git.
 
 REAL local: FastAPI, SQLite, jobs, voz Windows, Remotion/FFmpeg e ZIP manual.
 PAPER/MOCK: nenhum resultado desta etapa foi contabilizado como produção.
-Bloqueados/pendentes: ASR integrado, Blender instalado/testado, VPS, OAuth de
+Bloqueados/pendentes: smoke do novo instalador, Blender instalado/testado, VPS, OAuth de
 publicação, mídia autorizada para provas criativas e revisão humana final.
 Custo de API paga nesta etapa: zero. Tempo/custo de GPU, VPS e provedores não
 foram medidos; não há estimativa fictícia.

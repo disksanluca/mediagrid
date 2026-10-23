@@ -54,7 +54,7 @@ try {
   $sourceVideo = Join-Path $env:RUNNER_TEMP "mediagrid-scene.mp4"
   & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "color=c=red:s=320x180:d=1" -frames:v 1 -update 1 $sourceImage
   if ($LASTEXITCODE -ne 0) { throw "FFmpeg portátil não gerou a imagem de teste." }
-  & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "color=c=green:s=320x180:d=2" -c:v libx264 -pix_fmt yuv420p $sourceVideo
+  & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "color=c=green:s=320x180:d=2" -f lavfi -i "sine=frequency=440:duration=2" -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest $sourceVideo
   if ($LASTEXITCODE -ne 0) { throw "FFmpeg portátil não gerou o clipe de teste." }
   $imageAsset = (& curl.exe -sS -f -F "file=@$sourceImage;type=image/png" -F "rights_status=OWNED" "$api/assets" | ConvertFrom-Json)
   if ($LASTEXITCODE -ne 0 -or -not $imageAsset.id) { throw "Upload da imagem na instalação falhou." }
@@ -103,6 +103,34 @@ try {
     throw "A imagem ou o clipe importado não apareceu no MP4 final."
   }
   Write-Host "Remotion e FFmpeg instalados geraram MP4 com imagem, clipe e áudio."
+
+  $asrStatus = Invoke-RestMethod "$api/assets/asr-status"
+  if (-not $asrStatus.word_asr_available) { throw "Modelo ASR offline não ficou disponível na instalação." }
+  $transcriptBody = @{
+    expected_revision = 0
+    language = "pt"
+    words = @(@{start_ms=100;end_ms=600;text="Teste"})
+    cues = @(@{start_ms=100;end_ms=600;text="Teste"})
+  } | ConvertTo-Json -Depth 8 -Compress
+  $timed = Invoke-RestMethod "$api/assets/$($videoAsset.id)/transcript-v2" -Method Put -ContentType "application/json" -Body $transcriptBody
+  $approvalBody = @{expected_revision=$timed.revision} | ConvertTo-Json -Compress
+  $captions = Invoke-RestMethod "$api/assets/$($videoAsset.id)/captions/approve" -Method Post -ContentType "application/json" -Body $approvalBody
+  $renderBody = @{expected_revision=$captions.revision} | ConvertTo-Json -Compress
+  $captionJob = Invoke-RestMethod "$api/assets/$($videoAsset.id)/captions/render" -Method Post -ContentType "application/json" -Body $renderBody
+  $captionDone = $false
+  for ($attempt = 0; $attempt -lt 120; $attempt++) {
+    Start-Sleep -Seconds 1
+    $captionState = Invoke-RestMethod "$api/jobs/$($captionJob.job_id)"
+    if ($captionState.status -eq "FAILED") { throw "MP4 legendado falhou na instalação: $($captionState.error)" }
+    if ($captionState.status -eq "SUCCEEDED") { $captionDone = $true; break }
+  }
+  if (-not $captionDone) { throw "MP4 legendado não concluiu em 120 segundos." }
+  $captionedVideo = Join-Path $env:RUNNER_TEMP "mediagrid-captioned.mp4"
+  Invoke-WebRequest "$api/assets/$($videoAsset.id)/captions/render/$($captionJob.job_id)" -OutFile $captionedVideo
+  if (-not (Test-Path $captionedVideo)) { throw "MP4 legendado não foi baixado da instalação." }
+  $captionedStreams = @(& $ffprobe.FullName -v error -show_entries stream=codec_type -of csv=p=0 $captionedVideo | ForEach-Object { $_.Trim() })
+  if ($captionedStreams -notcontains "video" -or $captionedStreams -notcontains "audio") { throw "MP4 legendado sem vídeo ou áudio." }
+  Write-Host "Instalação validou modelo ASR offline e MP4 legendado com revisão humana."
 
   # Synthetic CI review verifies the package flow; editorial approval remains a human action.
   $caption = "Legenda de teste para publicação manual."

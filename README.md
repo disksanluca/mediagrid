@@ -19,7 +19,9 @@ independent of niches: niches are engines, platforms are connectors, and visual 
 template packs.
 
 The renderer uses text cards or a selected local image/video behind the scene text. Windows offline speech synthesis can add narration to the MP4;
-transcription uses Windows speech recognition or an optional local whisper.cpp model. The
+the library can use bundled faster-whisper on CPU for editable word timings and approved
+captions. The older plain-text transcription path uses Windows speech recognition or an
+optional local whisper.cpp model. The
 Politics Radar can read public Câmara dos Deputados PL records with no account or API key.
 Other research, fact verification, licensed asset sourcing, and direct publishing are still
 manual.
@@ -56,6 +58,15 @@ narration can be saved, but voice and render wait until every scene has narratio
 When a generated WAV lasts longer than the estimated scene times, the renderer extends the
 video scenes to keep the full narration audible. Generating a new voice or render after review
 invalidates the old approval until the new video is reviewed.
+
+For a video or audio asset, open **Biblioteca → Legendas**. Run offline word ASR, listen
+to the media and correct words, cue text and timing. Save and approve the current revision
+before downloading SRT/VTT. For a rights-cleared MP4, **Gerar MP4 legendado** starts a
+local FFmpeg job; the download appears after it succeeds. Edits invalidate approval and
+the previous captioned MP4. In development, install `uv sync --extra asr` and point
+`MEDIAGRID_ASR_MODEL_DIR` to an existing faster-whisper model folder. The Windows
+installer bundles a pinned base model for offline use; no inference account is needed.
+This flow is technical and requires a full human listen/watch before publication.
 
 ## Current development fallback on Windows
 

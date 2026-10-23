@@ -156,6 +156,37 @@ class UploadSession(TimestampMixin, Base):
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
+class Transcript(TimestampMixin, Base):
+    """One versioned transcript per immutable asset source."""
+
+    __tablename__ = "transcripts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    asset_id: Mapped[str] = mapped_column(ForeignKey("assets.id"), unique=True)
+    source_sha256: Mapped[str] = mapped_column(String(64))
+    engine: Mapped[str] = mapped_column(String(40))
+    model_id: Mapped[str] = mapped_column(String(240))
+    model_version: Mapped[str] = mapped_column(String(40))
+    language: Mapped[str] = mapped_column(String(20))
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[str] = mapped_column(String(40), default="REVIEW_REQUIRED")
+    cues_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+
+
+class TranscriptWord(Base):
+    __tablename__ = "transcript_words"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    transcript_id: Mapped[str] = mapped_column(ForeignKey("transcripts.id"), index=True)
+    position: Mapped[int] = mapped_column(Integer)
+    start_ms: Mapped[int] = mapped_column(BigInteger)
+    end_ms: Mapped[int] = mapped_column(BigInteger)
+    text: Mapped[str] = mapped_column(Text)
+    confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    speaker_id: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    edited: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
 class Job(TimestampMixin, Base):
     __tablename__ = "jobs"
 
