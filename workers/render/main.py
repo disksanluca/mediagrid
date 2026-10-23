@@ -40,7 +40,11 @@ from apps.api.render_plan import source_label as source_label
 from apps.api.scene_media import stage_scene_assets, stage_sound_assets
 from apps.api.services import claim_next_job, fence_job_completion, record_event
 from apps.api.transcripts import replace_words
-from workers.render.artifacts import finish_media_render_attempt, finish_render_attempt
+from workers.render.artifacts import (
+    finish_media_render_attempt,
+    finish_render_attempt,
+    finish_voice_attempt,
+)
 from workers.render.caption_video import burn_captions, caption_output
 from workers.render.clips import analyze_asset, clip_output, render_selected_clip
 from workers.render.football import football_output, render_football
@@ -412,6 +416,7 @@ def media_one() -> bool:
         stop_heartbeat = start_lease_heartbeat(job.id, job.lease_owner)
         output = None
         staged_artifact: tuple[Path, Path] | None = None
+        staged_voice: tuple[Path, Path, Path, Path] | None = None
         attempt_id = f"{job.id}-{uuid4().hex}"
         staged_output = settings.mediagrid_data_dir / "temp" / f"media-{attempt_id}.mp4"
         try:
@@ -422,8 +427,13 @@ def media_one() -> bool:
                     raise ValueError("Project or script not found")
                 output = settings.mediagrid_data_dir / "voice" / f"{project.id}.wav"
                 text = narration_text(project.script)
-                synthesize_voice(text, output)
-                output.with_suffix(".sha256").write_text(
+                voice_stage = staged_output.with_name(f"voice-{attempt_id}.wav")
+                digest_stage = voice_stage.with_suffix(".sha256")
+                staged_voice = (
+                    voice_stage, output, digest_stage, output.with_suffix(".sha256"),
+                )
+                synthesize_voice(text, voice_stage)
+                digest_stage.write_text(
                     hashlib.sha256(text.encode("utf-8")).hexdigest()
                 )
             elif job.job_type == "PROXY":
@@ -556,7 +566,7 @@ def media_one() -> bool:
             job.result = {
                 **(job.result or {}), **({"output": str(output)} if output else {}),
             }
-            if staged_artifact is None:
+            if staged_artifact is None and staged_voice is None:
                 record_event(db, f"{job.job_type}_FINISHED", "job", job.id,
                              after=job.result)
         except (OSError, ValueError, RuntimeError, ImportError,
@@ -574,7 +584,10 @@ def media_one() -> bool:
         finally:
             stop_heartbeat()
         job.finished_at = now()
-        if staged_artifact is not None:
+        if staged_voice is not None:
+            if not finish_voice_attempt(db, job, lease_owner, *staged_voice):
+                logger.warning("Voice result discarded after losing job lease %s", job.id)
+        elif staged_artifact is not None:
             if not finish_media_render_attempt(
                 db, job, lease_owner, *staged_artifact,
             ):
