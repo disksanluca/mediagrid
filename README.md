@@ -113,6 +113,14 @@ records the reviewed claim ledger and its digest. Editing or removing a claim,
 or changing the script or timeline, revokes the relevant review. MediaGrid
 does not verify truth by itself or fetch arbitrary URLs on the user's behalf.
 
+The Editor also includes **Personagem 2D · Migo**. It is an original SVG rig
+whose speech bubble, expression, pose, color and mouth cues are saved in EDL v2.
+The same Remotion component drives the Player and local MP4. Mouth cues are
+placed manually against audio; MediaGrid does not detect phonemes or certify
+lip sync. Use `uv run python scripts/prove_video_pipeline.py --character-2d`
+for an isolated technical proof, then inspect the full audio and video before
+using the character in an editorial piece.
+
 ## Current development fallback on Windows
 
 See [SETUP.md](SETUP.md) for installation and troubleshooting. On Windows, double-click

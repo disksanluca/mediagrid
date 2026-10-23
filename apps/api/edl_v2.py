@@ -106,23 +106,59 @@ class FlowDiagramSpec(OverlaySpec):
         return self
 
 
-def validate_overlay(item: TimelineItem) -> OverlaySpec | MotionCardSpec | FlowDiagramSpec:
+class MouthCue(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    start_ms: int = Field(ge=0)
+    end_ms: int = Field(gt=0)
+    viseme: Literal["closed", "open", "round", "smile"]
+
+
+class CharacterDialogueSpec(OverlaySpec):
+    text: str = Field(min_length=1, max_length=100)
+    character_id: Literal["migo_v1"]
+    expression: Literal["neutral", "happy", "skeptical", "surprised"]
+    pose: Literal["idle", "point", "shrug"]
+    mouth_cues: list[MouthCue] = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def safe_character(self) -> "CharacterDialogueSpec":
+        if any(abs(frame.x - 0.5) > 0.01 or abs(frame.y - 0.5) > 0.01
+               or not 0.75 <= frame.scale <= 1.05 for frame in self.keyframes):
+            raise ValueError("Character must remain centered inside the safe area")
+        return self
+
+
+def validate_overlay(
+    item: TimelineItem,
+) -> OverlaySpec | MotionCardSpec | FlowDiagramSpec | CharacterDialogueSpec:
     if (
-        item.preset not in {"kinetic_title_v1", "motion_card_v1", "flow_path_v1"}
+        item.preset not in {"kinetic_title_v1", "motion_card_v1", "flow_path_v1",
+                            "character_dialogue_v1"}
         or item.source_asset_id is not None
         or item.source_in_ms is not None or item.speed != 1 or item.z_index < 1
     ):
         raise ValueError(
-            "Only local kinetic text, motion cards or flow diagrams "
-            "are supported on caption tracks"
+            "Only local kinetic text, motion cards, flow diagrams or "
+            "character dialogue are supported on caption tracks"
         )
     schema = {"kinetic_title_v1": OverlaySpec, "motion_card_v1": MotionCardSpec,
-              "flow_path_v1": FlowDiagramSpec}[item.preset]
+              "flow_path_v1": FlowDiagramSpec,
+              "character_dialogue_v1": CharacterDialogueSpec}[item.preset]
     spec = schema.model_validate(item.params)
     if item.preset == "motion_card_v1" and item.duration_ms < 2500:
         raise ValueError("Motion cards need at least 2.5 seconds to read")
     if item.preset == "flow_path_v1" and item.duration_ms < 3000:
         raise ValueError("Flow diagrams need at least 3 seconds to read")
+    if item.preset == "character_dialogue_v1":
+        if item.duration_ms < 1500:
+            raise ValueError("Character dialogue needs at least 1.5 seconds")
+        cues = spec.mouth_cues
+        if any(cue.end_ms - cue.start_ms < 50 or cue.end_ms > item.duration_ms
+               for cue in cues) or any(
+            left.end_ms > right.start_ms for left, right in zip(cues, cues[1:], strict=False)
+        ):
+            raise ValueError("Mouth cues must be ordered, non-overlapping and within the scene")
     times = [frame.at_ms for frame in spec.keyframes]
     if (
         times[0] != 0 or times[-1] > item.duration_ms

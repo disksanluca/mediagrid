@@ -417,6 +417,42 @@ externa ou serviço pago foi acionado.
   criativo depende de fontes e revisão humanas. Nenhuma variável nova em
   `.env.example`, serviço pago, VPS ou publicação externa.
 
+## Marco 8 — rig original e boca marcada manualmente (primeira entrega vertical)
+
+- `character_dialogue_v1` é um item de caption no EDL v2. Pydantic aceita
+  somente o rig original `migo_v1`, expressões/poses fechadas e 1–64 marcas
+  de boca ordenadas, sem sobreposição e dentro da duração. Revisões do EDL
+  continuam concorrentes e invalidam o MP4 anterior.
+- O Editor permite escrever o balão, escolher expressão, pose e cor, e editar
+  `start_ms`, `end_ms` e forma da boca por marca. Nenhum algoritmo afirma
+  deduzir fonemas; a pessoa deve alinhar as marcas ao WAV e revisar o filme.
+  O componente SVG/React de Remotion é compartilhado entre Player e MP4.
+- API, banco de revisões existente, worker de render e smoke do instalador
+  Windows exercitam o preset. Não houve migração de banco nem variável nova em
+  `.env.example`. O rig é código vetorial original e não depende de baixar
+  stickers, personagens, música ou conteúdo de terceiros.
+- Prova técnica local `--character-2d`: MP4 vertical (`data/rea-proof/20261023T011556Z`,
+  SHA-256 `538db26b0af324877289f5b9812678b82c7fb1a02539483fd7d4ba7498e84b4f`)
+  e horizontal (`data/rea-proof/20261023T011844Z`, SHA-256
+  `3ff985223e870d9373a324f7249f65099bd8134da2d00964f825fdcf6ba4885b`).
+  Ambos têm voz Windows, H.264/AAC, 31 s e jobs VOICE/RENDER `SUCCEEDED`.
+  Quadros em 0,8 e 1,3 s mostraram estados diferentes da boca; o layout
+  horizontal foi corrigido após inspeção para preservar palavras inteiras.
+  Os cues desta prova não foram
+  calibrados foneticamente; atuação, piada, tempo de punchline e continuidade
+  de uma cena dialogada permanecem pendentes de revisão humana.
+- REAL local: Editor, API/EDL, Player, worker Remotion, MP4 e prova FFprobe.
+  PAPER/MOCK: direção dramática, lip sync automático, segundo personagem,
+  biblioteca de efeitos licenciados e aceitação criativa da sequência 2D.
+  Custo de API paga: zero; nenhum VPS, postagem ou instalação no PC do usuário.
+- Validação local desta entrega: `uv run pytest -q tests` (70 passed),
+  `uv run ruff check .`, TypeScript de `apps/web` e `apps/renderer`, build
+  Next.js e parser do smoke PowerShell. No aplicativo em execução, o Editor
+  salvou três marcas de boca e recarregou a revisão 2; o Player exibiu o
+  personagem e o balão no primeiro trecho, como no MP4. A verificação
+  audiovisual permanece técnica: a voz sintética da prova não foi escrita
+  para o personagem nem alinhada aos cues.
+
 ## Ordem restante e gates
 
 1. Fechar Marco 1: validação visual/auditiva no desktop empacotado.
