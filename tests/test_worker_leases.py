@@ -3,11 +3,13 @@
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
+from pathlib import Path
 from threading import Barrier
 
 from apps.api.database import SessionLocal
-from apps.api.models import Job, JobStatus, now
+from apps.api.models import Job, JobStatus, Project, ProjectStatus, now
 from apps.api.services import claim_next_job, fence_job_completion, renew_job_lease
+from workers.render.artifacts import finish_render_attempt
 from workers.render.lease import start_lease_heartbeat
 from workers.render.main import recover_interrupted_jobs
 
@@ -153,3 +155,98 @@ def test_simultaneous_sqlite_claims_do_not_duplicate_work() -> None:
         futures = [pool.submit(claim, worker) for worker in ("a", "b")]
         claims = [future.result(timeout=10) for future in futures]
     assert len([job_id for job_id in claims if job_id]) == 1
+
+
+def test_stale_render_cannot_replace_newer_project_video(client, tmp_path: Path) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Render lease", "slug": "render-lease", "niche": "Teste",
+        "default_engine": "music",
+    }).json()
+    project_id = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Vídeo isolado",
+        "topic": "Compara promoção de artefatos por lease",
+    }).json()["id"]
+    final = tmp_path / "renders" / f"{project_id}.mp4"
+    final.parent.mkdir()
+    final.write_bytes(b"previous-approved-output")
+    with SessionLocal() as db:
+        db.add(Job(project_id=project_id, job_type="RENDER", payload={}))
+        db.commit()
+        stale = claim_next_job(db, "RENDER", worker_id="render-a")
+        assert stale is not None
+        job_id, old_token = stale.id, stale.lease_owner
+        project = db.get(Project, project_id)
+        assert project is not None
+        db.commit()
+        with SessionLocal() as other:
+            claimed = other.get(Job, job_id)
+            assert claimed is not None
+            claimed.lease_expires_at = now() - timedelta(seconds=1)
+            other.commit()
+        recover_interrupted_jobs()
+        with SessionLocal() as other:
+            fresh = claim_next_job(other, "RENDER", worker_id="render-b")
+            assert fresh is not None
+            new_token = fresh.lease_owner
+            other.commit()
+        stale_stage = tmp_path / "stale-attempt.mp4"
+        stale_stage.write_bytes(b"stale-video")
+        stale.status = JobStatus.SUCCEEDED.value
+        project.status = ProjectStatus.QC.value
+        assert not finish_render_attempt(
+            db, stale, project, old_token, stale_stage, final,
+        )
+        assert not stale_stage.exists()
+        assert final.read_bytes() == b"previous-approved-output"
+
+    with SessionLocal() as db:
+        fresh = db.get(Job, job_id)
+        project = db.get(Project, project_id)
+        assert fresh is not None and project is not None
+        fresh_stage = tmp_path / "fresh-attempt.mp4"
+        fresh_stage.write_bytes(b"fresh-video")
+        fresh.status = JobStatus.SUCCEEDED.value
+        fresh.result = {"output": str(final)}
+        project.status = ProjectStatus.QC.value
+        assert finish_render_attempt(db, fresh, project, new_token, fresh_stage, final)
+        assert not fresh_stage.exists()
+    assert final.read_bytes() == b"fresh-video"
+    with SessionLocal() as db:
+        completed = db.get(Job, job_id)
+        assert completed is not None
+        assert completed.status == JobStatus.SUCCEEDED.value
+        assert completed.lease_owner is None
+
+
+def test_missing_staged_render_cannot_report_success(client, tmp_path: Path) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Render failure", "slug": "render-failure", "niche": "Teste",
+        "default_engine": "music",
+    }).json()
+    project_id = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Falha de arquivo",
+        "topic": "O arquivo temporário não existe",
+    }).json()["id"]
+    final = tmp_path / "renders" / f"{project_id}.mp4"
+    final.parent.mkdir()
+    with SessionLocal() as db:
+        db.add(Job(project_id=project_id, job_type="RENDER", payload={}))
+        db.commit()
+        job = claim_next_job(db, "RENDER", worker_id="render-c")
+        assert job is not None
+        token = job.lease_owner
+        project = db.get(Project, project_id)
+        assert project is not None
+        db.commit()
+        job.status = JobStatus.SUCCEEDED.value
+        project.status = ProjectStatus.QC.value
+        assert finish_render_attempt(db, job, project, token,
+                                     tmp_path / "missing.mp4", final)
+    with SessionLocal() as db:
+        failed = db.get(Job, job.id)
+        project = db.get(Project, project_id)
+        assert failed is not None and project is not None
+        assert failed.status == JobStatus.FAILED.value
+        assert failed.result is None
+        assert project.status == ProjectStatus.FAILED.value
+        assert not final.exists()
