@@ -436,7 +436,9 @@ def media_one() -> bool:
                 )
                 synthesize_voice(text, voice_stage)
                 digest_stage.write_text(
-                    hashlib.sha256(text.encode("utf-8")).hexdigest()
+                    f"{hashlib.sha256(text.encode('utf-8')).hexdigest()} "
+                    f"{sha256_file(voice_stage)}",
+                    encoding="utf-8",
                 )
             elif job.job_type == "PROXY":
                 asset_id = job.payload.get("asset_id")

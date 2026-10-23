@@ -362,14 +362,15 @@ def test_stale_voice_cannot_replace_project_audio(client, tmp_path: Path) -> Non
         assert fresh is not None
         new_audio, new_manifest = tmp_path / "new.wav", tmp_path / "new.sha256"
         new_audio.write_bytes(b"fresh-voice")
-        new_manifest.write_text("fresh-script")
+        digest = hashlib.sha256(new_audio.read_bytes()).hexdigest()
+        new_manifest.write_text(f"{'b' * 64} {digest}")
         fresh.status = JobStatus.SUCCEEDED.value
         assert finish_voice_attempt(
             db, fresh, new_token, new_audio, final_audio,
             new_manifest, final_manifest,
         )
     assert final_audio.read_bytes() == b"fresh-voice"
-    assert final_manifest.read_text() == "fresh-script"
+    assert final_manifest.read_text() == f"{'b' * 64} {digest}"
 
 
 def test_missing_voice_manifest_preserves_prior_audio(client, tmp_path: Path) -> None:

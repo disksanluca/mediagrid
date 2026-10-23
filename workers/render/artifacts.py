@@ -89,9 +89,12 @@ def finish_voice_attempt(
             try:
                 if not staged_audio.is_file() or not staged_manifest.is_file():
                     raise FileNotFoundError("Voice WAV or script digest is missing")
+                parts = staged_manifest.read_text(encoding="utf-8").split()
+                if len(parts) != 2 or sha256_file(staged_audio) != parts[1]:
+                    raise ValueError("Staged voice WAV does not match its digest")
                 staged_audio.replace(final_audio)
                 staged_manifest.replace(final_manifest)
-            except OSError as exc:
+            except (OSError, ValueError) as exc:
                 job.status = JobStatus.FAILED.value
                 job.error = f"Voice artifact could not be promoted: {exc}"
                 job.result = None

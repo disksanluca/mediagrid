@@ -29,8 +29,10 @@ fila PostgreSQL. Não oferece ainda worker remoto ou VPS utilizável.
 - A voz local gera WAV e digest do roteiro em temporários exclusivos. O worker
   promove primeiro o WAV e depois o digest somente após o fence. Se o digest
   faltar, preserva o WAV anterior e falha o job. Uma queda entre as duas
-  substituições pode deixar os arquivos desencontrados; `voice_matches` confere
-  o digest do roteiro, mas ainda não valida o hash do próprio WAV.
+  substituições pode deixar os arquivos desencontrados. O novo manifesto inclui
+  hash do roteiro e do WAV; `voice_matches` rejeita áudio alterado. Manifestos
+  antigos, que têm só o hash do roteiro, continuam legíveis por compatibilidade
+  e não oferecem verificação do próprio WAV até que a voz seja regenerada.
 - O proxy de ingestão gera MP4 e waveform em caminhos exclusivos, verifica seus
   hashes e só promove arquivos e metadados `READY` após o fence. O endpoint de
   download também confere o hash armazenado. Reclaim descarta temporários sem

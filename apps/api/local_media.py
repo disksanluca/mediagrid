@@ -19,7 +19,21 @@ def voice_matches(project_id: str, script: dict | None) -> bool:
     audio = directory / f"{project_id}.wav"
     manifest = directory / f"{project_id}.sha256"
     expected = hashlib.sha256(narration_text(script).encode("utf-8")).hexdigest()
-    return audio.is_file() and manifest.is_file() and manifest.read_text() == expected
+    if not audio.is_file() or not manifest.is_file():
+        return False
+    parts = manifest.read_text(encoding="utf-8").split()
+    if not parts or parts[0] != expected:
+        return False
+    if len(parts) == 1:
+        # Existing desktop data used a script-only digest. Keep it readable.
+        return True
+    if len(parts) != 2:
+        return False
+    digest = hashlib.sha256()
+    with audio.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest() == parts[1]
 
 
 @lru_cache(maxsize=1)
