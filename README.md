@@ -209,4 +209,6 @@ cloud service or account is required for V1. Paid AI and cloud integrations are 
 - The worker renders media, generates local speech, transcribes locally and backs up SQLite.
 - Every external publisher defaults to dry-run.
 - Assets retain rights metadata; unknown or restricted assets require review.
-- Work is persisted as observable, retryable jobs.
+- Work is persisted as observable, retryable jobs. Jobs still queued or waiting
+  for a worker can be cancelled in Control Room; see
+  [QUEUE-CANCELLATION.md](docs/QUEUE-CANCELLATION.md).

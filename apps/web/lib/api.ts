@@ -178,6 +178,7 @@ export const api = {
   },
   voiceFile: (id: string) => `${baseUrl}/projects/${id}/voice`,
   retry: (id: string) => request<Job>(`/jobs/${id}/retry`, {method: "POST"}),
+  cancelJob: (id: string) => request<Job>(`/jobs/${id}/cancel`, {method: "POST"}),
   output: (id: string) => `${baseUrl}/projects/${id}/output`,
   approveReview: (id: string, body: {source_urls:string[];facts_confirmed:boolean;rights_confirmed:boolean;notes:string;caption:string}) => request<Project>(`/projects/${id}/review`, {method:"POST", body:JSON.stringify(body)}),
   exportPackage: (id: string) => `${baseUrl}/projects/${id}/export`,
