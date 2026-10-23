@@ -42,6 +42,7 @@ from apps.api.services import claim_next_job, fence_job_completion, record_event
 from apps.api.transcripts import replace_words
 from workers.render.artifacts import (
     finish_media_render_attempt,
+    finish_proxy_attempt,
     finish_render_attempt,
     finish_voice_attempt,
 )
@@ -55,7 +56,7 @@ from workers.render.narrative_3d import (
     render_narrative,
     story_sha256,
 )
-from workers.render.proxy import build_proxy
+from workers.render.proxy import ProxyBuild, build_proxy
 
 logger = logging.getLogger(__name__)
 
@@ -417,6 +418,7 @@ def media_one() -> bool:
         output = None
         staged_artifact: tuple[Path, Path] | None = None
         staged_voice: tuple[Path, Path, Path, Path] | None = None
+        staged_proxy: tuple[Asset, ProxyBuild] | None = None
         attempt_id = f"{job.id}-{uuid4().hex}"
         staged_output = settings.mediagrid_data_dir / "temp" / f"media-{attempt_id}.mp4"
         try:
@@ -441,7 +443,9 @@ def media_one() -> bool:
                 asset = db.get(Asset, asset_id) if asset_id else None
                 if asset is None:
                     raise ValueError("Proxy asset not found")
-                job.result = build_proxy(db, job, asset)
+                built = build_proxy(db, job, asset)
+                staged_proxy = (asset, built)
+                job.result = built.result
                 output = settings.mediagrid_data_dir / "proxies" / f"{asset.id}.mp4"
             elif job.job_type == "ASR_WORDS":
                 asset_id = job.payload.get("asset_id")
@@ -566,7 +570,7 @@ def media_one() -> bool:
             job.result = {
                 **(job.result or {}), **({"output": str(output)} if output else {}),
             }
-            if staged_artifact is None and staged_voice is None:
+            if staged_artifact is None and staged_voice is None and staged_proxy is None:
                 record_event(db, f"{job.job_type}_FINISHED", "job", job.id,
                              after=job.result)
         except (OSError, ValueError, RuntimeError, ImportError,
@@ -584,7 +588,11 @@ def media_one() -> bool:
         finally:
             stop_heartbeat()
         job.finished_at = now()
-        if staged_voice is not None:
+        if staged_proxy is not None:
+            proxy_asset, built = staged_proxy
+            if not finish_proxy_attempt(db, job, proxy_asset, lease_owner, built):
+                logger.warning("Proxy result discarded after losing job lease %s", job.id)
+        elif staged_voice is not None:
             if not finish_voice_attempt(db, job, lease_owner, *staged_voice):
                 logger.warning("Voice result discarded after losing job lease %s", job.id)
         elif staged_artifact is not None:

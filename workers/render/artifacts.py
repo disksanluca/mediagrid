@@ -4,8 +4,10 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
-from apps.api.models import Job, JobStatus, Project, ProjectStatus, now
+from apps.api.ingestion import sha256_file
+from apps.api.models import Asset, Job, JobStatus, Project, ProjectStatus, now
 from apps.api.services import fence_job_completion, record_event
+from workers.render.proxy import ProxyBuild
 
 
 def finish_render_attempt(
@@ -104,3 +106,46 @@ def finish_voice_attempt(
     finally:
         staged_audio.unlink(missing_ok=True)
         staged_manifest.unlink(missing_ok=True)
+
+
+def finish_proxy_attempt(
+    db: Session, job: Job, asset: Asset, lease_owner: str, build: ProxyBuild,
+) -> bool:
+    """Publish verified proxy files and ingest metadata under the active lease."""
+    try:
+        if not fence_job_completion(db, job.id, lease_owner):
+            db.rollback()
+            return False
+        if job.status == JobStatus.SUCCEEDED.value:
+            try:
+                if (not build.staged_proxy.is_file()
+                        or sha256_file(build.staged_proxy) != build.result["proxy_sha256"]):
+                    raise ValueError("Staged proxy is missing or changed")
+                if build.staged_waveform is not None and (
+                    not build.staged_waveform.is_file()
+                    or sha256_file(build.staged_waveform) != build.result["waveform_sha256"]
+                ):
+                    raise ValueError("Staged waveform is missing or changed")
+                build.staged_proxy.replace(build.final_proxy)
+                if build.staged_waveform is not None:
+                    build.staged_waveform.replace(build.final_waveform)
+            except (OSError, ValueError) as exc:
+                job.status = JobStatus.FAILED.value
+                job.error = f"Proxy artifact could not be promoted: {exc}"
+                job.result = None
+                job.progress = 0
+                asset.metadata_json = {
+                    **(asset.metadata_json or {}), "ingest_status": "FAILED",
+                }
+                record_event(db, "PROXY_FAILED", "job", job.id,
+                             after={"error": job.error})
+            else:
+                asset.metadata_json = build.metadata
+                record_event(db, "PROXY_FINISHED", "job", job.id,
+                             after=job.result)
+        db.commit()
+        return True
+    finally:
+        build.staged_proxy.unlink(missing_ok=True)
+        if build.staged_waveform is not None:
+            build.staged_waveform.unlink(missing_ok=True)

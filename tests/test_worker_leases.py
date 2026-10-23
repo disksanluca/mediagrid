@@ -1,5 +1,6 @@
 """A second worker must not steal a live claim during recovery."""
 
+import hashlib
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
@@ -9,15 +10,17 @@ from threading import Barrier
 import pytest
 
 from apps.api.database import SessionLocal
-from apps.api.models import Job, JobStatus, Project, ProjectStatus, now
+from apps.api.models import Asset, Job, JobStatus, Project, ProjectStatus, now
 from apps.api.services import claim_next_job, fence_job_completion, renew_job_lease
 from workers.render.artifacts import (
     finish_media_render_attempt,
+    finish_proxy_attempt,
     finish_render_attempt,
     finish_voice_attempt,
 )
 from workers.render.lease import start_lease_heartbeat
 from workers.render.main import recover_interrupted_jobs
+from workers.render.proxy import ProxyBuild
 
 
 def test_claim_and_recover_only_expired_leases() -> None:
@@ -402,3 +405,67 @@ def test_missing_voice_manifest_preserves_prior_audio(client, tmp_path: Path) ->
         assert failed is not None
         assert failed.status == JobStatus.FAILED.value
         assert failed.result is None
+
+
+def test_stale_proxy_cannot_replace_file_or_ingest_metadata(client, tmp_path: Path) -> None:
+    final = tmp_path / "proxy.mp4"
+    final.write_bytes(b"previous-proxy")
+    with SessionLocal() as db:
+        asset = Asset(
+            name="fixture.mp4", media_type="video/mp4", path="assets/fixture",
+            sha256="a" * 64, metadata_json={"ingest_status": "READY"},
+        )
+        db.add(asset)
+        db.flush()
+        asset_id = asset.id
+        db.add(Job(job_type="PROXY", payload={"asset_id": asset_id}))
+        db.commit()
+        stale = claim_next_job(db, "PROXY", worker_id="proxy-a")
+        assert stale is not None
+        job_id, old_token = stale.id, stale.lease_owner
+        db.commit()
+        with SessionLocal() as other:
+            claimed = other.get(Job, job_id)
+            assert claimed is not None
+            claimed.lease_expires_at = now() - timedelta(seconds=1)
+            other.commit()
+        recover_interrupted_jobs()
+        with SessionLocal() as other:
+            fresh = claim_next_job(other, "PROXY", worker_id="proxy-b")
+            assert fresh is not None
+            new_token = fresh.lease_owner
+            other.commit()
+        stage = tmp_path / "stale.mp4"
+        stage.write_bytes(b"stale-proxy")
+        stale.status = JobStatus.SUCCEEDED.value
+        stale_build = ProxyBuild(
+            result={"proxy_sha256": hashlib.sha256(stage.read_bytes()).hexdigest()},
+            metadata={"ingest_status": "STALE"},
+            staged_proxy=stage, final_proxy=final,
+            staged_waveform=None, final_waveform=tmp_path / "waveform.png",
+        )
+        assert not finish_proxy_attempt(db, stale, asset, old_token, stale_build)
+        assert not stage.exists()
+        assert final.read_bytes() == b"previous-proxy"
+    with SessionLocal() as db:
+        asset = db.get(Asset, asset_id)
+        fresh = db.get(Job, job_id)
+        assert asset is not None and fresh is not None
+        assert asset.metadata_json["ingest_status"] == "READY"
+        stage = tmp_path / "fresh.mp4"
+        stage.write_bytes(b"fresh-proxy")
+        digest = hashlib.sha256(stage.read_bytes()).hexdigest()
+        fresh.status = JobStatus.SUCCEEDED.value
+        fresh.result = {"proxy_sha256": digest}
+        fresh_build = ProxyBuild(
+            result={"proxy_sha256": digest},
+            metadata={"ingest_status": "READY", "proxy_sha256": digest},
+            staged_proxy=stage, final_proxy=final,
+            staged_waveform=None, final_waveform=tmp_path / "waveform.png",
+        )
+        assert finish_proxy_attempt(db, fresh, asset, new_token, fresh_build)
+    assert final.read_bytes() == b"fresh-proxy"
+    with SessionLocal() as db:
+        asset = db.get(Asset, asset_id)
+        assert asset is not None
+        assert asset.metadata_json["proxy_sha256"] == digest
