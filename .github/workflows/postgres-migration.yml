@@ -1,0 +1,42 @@
+name: PostgreSQL migration smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/api/**"
+      - "migrations/**"
+      - "workers/render/**"
+      - "scripts/smoke_postgres_migrations.py"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/postgres-migration.yml"
+
+jobs:
+  postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: mediagrid_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mediagrid_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv python install 3.12
+      - run: uv sync --frozen
+      - name: Migrate preserved data and claim a job
+        env:
+          DATABASE_URL: postgresql+psycopg://postgres:ci-only@127.0.0.1:5432/mediagrid_ci
+          MEDIAGRID_ALLOW_EPHEMERAL_PG_SMOKE: "1"
+          MEDIAGRID_DATA_DIR: ./data/postgres-ci
+        run: uv run python -m scripts.smoke_postgres_migrations
