@@ -46,6 +46,13 @@ O teste visual do Editor e do formulário React em 1440×900, 1280×800 e
 verticalmente e o botão Criar permanece alcançável. Uma criação pelo
 formulário gerou um segundo projeto real no banco isolado.
 
+O smoke Windows instalado agora também chama `POST /motion-ads/projects`,
+confere o briefing salvo, as quatro cenas, os dois cartões no EDL e na prévia,
+gera voz local e MP4 H.264/AAC e exige que a exportação sem aprovação siga
+bloqueada. Esse gate usa texto sintético e banco descartável do runner. O
+resultado depende do CI desta branch; não equivale à instalação no PC do
+usuário nem a uma aprovação criativa.
+
 O projeto usa Remotion 4.0.532 do lockfile. A [licença oficial do
 Remotion](https://www.remotion.dev/docs/license/pricing) permite uso gratuito
 para indivíduos e equipes de até três pessoas, mas prevê licença paga para

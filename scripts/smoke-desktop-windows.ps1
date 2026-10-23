@@ -153,6 +153,60 @@ try {
   if ($motionStreams -notcontains "video" -or $motionStreams -notcontains "audio") { throw "Cartão instalado sem vídeo ou áudio." }
   Write-Host "Instalação validou cartão e diagrama na prévia e em MP4 com áudio."
 
+  $adBrief = @{
+    channel_id=$channel.id;format="vertical";product_name="Ateliê de Teste"
+    audience="Criadores de vídeo local";hook="Crie uma abertura clara para sua ideia"
+    problem="Um roteiro vago atrasa a produção";benefit="Organize quatro mensagens em cenas editáveis"
+    call_to_action="Revise o vídeo antes de entregar";brand_color="#c4d4ef"
+  } | ConvertTo-Json -Compress
+  $adProject = Invoke-RestMethod "$api/motion-ads/projects" -Method Post -ContentType "application/json" -Body $adBrief
+  if ($adProject.content_type -ne "motion_ad" -or $adProject.plan.scenes.Count -ne 4 -or
+      -not $adProject.plan.initial_motion_ad_brief_sha256) {
+    throw "Briefing Motion Ad não criou quatro cenas rastreáveis no desktop."
+  }
+  $adTimeline = Invoke-RestMethod "$api/projects/$($adProject.id)/edl-v2"
+  $adCards = @($adTimeline.edl.tracks | Where-Object { $_.id -eq "ad-cards" })
+  if ($adCards.Count -ne 1 -or $adCards[0].items.Count -ne 2) {
+    throw "Cartões do Motion Ad não foram persistidos na timeline."
+  }
+  $adPreview = Invoke-RestMethod "$api/projects/$($adProject.id)/preview"
+  if (@($adPreview.props.overlays | Where-Object { $_.preset -eq "motion_card_v1" }).Count -ne 2) {
+    throw "Prévia instalada não recebeu os dois cartões do Motion Ad."
+  }
+  $adVoiceJob = Invoke-RestMethod "$api/projects/$($adProject.id)/voice" -Method Post
+  $adVoiceDone = $false
+  for ($attempt = 0; $attempt -lt 120; $attempt++) {
+    Start-Sleep -Seconds 1
+    $adVoiceState = Invoke-RestMethod "$api/jobs/$($adVoiceJob.job_id)"
+    if ($adVoiceState.status -eq "FAILED") { throw "Voz do Motion Ad falhou: $($adVoiceState.error)" }
+    if ($adVoiceState.status -eq "SUCCEEDED") { $adVoiceDone = $true; break }
+  }
+  if (-not $adVoiceDone) { throw "Voz do Motion Ad não concluiu em 120 segundos." }
+  $adRenderJob = Invoke-RestMethod "$api/projects/$($adProject.id)/render" -Method Post
+  $adRenderDone = $false
+  for ($attempt = 0; $attempt -lt 180; $attempt++) {
+    Start-Sleep -Seconds 1
+    $adRenderState = Invoke-RestMethod "$api/jobs/$($adRenderJob.job_id)"
+    if ($adRenderState.status -eq "FAILED") { throw "Render do Motion Ad falhou: $($adRenderState.error)" }
+    if ($adRenderState.status -eq "SUCCEEDED") { $adRenderDone = $true; break }
+  }
+  if (-not $adRenderDone) { throw "Render do Motion Ad não concluiu em 180 segundos." }
+  $adVideo = Join-Path $dataDir "renders\$($adProject.id).mp4"
+  $adMedia = & $ffprobe.FullName -v error -show_entries stream=codec_type,codec_name,width,height -of json $adVideo | ConvertFrom-Json
+  $adVideoStream = @($adMedia.streams | Where-Object { $_.codec_type -eq "video" })
+  $adAudioStream = @($adMedia.streams | Where-Object { $_.codec_type -eq "audio" })
+  if ($adVideoStream.Count -ne 1 -or $adAudioStream.Count -ne 1 -or
+      $adVideoStream[0].codec_name -ne "h264" -or $adAudioStream[0].codec_name -ne "aac" -or
+      $adVideoStream[0].width -ne 1080 -or $adVideoStream[0].height -ne 1920) {
+    throw "Motion Ad instalado não gerou MP4 H.264/AAC vertical com voz."
+  }
+  $adAfter = Invoke-RestMethod "$api/projects/$($adProject.id)"
+  $adExport = Invoke-WebRequest "$api/projects/$($adProject.id)/export" -SkipHttpErrorCheck
+  if ($adAfter.status -ne "QC" -or $adExport.StatusCode -ne 409) {
+    throw "Motion Ad sem alegações aprovadas ficou exportável ou sem QC."
+  }
+  Write-Host "Instalação validou briefing Motion Ad, voz local, prévia, MP4 e bloqueio editorial."
+
   $characterProjectBody = @{channel_id=$channel.id;title="Personagem 2D";topic="Rig original com boca marcada manualmente";format="vertical"} | ConvertTo-Json -Compress
   $characterProject = Invoke-RestMethod "$api/projects" -Method Post -ContentType "application/json" -Body $characterProjectBody
   $characterScenes = @(
