@@ -8,6 +8,7 @@ import {AtelierHeader, atelierNav} from "@/components/atelier/atelier-header";
 import type {AtelierView} from "@/components/atelier/atelier-header";
 import {AtelierMediaStage} from "@/components/atelier/atelier-media-stage";
 import {ClipMachine} from "@/components/clip-machine";
+import {MotionCardEditor} from "@/components/motion-card-editor";
 import {TimedTranscriptEditor} from "@/components/timed-transcript-editor";
 import {api} from "@/lib/api";
 import {uploadLongVideo} from "@/lib/resumable-upload";
@@ -242,6 +243,7 @@ function ProjectEditor({project,assets,jobs,busy,onBack,onRadar,onRefresh,onRun}
     {timeline&&<TimelineTracks timeline={timeline} assets={assets} selectedScene={selectedScene} onSelect={setSelectedScene}/>}
     {timeline&&project.plan?.origin!=="OUTLINE"&&<TimelinePreview projectId={project.id} timeline={timeline}/>}
     {timeline&&<OverlayEditor projectId={project.id} timeline={timeline} selectedScene={selectedScene} assets={assets} busy={busy} disabled={unsaved||activeRender} onRun={onRun} onSaved={setTimeline}/>}
+    {timeline&&<MotionCardEditor projectId={project.id} timeline={timeline} selectedScene={selectedScene} busy={busy} disabled={unsaved||activeRender} onRun={onRun} onSaved={setTimeline}/>}
     {voiceReady&&<VoiceWaveform projectId={project.id}/>}
     {timelineError&&<p className="small-note">Timeline: {timelineError}</p>}
     {project.plan?.source_refs?.length?<section className="panel"><div className="panel-head"><div><h3>Fontes do roteiro</h3><p>Dados consultados ao criar esta pauta. Confira a situação atual antes de publicar.</p></div></div><div className="panel-body">{project.plan.source_refs.map((source)=><p key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title} ↗</a><span className="small-note"> · Consultado em {new Date(source.fetched_at).toLocaleString("pt-BR")}</span></p>)}</div></section>:null}
@@ -253,7 +255,7 @@ function ProjectEditor({project,assets,jobs,busy,onBack,onRadar,onRefresh,onRun}
 
 function TimelineTracks({timeline,assets,selectedScene,onSelect}:{timeline:TimelineResponse;assets:Asset[];selectedScene:string;onSelect:(id:string)=>void}) {
   const duration=Math.max(1,timeline.edl.duration_ms);
-  const labels:Record<string,string>={video:"Imagem / clipe",voice:"Narração",graphic:"Texto visual",caption:"Título animado",music:"Música",sfx:"Efeitos sonoros"};
+  const labels:Record<string,string>={video:"Imagem / clipe",voice:"Narração",graphic:"Texto visual",caption:"Títulos / cartões",music:"Música",sfx:"Efeitos sonoros"};
   return <section className="panel timeline-v2"><div className="panel-head"><div><h3>Timeline persistida</h3><p>Trilhas da revisão {timeline.revision}; os blocos selecionam a cena correspondente.</p></div><span className="badge">{(duration/1000).toFixed(1)} s</span></div><div className="panel-body">{timeline.edl.tracks.map((track)=><div className="timeline-v2-row" key={track.id}><strong>{labels[track.kind]??track.kind}</strong><div className="timeline-v2-lane">{track.items.map((item)=><button key={item.id} className={selectedScene===item.params.scene_id?"active":""} style={{left:`${item.start_ms/duration*100}%`,width:`${item.duration_ms/duration*100}%`}} onClick={()=>item.params.scene_id&&onSelect(item.params.scene_id)} title={`${item.params.scene_id??item.id} · ${(item.start_ms/1000).toFixed(1)}–${((item.start_ms+item.duration_ms)/1000).toFixed(1)} s`}>{item.params.text||item.params.scene_id||assets.find((asset)=>asset.id===item.source_asset_id)?.name||item.id}</button>)}</div></div>)}<p className="small-note">{timeline.renderer==="timeline-v2"?"Camadas de título, som e clipes desta revisão são renderizadas no MP4. Revise o resultado completo antes de aprovar.":"Esta revisão usa o render de cenas atual; adicione camadas v2 no editor abaixo."} A prévia da revisão salva aparece abaixo.</p></div></section>;
 }
 
@@ -264,7 +266,7 @@ function OverlayEditor({projectId,timeline,selectedScene,assets,busy,disabled,on
   const [selectedId,setSelectedId]=useState<string|null>(null);
   useEffect(()=>{setDraft(timeline.edl);},[timeline]);
   const track=draft.tracks.find((entry)=>entry.kind==="caption");
-  const overlays=track?.items??[];
+  const overlays=track?.items.filter((item)=>item.preset!=="motion_card_v1")??[];
   const selected=overlays.find((item)=>item.id===selectedId)??overlays[0];
   const frames=(selected?.params.keyframes??[]) as OverlayFrame[];
   const changed=JSON.stringify(draft)!==JSON.stringify(timeline.edl);

@@ -78,6 +78,14 @@ def main() -> None:
         "--synthetic-video-layer", action="store_true",
         help="Overlay an original one-second synthetic MP4 on a scene",
     )
+    parser.add_argument(
+        "--motion-card", action="store_true",
+        help="Render a reviewed motion card with the shared preview/MP4 props",
+    )
+    parser.add_argument(
+        "--format", choices=("vertical", "horizontal"), default="vertical",
+        help="Canvas for the local technical proof",
+    )
     args = parser.parse_args()
     run_dir = (args.output / datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")).resolve()
     run_dir.mkdir(parents=True, exist_ok=False)
@@ -131,7 +139,7 @@ def main() -> None:
                     "channel_id": channel["id"],
                     "title": "Fluxo local auditável",
                     "topic": BRIEF,
-                    "format": "vertical",
+                    "format": args.format,
                 },
             )
         )
@@ -142,7 +150,7 @@ def main() -> None:
         edl_v2_revision = None
         if (
             args.edl_v2_roundtrip or args.kinetic_title
-            or args.synthetic_sound or args.synthetic_video_layer
+            or args.synthetic_sound or args.synthetic_video_layer or args.motion_card
         ):
             timeline = checked(client.get(f"/api/v1/projects/{project_id}/edl-v2"))
             if args.kinetic_title:
@@ -158,6 +166,26 @@ def main() -> None:
                                 {"at_ms": 600, "x": 0.5, "y": 0.78,
                                  "opacity": 1, "scale": 1},
                                 {"at_ms": 3000, "x": 0.5, "y": 0.78,
+                                 "opacity": 1, "scale": 1},
+                            ],
+                        },
+                    }],
+                })
+            if args.motion_card:
+                timeline["edl"]["tracks"].append({
+                    "id": "motion-cards", "kind": "caption", "items": [{
+                        "id": "proof-motion-card", "start_ms": 4000,
+                        "duration_ms": 4000, "z_index": 15,
+                        "preset": "motion_card_v1", "params": {
+                            "label": "MOTION / TESTE", "text": "Uma ideia clara",
+                            "body": "Cartão original com voz e som local.",
+                            "color": "#dcf769", "layout": "split",
+                            "keyframes": [
+                                {"at_ms": 0, "x": 0.5, "y": 0.5,
+                                 "opacity": 0, "scale": 0.85},
+                                {"at_ms": 500, "x": 0.5, "y": 0.5,
+                                 "opacity": 1, "scale": 1},
+                                {"at_ms": 4000, "x": 0.5, "y": 0.5,
                                  "opacity": 1, "scale": 1},
                             ],
                         },
@@ -226,10 +254,11 @@ def main() -> None:
             raise RuntimeError("Preview lost a saved scene")
         for enabled, key in (
             (args.kinetic_title, "overlays"),
+            (args.motion_card, "overlays"),
             (args.synthetic_sound, "sounds"),
             (args.synthetic_video_layer, "video_layers"),
         ):
-            if enabled and len(preview["props"].get(key, [])) != 1:
+            if enabled and not preview["props"].get(key):
                 raise RuntimeError(f"Preview lost a saved {key} layer")
         (run_dir / "preview-props.json").write_text(
             json.dumps(preview, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -260,8 +289,9 @@ def main() -> None:
         raise RuntimeError("MP4 does not contain both video and audio")
     if video_stream["codec_name"] != "h264" or audio_stream["codec_name"] != "aac":
         raise RuntimeError("MP4 does not use the required H.264/AAC codecs")
-    if (video_stream["width"], video_stream["height"]) != (1080, 1920):
-        raise RuntimeError("MP4 is not 1080x1920")
+    expected_size = (1920, 1080) if args.format == "horizontal" else (1080, 1920)
+    if (video_stream["width"], video_stream["height"]) != expected_size:
+        raise RuntimeError(f"MP4 is not {expected_size[0]}x{expected_size[1]}")
     if not 30 <= duration <= 60:
         raise RuntimeError(f"MP4 duration {duration:.2f}s is outside 30-60s")
     voice_file = run_dir / "voice" / f"{project_id}.wav"
@@ -286,7 +316,8 @@ def main() -> None:
             raise RuntimeError("Render job MP4 hash does not match its artifact")
         if render_result["result"].get("edl_sha256") != edl_sha256:
             raise RuntimeError("Render job EDL hash does not match its project")
-        has_v2_layer = args.kinetic_title or args.synthetic_sound or args.synthetic_video_layer
+        has_v2_layer = (args.kinetic_title or args.synthetic_sound
+                        or args.synthetic_video_layer or args.motion_card)
         if has_v2_layer and not render_result["result"].get("revision_sha256"):
             raise RuntimeError("Layer render did not record its EDL v2 revision")
         evidence = {
@@ -298,6 +329,7 @@ def main() -> None:
             "scene_count": len(stored.edl["tracks"]["video"]),
             "caption_mode": "one visual text card per scene; word timing not implemented",
             "kinetic_title": args.kinetic_title,
+            "motion_card": args.motion_card,
             "synthetic_sound": args.synthetic_sound,
             "synthetic_video_layer": args.synthetic_video_layer,
             "revision_sha256": render_result["result"].get("revision_sha256"),

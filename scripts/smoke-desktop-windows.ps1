@@ -104,6 +104,45 @@ try {
   }
   Write-Host "Remotion e FFmpeg instalados geraram MP4 com imagem, clipe e áudio."
 
+  $motionProjectBody = @{channel_id=$channel.id;title="Cartão de motion";topic="Validação local do cartão";format="vertical"} | ConvertTo-Json -Compress
+  $motionProject = Invoke-RestMethod "$api/projects" -Method Post -ContentType "application/json" -Body $motionProjectBody
+  $motionScenes = @(
+    @{id="intro";duration_seconds=3.5;narration="Cartão";visual_type="image";visual_query="";on_screen_text="Início";transition="cut";asset_id=$imageAsset.id},
+    @{id="end";duration_seconds=3.5;narration="Fim";visual_type="image";visual_query="";on_screen_text="Final";transition="cut";asset_id=$imageAsset.id}
+  )
+  $motionPlanBody = @{hook="Cartão";angle="Prova instalada";scenes=$motionScenes} | ConvertTo-Json -Depth 10 -Compress
+  Invoke-RestMethod "$api/projects/$($motionProject.id)/plan" -Method Put -ContentType "application/json" -Body $motionPlanBody | Out-Null
+  $motionTimeline = Invoke-RestMethod "$api/projects/$($motionProject.id)/edl-v2"
+  $motionFrames = @(
+    @{at_ms=0;x=0.5;y=0.5;opacity=0;scale=0.85},
+    @{at_ms=500;x=0.5;y=0.5;opacity=1;scale=1},
+    @{at_ms=3000;x=0.5;y=0.5;opacity=1;scale=1}
+  )
+  $motionCard = @{id="smoke-motion-card";start_ms=0;duration_ms=3000;z_index=15;preset="motion_card_v1";params=@{label="MOTION";text="Cartão real";body="Prévia e MP4 da instalação.";color="#dcf769";layout="stack";keyframes=$motionFrames}}
+  $motionTimeline.edl.tracks = @($motionTimeline.edl.tracks) + @(@{id="motion-cards";kind="caption";items=@($motionCard)})
+  $motionEDLBody = @{expected_revision=$motionTimeline.revision;expected_legacy_sha256=$motionTimeline.legacy_sha256;edl=$motionTimeline.edl} | ConvertTo-Json -Depth 20 -Compress
+  Invoke-RestMethod "$api/projects/$($motionProject.id)/edl-v2" -Method Put -ContentType "application/json" -Body $motionEDLBody | Out-Null
+  $motionPreview = Invoke-RestMethod "$api/projects/$($motionProject.id)/preview"
+  if ($motionPreview.props.overlays[0].preset -ne "motion_card_v1") { throw "Cartão não chegou à prévia instalada." }
+  $motionVoicePath = Join-Path $voiceDir "$($motionProject.id).wav"
+  & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "sine=frequency=550:duration=1" -ac 1 -ar 44100 $motionVoicePath
+  if ($LASTEXITCODE -ne 0) { throw "Áudio sintético do cartão não foi criado." }
+  $motionHash = [System.Security.Cryptography.SHA256]::HashData([System.Text.Encoding]::UTF8.GetBytes("Cartão Fim"))
+  [System.IO.File]::WriteAllText((Join-Path $voiceDir "$($motionProject.id).sha256"), [Convert]::ToHexString($motionHash).ToLowerInvariant())
+  $motionJob = Invoke-RestMethod "$api/projects/$($motionProject.id)/render" -Method Post
+  $motionDone = $false
+  for ($attempt = 0; $attempt -lt 180; $attempt++) {
+    Start-Sleep -Seconds 1
+    $motionState = Invoke-RestMethod "$api/jobs/$($motionJob.job_id)"
+    if ($motionState.status -eq "FAILED") { throw "Render do cartão instalado falhou: $($motionState.error)" }
+    if ($motionState.status -eq "SUCCEEDED") { $motionDone = $true; break }
+  }
+  if (-not $motionDone) { throw "Render do cartão não concluiu em 180 segundos." }
+  $motionVideo = Join-Path $dataDir "renders\$($motionProject.id).mp4"
+  $motionStreams = @(& $ffprobe.FullName -v error -show_entries stream=codec_type -of csv=p=0 $motionVideo | ForEach-Object { $_.Trim() })
+  if ($motionStreams -notcontains "video" -or $motionStreams -notcontains "audio") { throw "Cartão instalado sem vídeo ou áudio." }
+  Write-Host "Instalação validou cartão de motion na prévia e em MP4 com áudio."
+
   $asrStatus = Invoke-RestMethod "$api/assets/asr-status"
   if (-not $asrStatus.word_asr_available) { throw "Modelo ASR offline não ficou disponível na instalação." }
   $transcriptBody = @{

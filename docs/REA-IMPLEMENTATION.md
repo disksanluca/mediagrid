@@ -211,8 +211,10 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   `d01c3014881c9c6f3133c182f3d2887eb6ca1c789a7538c5c007196857a0a6a9`
   do `model.bin` e o filtro `subtitles` do FFmpeg portátil. O download do
   modelo ocorre somente no build do instalador; o aplicativo instalado
-  executa offline. O smoke test Windows do novo pacote ainda precisa terminar
-  no CI antes de confirmar esta etapa no desktop empacotado.
+  executa offline. O CI Windows do PR #5, run `39876535393`, concluiu com
+  sucesso, incluindo build do instalador e smoke de ASR/legendas no aplicativo
+  instalado em runner descartável. Isso não instala a versão no PC do usuário
+  nem substitui revisão humana completa do vídeo/áudio.
 - `uv run python scripts/prove_word_asr.py --model-dir CAMINHO_DO_MODELO`
   executou o fluxo API → worker → SQLite → revisão → SRT → MP4 em banco
   isolado com vídeo e voz sintéticos. Em
@@ -228,7 +230,7 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   `pwsh -NoProfile -File scripts/build-desktop-sidecar.ps1` concluiu o EXE
   local. A API congelada reportou `word_asr_available=true`; o worker EXE
   processou um WAV sintético em `ASR_WORDS` com `SUCCEEDED`, 13 palavras e
-  três cues. Isto ainda não substitui o smoke do instalador Tauri.
+  três cues. O smoke do instalador Tauri também passou no CI citado acima.
 - `uv run pytest -q tests`: **63 passed**. `uv run ruff check .`:
   passou. TypeScript do web/renderer e `next build apps/web`: passaram.
 - Nenhuma API paga, VPS ou publicação foi ativada. O custo de inferência local
@@ -273,6 +275,39 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   explícito se FFmpeg/FFprobe ainda não estiverem instalados na etapa de testes.
   O smoke posterior usa os binários portáteis do instalador para testar análise,
   seleção e render real; sua execução e resultado são gate separado.
+
+## Marco 5 — cartão de motion integrado (primeira entrega vertical)
+
+- `motion_card_v1` é um preset fechado no EDL v2: etiqueta, título, mensagem,
+  cor de marca, layout empilhado/dividido e keyframes de escala/opacidade.
+  A API limita texto, duração mínima de 2,5 s e posição central segura. Não
+  executa HTML/JS de usuário. O Editor salva o cartão em revisão persistida;
+  prévia `Player` e render usam as mesmas props Remotion. Editar a timeline
+  invalida saída/revisão anteriores. A narração local e faixas de som existentes
+  permanecem disponíveis.
+- `uv run pytest -q tests`: **66 passaram**; Ruff, TypeScript do renderer,
+  `next build apps/web` e análise sintática do smoke PowerShell: passaram.
+  `uv run python scripts/prove_video_pipeline.py --motion-card
+  --synthetic-sound --format vertical` produziu MP4 1080×1920 H.264/AAC de
+  31,0 s em `data/rea-proof/20261023T002624Z`, SHA-256
+  `455b98209ede59fbfa2f5e89a7f4370ba0407efa5cda8eb682be85820f603ebf`.
+  A mesma prova em `--format horizontal` produziu 1920×1080, 31,0 s,
+  SHA-256 `01281728c91f5f1b9bf5840a85bddfbc16154275add8288392caf0b59c4b971e`
+  em `data/rea-proof/20261023T002711Z`. Os jobs VOICE/RENDER terminaram
+  `SUCCEEDED`, os projetos ficaram em `QC`, sem aprovação/publicação.
+  FFprobe confirmou streams e dimensões; quadros em 5,5 s foram inspecionados
+  nos dois formatos. O áudio completo e o ritmo ainda exigem audição humana.
+- O smoke Windows desta branch agora inclui salvar cartão, obter prévia e
+  renderizar MP4 com áudio no aplicativo instalado; resultado ainda pendente
+  no CI. Sem migração de banco: o preset mora no JSON versionado do EDL v2.
+  `.env.example` não precisa de variável nova. REAL local: API, EDL, SQLite,
+  Remotion, FFmpeg e UI. PAPER/MOCK: nenhuma campanha concluída ou métrica
+  de desempenho foi declarada. Custo de API paga: zero; energia/tempo de
+  outras máquinas não medidos.
+- Marco 5 ainda precisa de storyboard completo, mais famílias de presets,
+  diagrama/mapa vinculado a fontes, amostra de anúncio e explainer com mídia
+  autorizada e revisão audiovisual integral. Este cartão não satisfaz sozinho
+  o aceite criativo do marco.
 - Migração: tabela nova, sem modificar arquivos ou colunas legadas. `.env.example`
   não requer nova variável. REAL local: API, SQLite, worker, FFmpeg e UI.
   PAPER/MOCK: nenhum corte foi contabilizado como produto criativo. Custo de
@@ -286,7 +321,7 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
 2. Ingestão longa com hash, probe, direitos, proxy e retomada.
 3. Fechar Marco 3 no instalador Windows e fazer QA auditivo/visual humano.
 4. Fechar Marco 4 com filmagem autorizada, revisão integral de dois cortes e
-   smoke do instalador. Depois Motion Ad, Explainer, Football Edit,
+   smoke do instalador. Continuar Motion Ad, Explainer, Football Edit,
    conhecimento com evidências, Humor 2D e 3D.
 5. Web/VPS apenas depois de auth por recurso, PostgreSQL, fila com leases,
    worker Windows de saída e backup testados. Sem worker, o estado deverá ser
