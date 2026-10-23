@@ -8,6 +8,7 @@ on:
       - "migrations/**"
       - "workers/render/**"
       - "scripts/smoke_postgres_migrations.py"
+      - "scripts/verify_postgres_restore.py"
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/postgres-migration.yml"
@@ -40,3 +41,17 @@ jobs:
           MEDIAGRID_ALLOW_EPHEMERAL_PG_SMOKE: "1"
           MEDIAGRID_DATA_DIR: ./data/postgres-ci
         run: uv run python -m scripts.smoke_postgres_migrations
+      - name: Dump and restore to a second disposable database
+        env:
+          PG_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          docker exec "$PG_CONTAINER" pg_dump -U postgres -Fc -d mediagrid_ci > /tmp/mediagrid-ci.dump
+          test -s /tmp/mediagrid-ci.dump
+          docker exec "$PG_CONTAINER" createdb -U postgres mediagrid_restored
+          docker exec -i "$PG_CONTAINER" pg_restore -U postgres -d mediagrid_restored --no-owner --exit-on-error < /tmp/mediagrid-ci.dump
+          sha256sum /tmp/mediagrid-ci.dump
+      - name: Verify restored database
+        env:
+          DATABASE_URL: postgresql+psycopg://postgres:ci-only@127.0.0.1:5432/mediagrid_restored
+          MEDIAGRID_ALLOW_EPHEMERAL_PG_SMOKE: "1"
+        run: uv run python -m scripts.verify_postgres_restore
