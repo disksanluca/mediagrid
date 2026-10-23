@@ -107,6 +107,7 @@ def read_story(project_id: str, db: Session = Depends(get_db)) -> dict | None:
 def save_story(project_id: str, payload: StoryWrite,
                db: Session = Depends(get_db)) -> dict:
     sequence = sequence_for(db, project_id)
+    project = db.get(Project, project_id)
     if (sequence.revision if sequence else 0) != payload.expected_revision:
         raise HTTPException(409, "3D story changed; reload before saving")
     if sequence and db.scalar(select(Job).where(
@@ -137,6 +138,7 @@ def save_story(project_id: str, payload: StoryWrite,
     else:
         sequence.revision += 1
     sequence.status = "REVIEW_REQUIRED"
+    project.format = payload.aspect
     sequence.title = payload.title.strip()
     sequence.aspect = payload.aspect
     sequence.shots_json = [shot.model_dump() for shot in payload.shots]

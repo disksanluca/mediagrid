@@ -462,6 +462,8 @@ externa ou serviço pago foi acionado.
   legada foi coberta no teste de migrações. `.env.example` documenta o caminho
   opcional do Blender.
 - API e Editor salvam três a oito tomadas com duração, beat, ação, câmera e luz.
+  A API rejeita formatos 3D fora de 9:16/16:9 e mantém a orientação do projeto
+  igual à revisão salva do storyboard.
   Revisão concorrente é rejeitada; editar invalida aprovação e downloads antigos.
   O worker valida o hash do storyboard e do script, direitos e hash de áudio,
   espaço em disco, versão do Blender e cada sequência de PNG. Produz blocking

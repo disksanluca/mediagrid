@@ -30,6 +30,12 @@ class ProjectCreate(BaseModel):
     content_type: str = "video"
     format: Literal["horizontal", "vertical", "square", "carousel"] = "vertical"
 
+    @model_validator(mode="after")
+    def valid_format_for_mode(self) -> "ProjectCreate":
+        if self.content_type == "narrative_3d" and self.format not in {"horizontal", "vertical"}:
+            raise ValueError("3D narratives support horizontal or vertical video")
+        return self
+
 
 class ProjectRead(ProjectCreate):
     model_config = ConfigDict(from_attributes=True)

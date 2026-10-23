@@ -40,7 +40,16 @@ def test_3d_story_validates_and_waits_for_missing_worker(
     client: TestClient, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr("apps.api.routes.narrative_3d.blender_executable", lambda: None)
-    _, url, body = create_story(client)
+    channel = client.post("/api/v1/channels", json={
+        "name": "Outro Canal", "slug": "outro-canal", "niche": "3D",
+        "default_engine": "music",
+    }).json()
+    assert client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Formato inválido",
+        "topic": "Uma história original", "content_type": "narrative_3d",
+        "format": "square",
+    }).status_code == 422
+    project_id, url, body = create_story(client)
     assert client.put(url, json={**body, "shots": body["shots"][:2]}).status_code == 422
     duplicates = [*body["shots"]]
     duplicates[1] = {**duplicates[1], "beat_text": duplicates[0]["beat_text"]}
@@ -63,6 +72,9 @@ def test_3d_story_validates_and_waits_for_missing_worker(
     revised = {**body, "expected_revision": 1, "title": "Migo encontra a luz"}
     assert client.put(url, json=revised).json()["revision"] == 2
     assert client.get(f"{url}/blocking/render-status").json() is None
+    portrait = {**body, "expected_revision": 2, "aspect": "vertical"}
+    assert client.put(url, json=portrait).status_code == 200
+    assert client.get(f"/api/v1/projects/{project_id}").json()["format"] == "vertical"
 
 
 def test_3d_blender_blocking_and_final_are_real(
