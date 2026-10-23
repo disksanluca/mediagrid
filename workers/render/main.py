@@ -12,7 +12,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from apps.api.asr_words import transcribe_words
 from apps.api.captions import group_words, probe_media, validate_timing
@@ -38,11 +38,12 @@ from apps.api.models import (
 from apps.api.render_plan import fit_video_to_voice, render_props
 from apps.api.render_plan import source_label as source_label
 from apps.api.scene_media import stage_scene_assets, stage_sound_assets
-from apps.api.services import claim_next_job, record_event
+from apps.api.services import claim_next_job, fence_job_completion, record_event
 from apps.api.transcripts import replace_words
 from workers.render.caption_video import burn_captions
 from workers.render.clips import analyze_asset, render_selected_clip
 from workers.render.football import render_football
+from workers.render.lease import start_lease_heartbeat
 from workers.render.narrative_3d import blender_script, render_narrative, story_sha256
 from workers.render.proxy import build_proxy
 
@@ -103,10 +104,14 @@ def recover_interrupted_jobs() -> None:
                     "NARRATIVE_3D_RENDER",
                 ]),
                 Job.status == JobStatus.RUNNING.value,
+                or_(Job.lease_expires_at.is_(None), Job.lease_expires_at <= now()),
             )
         ).all()
         for job in jobs:
             project = db.get(Project, job.project_id) if job.project_id else None
+            job.lease_owner = None
+            job.lease_expires_at = None
+            job.heartbeat_at = None
             if job.attempt < job.max_attempts:
                 job.status = JobStatus.QUEUED.value
                 job.progress = 0
@@ -129,6 +134,7 @@ def render_one() -> bool:
         if job is None:
             return False
         db.commit()
+        lease_owner = job.lease_owner
         if not job.project_id:
             job.status = JobStatus.FAILED.value
             job.error = "Render worker received an incompatible job"
@@ -206,6 +212,7 @@ def render_one() -> bool:
         )
         project.status = ProjectStatus.RENDERING.value
         db.commit()
+        stop_heartbeat = start_lease_heartbeat(job.id, job.lease_owner)
         try:
             staged = stage_scene_assets(db, [
                 *video_tracks,
@@ -372,35 +379,31 @@ def render_one() -> bool:
             project.error = job.error
             record_event(db, "RENDER_FAILED", "project", project.id, after={"error": job.error})
         finally:
+            stop_heartbeat()
             props_path.unlink(missing_ok=True)
             if public_dir.parent == temp_dir.resolve() and public_dir.name == f"{job.id}-media":
                 shutil.rmtree(public_dir, ignore_errors=True)
-            db.commit()
+            if fence_job_completion(db, job.id, lease_owner):
+                db.commit()
+            else:
+                db.rollback()
+                logger.warning("Render result discarded after losing job lease %s", job.id)
         return True
 
 
 def media_one() -> bool:
     settings = get_settings()
     with SessionLocal() as db:
-        job = db.scalar(
-            select(Job)
-            .where(
-                Job.status == JobStatus.QUEUED.value,
-                Job.job_type.in_([
-                    "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
-                    "CLIP_ANALYSIS", "CLIP_RENDER", "FOOTBALL_RENDER",
-                    "NARRATIVE_3D_RENDER",
-                ]),
-            )
-            .order_by(Job.priority, Job.created_at)
-            .limit(1)
-        )
+        job = claim_next_job(db, [
+            "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
+            "CLIP_ANALYSIS", "CLIP_RENDER", "FOOTBALL_RENDER",
+            "NARRATIVE_3D_RENDER",
+        ])
         if job is None:
             return False
-        job.status = JobStatus.RUNNING.value
-        job.attempt += 1
-        job.started_at = now()
         db.commit()
+        lease_owner = job.lease_owner
+        stop_heartbeat = start_lease_heartbeat(job.id, job.lease_owner)
         output = None
         try:
             if job.job_type == "VOICE":
@@ -546,8 +549,14 @@ def media_one() -> bool:
                         "ingest_status": "FAILED",
                     }
             record_event(db, f"{job.job_type}_FAILED", "job", job.id, after={"error": job.error})
+        finally:
+            stop_heartbeat()
         job.finished_at = now()
-        db.commit()
+        if fence_job_completion(db, job.id, lease_owner):
+            db.commit()
+        else:
+            db.rollback()
+            logger.warning("Media result discarded after losing job lease %s", job.id)
         return True
 
 

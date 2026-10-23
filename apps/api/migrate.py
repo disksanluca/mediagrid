@@ -16,6 +16,7 @@ from .database import Base, engine
 LEGACY_TABLES = (
     "channels", "projects", "assets", "jobs", "events", "platform_connections"
 )
+POST_BASELINE_COLUMNS = {"jobs": {"lease_owner", "lease_expires_at", "heartbeat_at"}}
 
 
 def _config() -> Config:
@@ -59,14 +60,15 @@ def main() -> None:
             inspector = inspect(engine)
             for name in LEGACY_TABLES:
                 actual = {column["name"] for column in inspector.get_columns(name)}
-                expected = {column.name for column in Base.metadata.tables[name].columns}
+                expected = ({column.name for column in Base.metadata.tables[name].columns}
+                            - POST_BASELINE_COLUMNS.get(name, set()))
                 if missing := expected - actual:
                     raise RuntimeError(f"Legacy table {name} is missing columns: {sorted(missing)}")
             _backup_existing_sqlite()
         else:
-            Base.metadata.create_all(
-                bind=engine, tables=[Base.metadata.tables[name] for name in LEGACY_TABLES]
-            )
+            Base.metadata.create_all(bind=engine)
+            command.stamp(_config(), "head")
+            return
         command.stamp(_config(), "0001_legacy")
     command.upgrade(_config(), "head")
 

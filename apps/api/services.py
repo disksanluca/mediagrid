@@ -1,19 +1,23 @@
 import json
 import logging
 import shutil
+from collections.abc import Sequence
+from datetime import timedelta
 from typing import Any
 from urllib.parse import urlparse
+from uuid import uuid4
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from .config import get_settings
 from .engines import get_engine
-from .models import Channel, Event, Job, JobStatus, Project, ProjectStatus
+from .models import Channel, Event, Job, JobStatus, Project, ProjectStatus, now
 from .schemas import ContentPlan, Scene
 
 logger = logging.getLogger(__name__)
+LOCAL_WORKER_ID = f"local-{uuid4().hex}"
 
 
 def local_ollama_url() -> str | None:
@@ -242,10 +246,13 @@ def enqueue_job(
     return job
 
 
-def claim_next_job(db: Session, job_type: str | None = None) -> Job | None:
+def claim_next_job(db: Session, job_type: str | Sequence[str] | None = None,
+                   *, worker_id: str = LOCAL_WORKER_ID) -> Job | None:
     statement = select(Job).where(Job.status == JobStatus.QUEUED.value)
-    if job_type:
+    if isinstance(job_type, str):
         statement = statement.where(Job.job_type == job_type)
+    elif job_type:
+        statement = statement.where(Job.job_type.in_(job_type))
     statement = (
         statement.order_by(Job.priority.asc(), Job.created_at.asc())
         .with_for_update(skip_locked=True)
@@ -253,10 +260,52 @@ def claim_next_job(db: Session, job_type: str | None = None) -> Job | None:
     )
     job = db.scalar(statement)
     if job:
-        job.status = JobStatus.RUNNING.value
-        job.attempt += 1
-        job.progress = 0.01
+        claimed_at = now()
+        token = f"{worker_id}:{uuid4().hex}"
+        with db.no_autoflush:
+            result = db.execute(update(Job).where(
+                Job.id == job.id, Job.status == JobStatus.QUEUED.value,
+            ).values(status=JobStatus.RUNNING.value, attempt=Job.attempt + 1,
+                     progress=0.01, started_at=claimed_at, heartbeat_at=claimed_at,
+                     lease_owner=token,
+                     lease_expires_at=claimed_at + timedelta(minutes=5)),
+                execution_options={"synchronize_session": False})
+        if result.rowcount != 1:
+            db.expire(job)
+            return None
+        db.refresh(job)
     return job
+
+
+def renew_job_lease(db: Session, job_id: str, worker_id: str,
+                    *, ttl_seconds: int = 300) -> bool:
+    if not worker_id or ttl_seconds <= 0:
+        raise ValueError("A worker identity and positive lease duration are required")
+    heartbeat = now()
+    result = db.execute(update(Job).where(
+        Job.id == job_id,
+        Job.status == JobStatus.RUNNING.value,
+        Job.lease_owner == worker_id,
+        Job.lease_expires_at > heartbeat,
+    ).values(heartbeat_at=heartbeat,
+             lease_expires_at=heartbeat + timedelta(seconds=ttl_seconds)),
+        execution_options={"synchronize_session": False})
+    return result.rowcount == 1
+
+
+def fence_job_completion(db: Session, job_id: str, lease_owner: str) -> bool:
+    """Lock the active claim before committing a terminal state and its side effects."""
+    if not lease_owner:
+        return False
+    with db.no_autoflush:
+        result = db.execute(update(Job).where(
+            Job.id == job_id,
+            Job.status == JobStatus.RUNNING.value,
+            Job.lease_owner == lease_owner,
+            Job.lease_expires_at > now(),
+        ).values(lease_owner=None, lease_expires_at=None),
+            execution_options={"synchronize_session": False})
+    return result.rowcount == 1
 
 
 async def ollama_connected() -> bool:
