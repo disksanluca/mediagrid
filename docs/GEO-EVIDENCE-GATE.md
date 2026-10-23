@@ -20,6 +20,8 @@ node ..\..\node_modules\next\dist\bin\next build
 
 Uma prova vertical isolada, sem aprovar alegações ou publicar, pode ser feita com `python scripts/prove_official_geo.py --municipality-id 3550308`. Requer acesso à API do IBGE, Windows System.Speech, FFmpeg, Node e dependências travadas do Remotion. Os arquivos ficam em `data/geo-proof/<timestamp>/` (ignorado pelo Git): `source.json`, `evidence.json`, SQLite e MP4. O script confere hash da resposta, jobs, estado QC, bloqueio de export e FFprobe H.264/AAC 1080×1920. Não é aprovação editorial nem de voz.
 
+Na revisão final da branch, `pytest -q tests` passou com 104 testes e um ignorado; Ruff, TypeScript e build Next passaram. O CI PostgreSQL 16 validou a migração 0010, leases e dump/restore no commit de código `68f56cf`; o commit seguinte só acrescentou a cobertura de Trends. O smoke do instalador Windows ainda precisa concluir no CI.
+
 Prova executada em 23/10/2026: `data/geo-proof/20261023T204617Z/evidence.json`. Município 3550308, fonte IBGE consultada ao vivo, snapshot SHA-256 `8dc371530de5b1fba4495bd2e1a8c1b45470206e56076219f8e33ca4bdc55bc6`. Voz e render `SUCCEEDED`, três alegações pendentes, projeto `QC`, export `409`. MP4 de 26,0 s, 1080×1920, H.264/AAC, SHA-256 `f053570beae021f7be853a38987f7ea82c0cee9b178422c84a5264ddc459c151`. O áudio não é silencioso (`mean_volume` -24,2 dB, `max_volume` -5,2 dB); a qualidade da locução não recebeu revisão auditiva humana. Frames em 2 s e 13 s foram inspecionados: tipografia e fonte legíveis, mas os cartões de texto são visualmente simples; esta prova não é aceitação criativa.
 
 ## Limites e integrações
