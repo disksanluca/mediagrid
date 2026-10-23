@@ -12,6 +12,44 @@ from apps.api.database import SessionLocal
 from apps.api.models import Project, ProjectStatus
 
 
+def test_manual_politics_requires_claims_even_for_legacy_video(
+    client: TestClient, monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(get_settings(), "mediagrid_data_dir", tmp_path)
+    channel = client.post("/api/v1/channels", json={
+        "name": "Política local", "slug": "politica-local", "niche": "Política",
+        "default_engine": "politics",
+    }).json()
+    response = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Rascunho político",
+        "topic": "Tema ainda sem fontes", "content_type": "video",
+    })
+    assert response.status_code == 201, response.text
+    project_id = response.json()["id"]
+    assert response.json()["content_type"] == "knowledge"
+    client.post(f"/api/v1/projects/{project_id}/plan")
+    with SessionLocal() as db:
+        stored = db.get(Project, project_id)
+        assert stored is not None
+        stored.status = ProjectStatus.QC.value
+        db.commit()
+    render_dir = tmp_path / "renders"
+    render_dir.mkdir()
+    (render_dir / f"{project_id}.mp4").write_bytes(b"synthetic-politics-video")
+    review = {
+        "source_urls": ["https://example.org/registro"],
+        "facts_confirmed": True, "rights_confirmed": True,
+        "notes": "Revisão de teste", "caption": "Teste sintético",
+    }
+    assert client.post(f"/api/v1/projects/{project_id}/review", json=review).status_code == 409
+    with SessionLocal() as db:
+        stored = db.get(Project, project_id)
+        assert stored is not None
+        stored.content_type = "video"  # A preexisting political draft must obey the same gate.
+        db.commit()
+    assert client.post(f"/api/v1/projects/{project_id}/review", json=review).status_code == 409
+
+
 def test_claim_ledger_blocks_uncited_or_changed_knowledge_export(
     client: TestClient, monkeypatch, tmp_path: Path
 ) -> None:

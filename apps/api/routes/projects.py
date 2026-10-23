@@ -341,13 +341,17 @@ def list_projects(channel_id: str | None = None, db: Session = Depends(get_db)) 
 
 @router.post("", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
 def create_project(payload: ProjectCreate, db: Session = Depends(get_db)) -> Project:
-    if db.get(Channel, payload.channel_id) is None:
+    channel = db.get(Channel, payload.channel_id)
+    if channel is None:
         raise HTTPException(status_code=404, detail="Channel not found")
-    project = Project(**payload.model_dump())
+    values = payload.model_dump()
+    if channel.default_engine == "politics" and values["content_type"] == "video":
+        values["content_type"] = "knowledge"
+    project = Project(**values)
     db.add(project)
     db.flush()
     record_event(
-        db, "PROJECT_CREATED", "project", project.id, after=payload.model_dump(mode="json")
+        db, "PROJECT_CREATED", "project", project.id, after=values
     )
     db.commit()
     db.refresh(project)
@@ -651,8 +655,12 @@ def approve_project_review(
         raise HTTPException(409, "Rendered MP4 is missing")
     if not payload.facts_confirmed or not payload.rights_confirmed:
         raise HTTPException(409, "Confirm facts and media rights before approval")
-    claims = current_claims(db, project_id) if project.content_type == "knowledge" else []
-    if project.content_type == "knowledge":
+    channel = db.get(Channel, project.channel_id)
+    requires_claims = project.content_type == "knowledge" or (
+        channel is not None and channel.default_engine == "politics"
+    )
+    claims = current_claims(db, project_id) if requires_claims else []
+    if requires_claims:
         scene_ids = {str(scene.get("id")) for scene in (project.plan or {}).get("scenes", [])}
         submitted_urls = {str(url).rstrip("/") for url in payload.source_urls}
         if (not claims or any(claim.status != "APPROVED"
@@ -670,7 +678,7 @@ def approve_project_review(
         "edl_sha256": legacy_hash(project.edl),
         "video_sha256": file_hash(output),
     }
-    if project.content_type == "knowledge":
+    if requires_claims:
         review["claim_digest"] = claim_digest(claims)
     current = latest_revision(db, project_id)
     if current:
@@ -705,8 +713,12 @@ def export_reviewed_project(project_id: str, db: Session = Depends(get_db)) -> F
         not current or review["revision_sha256"] != current.sha256
     ):
         raise HTTPException(409, "Approved timeline changed; review again")
-    claims = current_claims(db, project_id) if project.content_type == "knowledge" else []
-    if project.content_type == "knowledge" and (
+    channel = db.get(Channel, project.channel_id)
+    requires_claims = project.content_type == "knowledge" or (
+        channel is not None and channel.default_engine == "politics"
+    )
+    claims = current_claims(db, project_id) if requires_claims else []
+    if requires_claims and (
         not claims or any(claim.status != "APPROVED" for claim in claims)
         or review.get("claim_digest") != claim_digest(claims)
     ):
