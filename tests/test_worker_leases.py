@@ -11,7 +11,11 @@ import pytest
 from apps.api.database import SessionLocal
 from apps.api.models import Job, JobStatus, Project, ProjectStatus, now
 from apps.api.services import claim_next_job, fence_job_completion, renew_job_lease
-from workers.render.artifacts import finish_media_render_attempt, finish_render_attempt
+from workers.render.artifacts import (
+    finish_media_render_attempt,
+    finish_render_attempt,
+    finish_voice_attempt,
+)
 from workers.render.lease import start_lease_heartbeat
 from workers.render.main import recover_interrupted_jobs
 
@@ -305,3 +309,96 @@ def test_stale_media_render_cannot_replace_newer_video(
         assert finish_media_render_attempt(db, fresh, new_token, stage, final)
         assert not stage.exists()
     assert final.read_bytes() == b"new-attempt"
+
+
+def test_stale_voice_cannot_replace_project_audio(client, tmp_path: Path) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Voice lease", "slug": "voice-lease", "niche": "Teste",
+        "default_engine": "music",
+    }).json()
+    project_id = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Voz isolada",
+        "topic": "Tentativa de síntese antiga",
+    }).json()["id"]
+    final_audio = tmp_path / "voice.wav"
+    final_manifest = tmp_path / "voice.sha256"
+    final_audio.write_bytes(b"previous-voice")
+    final_manifest.write_text("previous-script")
+    with SessionLocal() as db:
+        db.add(Job(project_id=project_id, job_type="VOICE", payload={}))
+        db.commit()
+        stale = claim_next_job(db, "VOICE", worker_id="voice-a")
+        assert stale is not None
+        job_id, old_token = stale.id, stale.lease_owner
+        db.commit()
+        with SessionLocal() as other:
+            claimed = other.get(Job, job_id)
+            assert claimed is not None
+            claimed.lease_expires_at = now() - timedelta(seconds=1)
+            other.commit()
+        recover_interrupted_jobs()
+        with SessionLocal() as other:
+            fresh = claim_next_job(other, "VOICE", worker_id="voice-b")
+            assert fresh is not None
+            new_token = fresh.lease_owner
+            other.commit()
+        old_audio, old_manifest = tmp_path / "old.wav", tmp_path / "old.sha256"
+        old_audio.write_bytes(b"stale-voice")
+        old_manifest.write_text("stale-script")
+        stale.status = JobStatus.SUCCEEDED.value
+        assert not finish_voice_attempt(
+            db, stale, old_token, old_audio, final_audio,
+            old_manifest, final_manifest,
+        )
+        assert not old_audio.exists() and not old_manifest.exists()
+        assert final_audio.read_bytes() == b"previous-voice"
+        assert final_manifest.read_text() == "previous-script"
+    with SessionLocal() as db:
+        fresh = db.get(Job, job_id)
+        assert fresh is not None
+        new_audio, new_manifest = tmp_path / "new.wav", tmp_path / "new.sha256"
+        new_audio.write_bytes(b"fresh-voice")
+        new_manifest.write_text("fresh-script")
+        fresh.status = JobStatus.SUCCEEDED.value
+        assert finish_voice_attempt(
+            db, fresh, new_token, new_audio, final_audio,
+            new_manifest, final_manifest,
+        )
+    assert final_audio.read_bytes() == b"fresh-voice"
+    assert final_manifest.read_text() == "fresh-script"
+
+
+def test_missing_voice_manifest_preserves_prior_audio(client, tmp_path: Path) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Voice manifest", "slug": "voice-manifest", "niche": "Teste",
+        "default_engine": "music",
+    }).json()
+    project_id = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Marcador ausente",
+        "topic": "Falha antes da promoção",
+    }).json()["id"]
+    final_audio = tmp_path / "voice.wav"
+    final_manifest = tmp_path / "voice.sha256"
+    final_audio.write_bytes(b"previous-voice")
+    final_manifest.write_text("previous-script")
+    with SessionLocal() as db:
+        db.add(Job(project_id=project_id, job_type="VOICE", payload={}))
+        db.commit()
+        job = claim_next_job(db, "VOICE", worker_id="voice-c")
+        assert job is not None
+        token = job.lease_owner
+        db.commit()
+        stage = tmp_path / "new.wav"
+        stage.write_bytes(b"incomplete-voice")
+        job.status = JobStatus.SUCCEEDED.value
+        assert finish_voice_attempt(
+            db, job, token, stage, final_audio,
+            tmp_path / "missing.sha256", final_manifest,
+        )
+    assert final_audio.read_bytes() == b"previous-voice"
+    assert final_manifest.read_text() == "previous-script"
+    with SessionLocal() as db:
+        failed = db.get(Job, job.id)
+        assert failed is not None
+        assert failed.status == JobStatus.FAILED.value
+        assert failed.result is None
