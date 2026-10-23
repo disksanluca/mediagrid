@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from apps.api.config import get_settings
 from apps.api.database import SessionLocal
-from apps.api.local_media import narration_text
+from apps.api.local_media import narration_text, voice_matches
 from apps.api.models import Channel, Project
 from apps.api.services import build_local_plan, enrich_plan_with_local_ai, local_ollama_url
 from workers.render.main import backup_local_database, media_one
@@ -129,3 +129,19 @@ def test_voice_is_invalidated_when_script_changes(client: TestClient) -> None:
     )
     assert response.json()["voice_ready"] is False
     assert client.get(f"/api/v1/projects/{project['id']}/voice").status_code == 404
+
+
+def test_new_voice_manifest_detects_changed_wav(client: TestClient) -> None:
+    folder = get_settings().mediagrid_data_dir / "voice"
+    folder.mkdir(exist_ok=True)
+    project_id = "voice-hash-fixture"
+    script = {"segments": ["Uma frase de teste"]}
+    audio = folder / f"{project_id}.wav"
+    manifest = folder / f"{project_id}.sha256"
+    audio.write_bytes(b"RIFForiginal")
+    script_hash = hashlib.sha256(narration_text(script).encode()).hexdigest()
+    audio_hash = hashlib.sha256(audio.read_bytes()).hexdigest()
+    manifest.write_text(f"{script_hash} {audio_hash}")
+    assert voice_matches(project_id, script)
+    audio.write_bytes(b"RIFFchanged")
+    assert not voice_matches(project_id, script)

@@ -16,7 +16,8 @@ autorização por recurso já funcionam. O desktop local continua em SQLite.
 - A fila usa a tabela `jobs` e `FOR UPDATE SKIP LOCKED` no claim. Há lease,
   heartbeat e fence de conclusão; `RENDER`, legendas, cortes, Football Edit e 3D
   promovem seus MP4s temporários somente após o fence; a voz promove o WAV e o
-  digest do roteiro após o fence. Proxy e waveform passam pelo mesmo fence,
+  digest do roteiro e do WAV após o fence. Manifestos legados ainda têm só o
+  digest do roteiro. Proxy e waveform passam pelo mesmo fence,
   com metadados de ingestão gravados apenas depois da promoção. Ainda faltam cancelamento
   de subprocesso remoto, token revogável
   de dispositivo, transporte autenticado de inputs/artefatos e reconciliação
