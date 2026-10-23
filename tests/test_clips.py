@@ -1,8 +1,10 @@
 """Speech-window suggestions require human selection and produce real MP4 cuts."""
 
+import shutil
 import subprocess
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.captions import Word
@@ -39,6 +41,8 @@ def synthetic_long_video(path: Path) -> Path:
 def test_clip_analysis_selection_and_two_real_exports(
     client: TestClient, tmp_path: Path
 ) -> None:
+    if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
+        pytest.skip("FFmpeg/FFprobe unavailable before CI installs the desktop runtime")
     source = synthetic_long_video(tmp_path / "long.mp4")
     with source.open("rb") as media:
         response = client.post("/api/v1/assets", files={

@@ -269,6 +269,10 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   O áudio sintético é um tom, portanto não comprova ritmo, fala natural ou
   qualidade editorial. Não há filmagem/trilha autorizada para o aceite criativo
   de podcast, debate ou futebol.
+- No runner Windows, o teste Python que cria MP4 sintético registra `SKIP`
+  explícito se FFmpeg/FFprobe ainda não estiverem instalados na etapa de testes.
+  O smoke posterior usa os binários portáteis do instalador para testar análise,
+  seleção e render real; sua execução e resultado são gate separado.
 - Migração: tabela nova, sem modificar arquivos ou colunas legadas. `.env.example`
   não requer nova variável. REAL local: API, SQLite, worker, FFmpeg e UI.
   PAPER/MOCK: nenhum corte foi contabilizado como produto criativo. Custo de
