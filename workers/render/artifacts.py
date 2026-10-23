@@ -51,7 +51,7 @@ def finish_render_attempt(
 def finish_media_render_attempt(
     db: Session, job: Job, lease_owner: str, staged: Path, final: Path,
 ) -> bool:
-    """Promote a clip/caption/football/3D MP4 under its current job lease."""
+    """Promote one local media output under its current job lease."""
     try:
         if not fence_job_completion(db, job.id, lease_owner):
             db.rollback()

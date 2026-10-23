@@ -21,8 +21,8 @@ autorização por recurso já funcionam. O desktop local continua em SQLite.
   de subprocesso remoto, token revogável
   de dispositivo, transporte autenticado de inputs/artefatos e reconciliação
   após queda entre rename e commit, ou entre as duas trocas da voz/proxy. A
-  transcrição legada ainda escreve arquivo compartilhado antes do fence. Os
-  arquivos estão no disco local do host da
+  transcrição TXT legada também usa promoção após o fence. Os arquivos estão
+  no disco local do host da
   API; o desktop não pode acessá-los de forma autenticada por saída.
 - O worker local agora recusa modo não local. No modo servidor a API só inicia
   com credenciais, URL pública HTTPS, PostgreSQL explícito, `DRY_RUN=true` e
