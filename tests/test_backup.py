@@ -17,6 +17,8 @@ def _sample_data(root: Path) -> None:
         db.commit()
     (root / "assets").mkdir()
     (root / "assets" / "sample.txt").write_text("original", encoding="utf-8")
+    (root / "football-renders").mkdir()
+    (root / "football-renders" / "review.mp4").write_bytes(b"synthetic export")
     (root / "settings.json").write_text('{"setup_complete": true}', encoding="utf-8")
 
 
@@ -27,10 +29,12 @@ def test_backup_roundtrip_keeps_previous_data(tmp_path: Path) -> None:
     manifest = create_backup(data, archive)
     assert manifest["version"] == 1
     (data / "assets" / "sample.txt").write_text("changed", encoding="utf-8")
+    (data / "football-renders" / "review.mp4").unlink()
     previous = restore_backup(data, archive)
     assert previous is not None
     assert (previous / "assets" / "sample.txt").read_text() == "changed"
     assert (data / "assets" / "sample.txt").read_text() == "original"
+    assert (data / "football-renders" / "review.mp4").read_bytes() == b"synthetic export"
     assert json.loads((data / "settings.json").read_text())["setup_complete"] is True
     with closing(sqlite3.connect(data / "Database" / "mediagrid.db")) as db:
         assert db.execute("SELECT value FROM note").fetchone()[0] == "original"

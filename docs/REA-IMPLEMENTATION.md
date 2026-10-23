@@ -301,15 +301,15 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   `SUCCEEDED`, os projetos ficaram em `QC`, sem aprovação/publicação.
   FFprobe confirmou streams e dimensões; quadros em 5,5 s foram inspecionados
   nos dois formatos. O áudio completo e o ritmo ainda exigem audição humana.
-- O smoke Windows desta branch agora inclui salvar cartão, obter prévia e
-  renderizar MP4 com áudio no aplicativo instalado; resultado ainda pendente
-  no CI. Sem migração de banco: o preset mora no JSON versionado do EDL v2.
+- O smoke Windows do PR #7 salvou cartão, obteve prévia e renderizou MP4 com
+  áudio no aplicativo instalado; CI Windows concluiu com sucesso. Sem migração
+  de banco: o preset mora no JSON versionado do EDL v2.
   `.env.example` não precisa de variável nova. REAL local: API, EDL, SQLite,
   Remotion, FFmpeg e UI. PAPER/MOCK: nenhuma campanha concluída ou métrica
   de desempenho foi declarada. Custo de API paga: zero; energia/tempo de
   outras máquinas não medidos.
 - Marco 5 ainda precisa de storyboard completo, mais famílias de presets,
-  diagrama/mapa vinculado a fontes, amostra de anúncio e explainer com mídia
+  mapa vinculado a fontes, amostra de anúncio e explainer com mídia
   autorizada e revisão audiovisual integral. Este cartão não satisfaz sozinho
   o aceite criativo do marco.
 
@@ -337,6 +337,51 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   nem variável nova no `.env.example`. REAL local: EDL/API/SQLite/UI/Remotion.
   PAPER/MOCK: nenhum explainer factual concluído ou resultado de audiência.
   Custo de API paga: zero; tempo/energia de produção externa não medidos.
+
+## Marco 6 — Football Edit manual (primeira entrega vertical)
+
+- `football_sequences` guarda uma revisão por projeto de canal Football, com
+  eventos marcados manualmente, intervalo original, papel no arco, foco de crop,
+  hash da mídia e fonte do placar opcional. A migração `0006_football_sequences`
+  só cria uma tabela; o projeto e o EDL existentes não são alterados. API e
+  Editor recusam mídia sem direitos, intervalo fora da fonte, replay sem ação
+  anterior com o mesmo ID e placar sem URL. Salvar uma nova revisão exige nova
+  aprovação de eventos e direitos e invalida o download anterior.
+- O worker `FOOTBALL_RENDER` revalida hash/direitos, recorta cada fonte com
+  FFmpeg, conserva seu áudio, aplica rótulo `REPLAY` e placar revisado quando
+  informado, concatena em MP4 e registra SHA-256/duração/fontes no job. A
+  fila é idempotente para a mesma revisão com saída íntegra. Backup local
+  inclui os derivados `caption-renders`, `clip-renders` e `football-renders`.
+- Prova sintética local em `data/rea-proof/20261023T005032Z-football`:
+  MP4 H.264/AAC 1920×1080, 4,516 s, SHA-256
+  `98d88e61edd8687f46c927594b2d795a51d8c45b527ae66adc75e6f25078ea76`.
+  FFprobe confirmou streams; o quadro em 3,7 s mostra o selo `REPLAY`.
+  Não há gol, placar ou mídia esportiva real nessa amostra. O teste integrado
+  cria fonte sintética com áudio, marca ação/replay, aprova, renderiza e prova
+  que revisão nova bloqueia o MP4 antigo. O smoke Windows instalado repete
+  o fluxo com mídia sintética; CI desta branch ainda pendente.
+- QA visual do Editor com projeto e fonte sintéticos isolados: marcou ação e
+  replay com o mesmo ID, salvou revisão 1, aprovou eventos/direitos e o worker
+  concluiu o job `SUCCEEDED`; o link de MP4 apareceu. O export 9:16 tem
+  H.264/AAC 1080×1920, 6,020 s, SHA-256
+  `ec390f7fb219bbe2962ba4812fc123fce87ea23d05c30bcd818045d3de41ae16`.
+  `football-editor-succeeded.png` e `football-ui-replay-frame.png` no mesmo
+  diretório mostram a interface e o selo no quadro. O áudio é tom sintético;
+  não foi feita avaliação de ritmo musical ou recepção humana.
+- REAL local: API, SQLite, worker, FFmpeg, Editor e backup. PAPER/MOCK:
+  detecção automática de eventos, trilha licenciada, edição em batida,
+  speed ramp, atuação e qualidade editorial de um Football Edit real.
+  Sem filmagem/trilha autorizada, o aceite criativo segue `BLOCKED`.
+  Nenhuma variável nova em `.env.example`; API paga custa zero e consumo
+  de energia de outras máquinas não foi medido.
+
+O renderer de sequência usa FFmpeg 9.0.2 local. O
+[demuxer concat oficial](https://ffmpeg.org/ffmpeg-formats.html)
+exige streams compatíveis;
+por isso cada lance é normalizado a H.264/AAC e 30 fps antes da junção. O
+[filtro subtitles/libass](https://ffmpeg.org/ffmpeg-filters.html)
+insere os rótulos revisados. Documentação conferida em 23/10/2026; nenhuma API
+externa ou serviço pago foi acionado.
 
 ## Ordem restante e gates
 

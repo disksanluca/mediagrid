@@ -13,7 +13,10 @@ from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
 
 BACKUP_VERSION = 1
-DATA_FOLDERS = ("assets", "exports", "renders", "voice", "transcripts", "models")
+DATA_FOLDERS = (
+    "assets", "exports", "renders", "caption-renders", "clip-renders",
+    "football-renders", "voice", "transcripts", "models",
+)
 
 
 def _copy_into_archive(archive: zipfile.ZipFile, source: Path, name: str) -> dict[str, object]:
@@ -51,6 +54,9 @@ def create_backup(
         "assets": include_assets,
         "exports": include_renders,
         "renders": include_renders,
+        "caption-renders": include_renders,
+        "clip-renders": include_renders,
+        "football-renders": include_renders,
         "voice": True,
         "transcripts": True,
         "models": include_models,

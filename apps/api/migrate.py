@@ -43,7 +43,8 @@ def main() -> None:
     settings.mediagrid_data_dir.mkdir(parents=True, exist_ok=True)
     for directory in (
         "assets", "exports", "renders", "temp", "voice", "transcripts",
-        "backups", "uploads", "proxies",
+        "backups", "uploads", "proxies", "caption-renders", "clip-renders",
+        "football-renders",
     ):
         (settings.mediagrid_data_dir / directory).mkdir(exist_ok=True)
     existing = set(inspect(engine).get_table_names())
