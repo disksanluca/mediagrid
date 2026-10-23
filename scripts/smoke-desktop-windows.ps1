@@ -119,11 +119,21 @@ try {
     @{at_ms=3000;x=0.5;y=0.5;opacity=1;scale=1}
   )
   $motionCard = @{id="smoke-motion-card";start_ms=0;duration_ms=3000;z_index=15;preset="motion_card_v1";params=@{label="MOTION";text="Cartão real";body="Prévia e MP4 da instalação.";color="#dcf769";layout="stack";keyframes=$motionFrames}}
-  $motionTimeline.edl.tracks = @($motionTimeline.edl.tracks) + @(@{id="motion-cards";kind="caption";items=@($motionCard)})
+  $flowFrames = @(
+    @{at_ms=0;x=0.5;y=0.5;opacity=0;scale=0.85},
+    @{at_ms=500;x=0.5;y=0.5;opacity=1;scale=1},
+    @{at_ms=3000;x=0.5;y=0.5;opacity=1;scale=1}
+  )
+  $flow = @{id="smoke-flow";start_ms=3500;duration_ms=3000;z_index=16;preset="flow_path_v1";params=@{text="Ideia ao quadro";steps=@("Pesquisa","Roteiro","Vídeo");color="#dcf769";source_label=$null;keyframes=$flowFrames}}
+  $motionTimeline.edl.tracks = @($motionTimeline.edl.tracks) + @(
+    @{id="motion-cards";kind="caption";items=@($motionCard)},
+    @{id="flow-diagrams";kind="caption";items=@($flow)}
+  )
   $motionEDLBody = @{expected_revision=$motionTimeline.revision;expected_legacy_sha256=$motionTimeline.legacy_sha256;edl=$motionTimeline.edl} | ConvertTo-Json -Depth 20 -Compress
   Invoke-RestMethod "$api/projects/$($motionProject.id)/edl-v2" -Method Put -ContentType "application/json" -Body $motionEDLBody | Out-Null
   $motionPreview = Invoke-RestMethod "$api/projects/$($motionProject.id)/preview"
   if ($motionPreview.props.overlays[0].preset -ne "motion_card_v1") { throw "Cartão não chegou à prévia instalada." }
+  if ($motionPreview.props.overlays[1].preset -ne "flow_path_v1") { throw "Diagrama não chegou à prévia instalada." }
   $motionVoicePath = Join-Path $voiceDir "$($motionProject.id).wav"
   & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "sine=frequency=550:duration=1" -ac 1 -ar 44100 $motionVoicePath
   if ($LASTEXITCODE -ne 0) { throw "Áudio sintético do cartão não foi criado." }
@@ -141,7 +151,7 @@ try {
   $motionVideo = Join-Path $dataDir "renders\$($motionProject.id).mp4"
   $motionStreams = @(& $ffprobe.FullName -v error -show_entries stream=codec_type -of csv=p=0 $motionVideo | ForEach-Object { $_.Trim() })
   if ($motionStreams -notcontains "video" -or $motionStreams -notcontains "audio") { throw "Cartão instalado sem vídeo ou áudio." }
-  Write-Host "Instalação validou cartão de motion na prévia e em MP4 com áudio."
+  Write-Host "Instalação validou cartão e diagrama na prévia e em MP4 com áudio."
 
   $asrStatus = Invoke-RestMethod "$api/assets/asr-status"
   if (-not $asrStatus.word_asr_available) { throw "Modelo ASR offline não ficou disponível na instalação." }

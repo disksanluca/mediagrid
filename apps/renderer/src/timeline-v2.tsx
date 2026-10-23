@@ -56,6 +56,61 @@ function MotionCard({item}: {item: RenderOverlay}) {
   </AbsoluteFill>;
 }
 
+function FlowDiagram({item}: {item: RenderOverlay}) {
+  const frame = useCurrentFrame();
+  const {fps, width, height} = useVideoConfig();
+  const points = item.keyframes.map((keyframe) => Math.round(keyframe.at_ms * fps / 1000));
+  const value = (key: "x" | "y" | "opacity" | "scale") => interpolate(
+    frame, points, item.keyframes.map((keyframe) => keyframe[key]),
+    {extrapolateLeft: "clamp", extrapolateRight: "clamp"},
+  );
+  const unit = width / 1080;
+  const horizontal = width > height;
+  return <AbsoluteFill style={{pointerEvents: "none", zIndex: item.z_index,
+    background: "#0b1514", color: "#f5f7f2", fontFamily: "Arial, sans-serif"}}>
+    <div style={{position: "absolute", left: `${value("x") * 100}%`,
+      top: `${value("y") * 100}%`, width: "82%", maxWidth: horizontal ? 1460 : 900,
+      transform: `translate(-50%, -50%) scale(${value("scale")})`,
+      opacity: value("opacity")}}>
+      <div style={{color: item.color, fontSize: 24 * unit, fontWeight: 800,
+        letterSpacing: 4 * unit}}>IDEIAS EM SEQUÊNCIA</div>
+      <div style={{fontSize: (horizontal ? 74 : 86) * unit, fontWeight: 900,
+        lineHeight: 1.04, marginTop: 30 * unit,
+        overflowWrap: "anywhere"}}>{item.text}</div>
+      <div style={{display: "flex", flexDirection: horizontal ? "row" : "column",
+        gap: 18 * unit, marginTop: 56 * unit}}>
+        {(item.steps ?? []).map((step, index) => {
+          const reveal = interpolate(frame, [index * 16 + 8, index * 16 + 20], [0, 1],
+            {extrapolateLeft: "clamp", extrapolateRight: "clamp"});
+          return <div key={`${index}-${step}`} style={{flex: 1, minWidth: 0,
+            width: horizontal ? undefined : "100%",
+            display: "flex", flexDirection: horizontal ? "row" : "column",
+            alignItems: "center", gap: horizontal ? 18 * unit : 6 * unit,
+            opacity: reveal, transform: `translateY(${(1 - reveal) * 30 * unit}px)`}}>
+            <div style={{flex: 1, width: horizontal ? undefined : "100%",
+              minHeight: (horizontal ? 220 : 170) * unit,
+              display: "flex", flexDirection: horizontal ? "column" : "row",
+              alignItems: horizontal ? "flex-start" : "center", justifyContent: "center",
+              gap: horizontal ? 12 * unit : 18 * unit,
+              border: `2px solid ${item.color}88`, borderRadius: 20 * unit,
+              background: "#14201d", padding: 24 * unit, boxSizing: "border-box"}}>
+              <span style={{fontSize: 26 * unit, fontWeight: 900,
+                color: item.color}}>{String(index + 1).padStart(2, "0")}</span>
+              <span style={{fontSize: (horizontal ? 24 : 38) * unit, fontWeight: 800,
+                lineHeight: 1.12, overflowWrap: "anywhere"}}>{step}</span>
+            </div>
+            {index < (item.steps?.length ?? 0) - 1 &&
+              <span style={{color: item.color, fontSize: 40 * unit,
+                transform: horizontal ? undefined : "rotate(90deg)"}}>→</span>}
+          </div>;
+        })}
+      </div>
+      <div style={{marginTop: 44 * unit, fontSize: 22 * unit,
+        color: "#aebdb5"}}>{item.source_label || "Diagrama conceitual · confirme fontes e alegações"}</div>
+    </div>
+  </AbsoluteFill>;
+}
+
 function SoundItem({item}: {item: RenderSound}) {
   const {fps} = useVideoConfig();
   return <Audio
@@ -96,7 +151,9 @@ export function MediaGridTimelineV2(input: Partial<RenderProps>) {
       key={item.id}
       from={Math.round(item.start_ms * fps / 1000)}
       durationInFrames={Math.max(1, Math.round(item.duration_ms * fps / 1000))}
-    >{item.preset === "motion_card_v1" ? <MotionCard item={item}/> : <KineticTitle item={item}/>}</Sequence>)}
+    >{item.preset === "flow_path_v1" ? <FlowDiagram item={item}/>
+      : item.preset === "motion_card_v1" ? <MotionCard item={item}/>
+        : <KineticTitle item={item}/>}</Sequence>)}
     {(props.sounds ?? []).map((item) => <Sequence
       key={item.id}
       from={Math.round(item.start_ms * fps / 1000)}

@@ -91,18 +91,38 @@ class MotionCardSpec(OverlaySpec):
         return self
 
 
-def validate_overlay(item: TimelineItem) -> OverlaySpec | MotionCardSpec:
+class FlowDiagramSpec(OverlaySpec):
+    text: str = Field(min_length=1, max_length=60)
+    steps: list[str] = Field(min_length=2, max_length=4)
+    source_label: str | None = Field(default=None, max_length=80)
+
+    @model_validator(mode="after")
+    def readable_steps(self) -> "FlowDiagramSpec":
+        if any(not step.strip() or len(step) > 32 for step in self.steps):
+            raise ValueError("Flow steps must be short, nonempty labels")
+        if any(abs(frame.x - 0.5) > 0.01 or abs(frame.y - 0.5) > 0.01
+               or not 0.75 <= frame.scale <= 1.05 for frame in self.keyframes):
+            raise ValueError("Flow diagram must remain centered inside the safe area")
+        return self
+
+
+def validate_overlay(item: TimelineItem) -> OverlaySpec | MotionCardSpec | FlowDiagramSpec:
     if (
-        item.preset not in {"kinetic_title_v1", "motion_card_v1"}
+        item.preset not in {"kinetic_title_v1", "motion_card_v1", "flow_path_v1"}
         or item.source_asset_id is not None
         or item.source_in_ms is not None or item.speed != 1 or item.z_index < 1
     ):
-        raise ValueError("Only local kinetic text or motion cards are supported on caption tracks")
-    spec = (MotionCardSpec if item.preset == "motion_card_v1" else OverlaySpec).model_validate(
-        item.params
-    )
+        raise ValueError(
+            "Only local kinetic text, motion cards or flow diagrams "
+            "are supported on caption tracks"
+        )
+    schema = {"kinetic_title_v1": OverlaySpec, "motion_card_v1": MotionCardSpec,
+              "flow_path_v1": FlowDiagramSpec}[item.preset]
+    spec = schema.model_validate(item.params)
     if item.preset == "motion_card_v1" and item.duration_ms < 2500:
         raise ValueError("Motion cards need at least 2.5 seconds to read")
+    if item.preset == "flow_path_v1" and item.duration_ms < 3000:
+        raise ValueError("Flow diagrams need at least 3 seconds to read")
     times = [frame.at_ms for frame in spec.keyframes]
     if (
         times[0] != 0 or times[-1] > item.duration_ms

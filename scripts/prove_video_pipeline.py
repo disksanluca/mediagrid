@@ -83,6 +83,10 @@ def main() -> None:
         help="Render a reviewed motion card with the shared preview/MP4 props",
     )
     parser.add_argument(
+        "--flow-diagram", action="store_true",
+        help="Render a conceptual flow diagram with editable EDL steps",
+    )
+    parser.add_argument(
         "--format", choices=("vertical", "horizontal"), default="vertical",
         help="Canvas for the local technical proof",
     )
@@ -150,7 +154,8 @@ def main() -> None:
         edl_v2_revision = None
         if (
             args.edl_v2_roundtrip or args.kinetic_title
-            or args.synthetic_sound or args.synthetic_video_layer or args.motion_card
+            or args.synthetic_sound or args.synthetic_video_layer
+            or args.motion_card or args.flow_diagram
         ):
             timeline = checked(client.get(f"/api/v1/projects/{project_id}/edl-v2"))
             if args.kinetic_title:
@@ -186,6 +191,26 @@ def main() -> None:
                                 {"at_ms": 500, "x": 0.5, "y": 0.5,
                                  "opacity": 1, "scale": 1},
                                 {"at_ms": 4000, "x": 0.5, "y": 0.5,
+                                 "opacity": 1, "scale": 1},
+                            ],
+                        },
+                    }],
+                })
+            if args.flow_diagram:
+                timeline["edl"]["tracks"].append({
+                    "id": "flow-diagrams", "kind": "caption", "items": [{
+                        "id": "proof-flow", "start_ms": 10_000,
+                        "duration_ms": 5000, "z_index": 16,
+                        "preset": "flow_path_v1", "params": {
+                            "text": "Da ideia ao vídeo",
+                            "steps": ["Pesquisa", "Roteiro", "Montagem"],
+                            "color": "#dcf769", "source_label": None,
+                            "keyframes": [
+                                {"at_ms": 0, "x": 0.5, "y": 0.5,
+                                 "opacity": 0, "scale": 0.85},
+                                {"at_ms": 500, "x": 0.5, "y": 0.5,
+                                 "opacity": 1, "scale": 1},
+                                {"at_ms": 5000, "x": 0.5, "y": 0.5,
                                  "opacity": 1, "scale": 1},
                             ],
                         },
@@ -255,6 +280,7 @@ def main() -> None:
         for enabled, key in (
             (args.kinetic_title, "overlays"),
             (args.motion_card, "overlays"),
+            (args.flow_diagram, "overlays"),
             (args.synthetic_sound, "sounds"),
             (args.synthetic_video_layer, "video_layers"),
         ):
@@ -317,7 +343,8 @@ def main() -> None:
         if render_result["result"].get("edl_sha256") != edl_sha256:
             raise RuntimeError("Render job EDL hash does not match its project")
         has_v2_layer = (args.kinetic_title or args.synthetic_sound
-                        or args.synthetic_video_layer or args.motion_card)
+                        or args.synthetic_video_layer or args.motion_card
+                        or args.flow_diagram)
         if has_v2_layer and not render_result["result"].get("revision_sha256"):
             raise RuntimeError("Layer render did not record its EDL v2 revision")
         evidence = {
@@ -330,6 +357,7 @@ def main() -> None:
             "caption_mode": "one visual text card per scene; word timing not implemented",
             "kinetic_title": args.kinetic_title,
             "motion_card": args.motion_card,
+            "flow_diagram": args.flow_diagram,
             "synthetic_sound": args.synthetic_sound,
             "synthetic_video_layer": args.synthetic_video_layer,
             "revision_sha256": render_result["result"].get("revision_sha256"),
