@@ -32,6 +32,28 @@ export interface Project {
   updated_at: string;
 }
 
+export interface FootballShot {
+  asset_id: string;
+  source_sha256?: string;
+  in_ms: number;
+  out_ms: number;
+  role: "build_up" | "action" | "reaction" | "replay" | "celebration";
+  verified_event_id: string | null;
+  focus_x: number;
+  focus_y: number;
+}
+
+export interface FootballSequence {
+  id: string;
+  project_id: string;
+  revision: number;
+  status: "REVIEW_REQUIRED" | "APPROVED";
+  aspect: "horizontal" | "vertical";
+  shots: FootballShot[];
+  score_label: string | null;
+  score_source_url: string | null;
+}
+
 export interface Scene {
   id: string;
   duration_seconds: number;

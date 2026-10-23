@@ -232,6 +232,35 @@ try {
   if ($cutWidth.Trim() -ne "1080" -or $cutHeight.Trim() -ne "1920") { throw "Corte instalado não saiu em 1080x1920." }
   Write-Host "Instalação validou análise, seleção humana e render de corte vertical."
 
+  $footballChannelBody = @{name="Football Smoke";slug="football-smoke";niche="Football";default_engine="football"} | ConvertTo-Json -Compress
+  $footballChannel = Invoke-RestMethod "$api/channels" -Method Post -ContentType "application/json" -Body $footballChannelBody
+  $footballProjectBody = @{channel_id=$footballChannel.id;title="Lances manuais";topic="Mídia sintética para teste";format="horizontal"} | ConvertTo-Json -Compress
+  $footballProject = Invoke-RestMethod "$api/projects" -Method Post -ContentType "application/json" -Body $footballProjectBody
+  $footballUrl = "$api/projects/$($footballProject.id)/football"
+  $footballBody = @{expected_revision=0;aspect="horizontal";shots=@(
+    @{asset_id=$clipAsset.id;in_ms=0;out_ms=1200;role="action";verified_event_id="smoke-event-1";focus_x=0.5;focus_y=0.5},
+    @{asset_id=$clipAsset.id;in_ms=0;out_ms=1200;role="replay";verified_event_id="smoke-event-1";focus_x=0.5;focus_y=0.5}
+  );score_label=$null;score_source_url=$null} | ConvertTo-Json -Depth 10 -Compress
+  $footballSequence = Invoke-RestMethod $footballUrl -Method Put -ContentType "application/json" -Body $footballBody
+  if ($footballSequence.status -ne "REVIEW_REQUIRED" -or $footballSequence.shots.Count -ne 2) { throw "Lances não persistidos para revisão." }
+  $footballApproval = @{expected_revision=$footballSequence.revision;events_verified=$true;rights_confirmed=$true;score_verified=$false} | ConvertTo-Json -Compress
+  Invoke-RestMethod "$footballUrl/approve" -Method Post -ContentType "application/json" -Body $footballApproval | Out-Null
+  $footballJob = Invoke-RestMethod "$footballUrl/render" -Method Post
+  $footballDone = $false
+  for ($attempt = 0; $attempt -lt 120; $attempt++) {
+    Start-Sleep -Seconds 1
+    $footballState = Invoke-RestMethod "$api/jobs/$($footballJob.job_id)"
+    if ($footballState.status -eq "FAILED") { throw "Football Edit instalado falhou: $($footballState.error)" }
+    if ($footballState.status -eq "SUCCEEDED") { $footballDone = $true; break }
+  }
+  if (-not $footballDone) { throw "Football Edit não concluiu em 120 segundos." }
+  if ($footballState.result.replay_count -ne 1) { throw "Replay não foi registrado no MP4." }
+  $footballVideo = Join-Path $env:RUNNER_TEMP "mediagrid-football.mp4"
+  Invoke-WebRequest "$footballUrl/render/$($footballJob.job_id)" -OutFile $footballVideo
+  $footballStreams = @(& $ffprobe.FullName -v error -show_entries stream=codec_type -of csv=p=0 $footballVideo | ForEach-Object { $_.Trim() })
+  if ($footballStreams -notcontains "video" -or $footballStreams -notcontains "audio") { throw "Football Edit instalado sem vídeo ou áudio." }
+  Write-Host "Instalação validou eventos manuais, revisão e Football Edit MP4 com replay."
+
   # Synthetic CI review verifies the package flow; editorial approval remains a human action.
   $caption = "Legenda de teste para publicação manual."
   $reviewBody = @{

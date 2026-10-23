@@ -91,6 +91,17 @@ the preview and MP4 animate the same sequence. Add source URLs in human review
 when the diagram makes factual claims. Without a source, the video labels it a
 conceptual diagram and blocks manual delivery until the existing source review.
 
+For a Football channel, open a project and use **Editor → Football Edit**.
+Import owned or licensed video first. Mark the original in/out points and event
+roles by hand, choose a crop focus and optionally enter a sourced score. A replay
+must refer to an earlier action with the same verified event ID. Save the
+revision, explicitly confirm events and rights, then render. The local worker
+creates an MP4 from the pinned source hashes, labels replay, and retains source
+audio. Download is available only for the current approved revision. This
+tool does not recognize goals or players, choose music, or publish automatically.
+Inspect the entire export before use; without authorized footage and music,
+only synthetic technical tests are possible.
+
 ## Current development fallback on Windows
 
 See [SETUP.md](SETUP.md) for installation and troubleshooting. On Windows, double-click

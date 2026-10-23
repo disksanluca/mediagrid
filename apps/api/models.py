@@ -214,6 +214,21 @@ class ClipCandidate(TimestampMixin, Base):
     revision: Mapped[int] = mapped_column(Integer, default=1)
 
 
+class FootballSequence(TimestampMixin, Base):
+    """Versioned human-marked football edit; source hashes pin every shot."""
+
+    __tablename__ = "football_sequences"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), unique=True)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    status: Mapped[str] = mapped_column(String(32), default="REVIEW_REQUIRED")
+    aspect: Mapped[str] = mapped_column(String(20), default="source")
+    shots_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
+    score_label: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    score_source_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
 class Job(TimestampMixin, Base):
     __tablename__ = "jobs"
 

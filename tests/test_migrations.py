@@ -47,7 +47,7 @@ def test_legacy_database_upgrade_and_downgrade(tmp_path: Path) -> None:
     )
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == (
-            "0005_clip_candidates",
+            "0006_football_sequences",
         )
         saved_edl = connection.execute(
             "SELECT edl FROM projects WHERE id=?", (project_id,)
@@ -58,6 +58,7 @@ def test_legacy_database_upgrade_and_downgrade(tmp_path: Path) -> None:
         assert connection.execute("SELECT COUNT(*) FROM transcripts").fetchone() == (0,)
         assert connection.execute("SELECT COUNT(*) FROM transcript_words").fetchone() == (0,)
         assert connection.execute("SELECT COUNT(*) FROM clip_candidates").fetchone() == (0,)
+        assert connection.execute("SELECT COUNT(*) FROM football_sequences").fetchone() == (0,)
     assert len(list((tmp_path / "backups").glob("pre-edl-v2-*.db"))) == 1
 
     subprocess.run(

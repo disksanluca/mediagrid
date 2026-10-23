@@ -25,6 +25,7 @@ from apps.api.models import (
     Asset,
     Channel,
     ClipCandidate,
+    FootballSequence,
     Job,
     JobStatus,
     Project,
@@ -40,6 +41,7 @@ from apps.api.services import claim_next_job, record_event
 from apps.api.transcripts import replace_words
 from workers.render.caption_video import burn_captions
 from workers.render.clips import analyze_asset, render_selected_clip
+from workers.render.football import render_football
 from workers.render.proxy import build_proxy
 
 logger = logging.getLogger(__name__)
@@ -95,7 +97,7 @@ def recover_interrupted_jobs() -> None:
             select(Job).where(
                 Job.job_type.in_([
                     "RENDER", "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
-                    "CLIP_ANALYSIS", "CLIP_RENDER",
+                    "CLIP_ANALYSIS", "CLIP_RENDER", "FOOTBALL_RENDER",
                 ]),
                 Job.status == JobStatus.RUNNING.value,
             )
@@ -383,7 +385,7 @@ def media_one() -> bool:
                 Job.status == JobStatus.QUEUED.value,
                 Job.job_type.in_([
                     "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
-                    "CLIP_ANALYSIS", "CLIP_RENDER",
+                    "CLIP_ANALYSIS", "CLIP_RENDER", "FOOTBALL_RENDER",
                 ]),
             )
             .order_by(Job.priority, Job.created_at)
@@ -490,6 +492,12 @@ def media_one() -> bool:
                         or job.payload.get("transcript_revision") != transcript.revision):
                     raise ValueError("Clip source or human selection changed after queueing")
                 job.result = render_selected_clip(asset, transcript, candidate, job.id)
+            elif job.job_type == "FOOTBALL_RENDER":
+                sequence = db.get(FootballSequence, job.payload.get("sequence_id"))
+                if (sequence is None or sequence.revision != job.payload.get("revision")
+                        or sequence.project_id != job.project_id):
+                    raise ValueError("Football sequence changed after queueing")
+                job.result = render_football(db, sequence, job.id)
             else:
                 asset_id = job.payload.get("asset_id")
                 asset = db.get(Asset, asset_id) if asset_id else None

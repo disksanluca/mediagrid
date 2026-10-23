@@ -1,4 +1,4 @@
-import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, DoctorReport, GeoMunicipality, HardwareProfile, Job, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord} from "./types";
+import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, DoctorReport, FootballSequence, FootballShot, GeoMunicipality, HardwareProfile, Job, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord} from "./types";
 import {desktopRuntime} from "./desktop";
 
 export interface UploadState {
@@ -107,6 +107,14 @@ export const api = {
   clipRenderStatus: (assetId:string,clipId:string) =>
     request<{job_id:string;status:string;error:string|null}|null>(`/assets/${assetId}/clips/${clipId}/render-status`),
   clipVideo: (assetId:string,clipId:string,jobId:string) => `${baseUrl}/assets/${assetId}/clips/${clipId}/render/${jobId}`,
+  football: (projectId:string) => request<FootballSequence|null>(`/projects/${projectId}/football`),
+  saveFootball: (projectId:string,body:{expected_revision:number;aspect:"horizontal"|"vertical";shots:FootballShot[];score_label:string|null;score_source_url:string|null}) =>
+    request<FootballSequence>(`/projects/${projectId}/football`,{method:"PUT",body:JSON.stringify(body)}),
+  approveFootball: (projectId:string,revision:number,scoreVerified:boolean) =>
+    request<FootballSequence>(`/projects/${projectId}/football/approve`,{method:"POST",body:JSON.stringify({expected_revision:revision,events_verified:true,rights_confirmed:true,score_verified:scoreVerified})}),
+  renderFootball: (projectId:string) => request<{job_id:string;status:string}>(`/projects/${projectId}/football/render`,{method:"POST"}),
+  footballRenderStatus: (projectId:string) => request<{job_id:string;status:string;error:string|null}|null>(`/projects/${projectId}/football/render-status`),
+  footballVideo: (projectId:string,jobId:string) => `${baseUrl}/projects/${projectId}/football/render/${jobId}`,
   system: () => request<SystemStatus>("/system"),
   hardware: () => request<HardwareProfile>("/system/hardware"),
   doctor: (internet=false) => request<DoctorReport>(`/system/doctor?internet=${internet}`),

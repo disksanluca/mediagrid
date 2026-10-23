@@ -9,6 +9,7 @@ import type {AtelierView} from "@/components/atelier/atelier-header";
 import {AtelierMediaStage} from "@/components/atelier/atelier-media-stage";
 import {ClipMachine} from "@/components/clip-machine";
 import {FlowDiagramEditor} from "@/components/flow-diagram-editor";
+import {FootballEditor} from "@/components/football-editor";
 import {MotionCardEditor} from "@/components/motion-card-editor";
 import {TimedTranscriptEditor} from "@/components/timed-transcript-editor";
 import {api} from "@/lib/api";
@@ -97,7 +98,7 @@ export function ControlPanel() {
     <AtelierHeader view={view} mode={system?.mode??null} loginRequired={session.login_required} onNavigate={navigate} onCommand={()=>setCommandOpen(true)} onRefresh={()=>void load()} onLogout={()=>void handleLogout()}/>
     <main className="content atelier-content"><div className="atelier-page-heading"><div className="eyebrow">{String(nav.findIndex((item)=>item.id===view)+1).padStart(2,"0")} — WORKSPACE / MEDIAGRID ATELIER</div><h1>{selected?project?.title:nav.find((item)=>item.id===view)?.label??"Biblioteca"}</h1></div>{error&&<Alert text={error}/>}
       {view==="studio"&&<AtelierStudio channels={channels} projects={projects} jobs={jobs} onPilots={createPilots} onCreate={()=>setDialog("project")} onProject={openProject} onNavigate={navigate} busy={busy}/>}
-      {view==="editor"&&(project?<ProjectEditor key={project.id} project={project} assets={assets} jobs={jobs.filter((job)=>job.project_id===project.id)} busy={busy} onBack={()=>setSelected(null)} onRadar={()=>navigate("radar")} onRefresh={load} onRun={run}/>:<Production projects={projects} channels={channels} onProject={openProject} onCreate={()=>setDialog("project")}/>)}
+      {view==="editor"&&(project?<ProjectEditor key={project.id} project={project} isFootball={channels.find((channel)=>channel.id===project.channel_id)?.default_engine==="football"} assets={assets} jobs={jobs.filter((job)=>job.project_id===project.id)} busy={busy} onBack={()=>setSelected(null)} onRadar={()=>navigate("radar")} onRefresh={load} onRun={run}/>:<Production projects={projects} channels={channels} onProject={openProject} onCreate={()=>setDialog("project")}/>)}
       {view==="motion"&&<MotionLibrary projects={projects} onProject={openProject}/>}
       {view==="radar"&&<Radar projects={projects} channels={channels} busy={busy} onProject={openProject} onRun={run}/>}
       {view==="network"&&<Channels channels={channels} busy={busy} onCreate={()=>setDialog("channel")} onPilots={createPilots} onRun={run}/>}
@@ -212,7 +213,7 @@ function Insights({channels,projects,jobs}:{channels:Channel[];projects:Project[
 
 function Production({projects,channels,onProject,onCreate}:{projects:Project[];channels:Channel[];onProject:(id:string)=>void;onCreate:()=>void}) {return <><div className="section-heading no-top"><div><h2>Produção</h2><p>Abra um projeto para editar seu plano, renderizar e baixar o vídeo.</p></div><button className="button primary" disabled={!channels.length} onClick={onCreate}><Plus size={16}/> Nova pauta</button></div><div className="panel">{projects.length?projects.map((project)=><button key={project.id} className="row row-button" onClick={()=>onProject(project.id)}><span className="row-icon"><Clapperboard size={19}/></span><span className="row-main"><strong>{project.title}</strong><small>{channels.find((channel)=>channel.id===project.channel_id)?.name??"Canal"} · {project.topic}</small></span><Badge value={project.status}/><ArrowRight size={16}/></button>):<Empty icon={Clapperboard} text="Ainda não há projetos. Crie uma pauta para começar."/>}</div></>}
 
-function ProjectEditor({project,assets,jobs,busy,onBack,onRadar,onRefresh,onRun}:{project:Project;assets:Asset[];jobs:Job[];busy:boolean;onBack:()=>void;onRadar:()=>void;onRefresh:()=>Promise<void>;onRun:(action:()=>Promise<unknown>)=>Promise<void>}) {
+function ProjectEditor({project,isFootball,assets,jobs,busy,onBack,onRadar,onRefresh,onRun}:{project:Project;isFootball:boolean;assets:Asset[];jobs:Job[];busy:boolean;onBack:()=>void;onRadar:()=>void;onRefresh:()=>Promise<void>;onRun:(action:()=>Promise<unknown>)=>Promise<void>}) {
   const [scenes,setScenes]=useState<Scene[]>(project.plan?.scenes??[]);
   const [timeline,setTimeline]=useState<TimelineResponse|null>(null);
   const [timelineError,setTimelineError]=useState<string|null>(null);
@@ -241,6 +242,7 @@ function ProjectEditor({project,assets,jobs,busy,onBack,onRadar,onRefresh,onRun}
   const unsaved=JSON.stringify(scenes)!==JSON.stringify(project.plan?.scenes)||hook!==project.plan?.hook||angle!==project.plan?.angle;
   const hasEmptyNarration=scenes.some((scene)=>!scene.narration.trim());
   return <><button className="button quiet back" onClick={onBack}>← Voltar à produção</button><div className="section-heading no-top"><div><div className="eyebrow">PROJETO / {project.format.toUpperCase()}</div><h2>{project.title}</h2><p>{project.topic}</p></div><Badge value={project.status}/></div>
+    {isFootball&&<FootballEditor projectId={project.id} assets={assets}/>}
     {timeline&&<TimelineTracks timeline={timeline} assets={assets} selectedScene={selectedScene} onSelect={setSelectedScene}/>}
     {timeline&&project.plan?.origin!=="OUTLINE"&&<TimelinePreview projectId={project.id} timeline={timeline}/>}
     {timeline&&<OverlayEditor projectId={project.id} timeline={timeline} selectedScene={selectedScene} assets={assets} busy={busy} disabled={unsaved||activeRender} onRun={onRun} onSaved={setTimeline}/>}
