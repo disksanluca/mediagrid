@@ -261,10 +261,18 @@ try {
   if ($footballStreams -notcontains "video" -or $footballStreams -notcontains "audio") { throw "Football Edit instalado sem vídeo ou áudio." }
   Write-Host "Instalação validou eventos manuais, revisão e Football Edit MP4 com replay."
 
+  # Synthetic citation exercises the installed claim gate; it is not factual editorial evidence.
+  $claimBody = @{scene_id="intro";text="Alegação sintética para verificar o gate do instalador.";source_url="https://example.com/";source_title="Fonte sintética de CI";published_at="2025-01-01";support_excerpt="Trecho fictício usado somente em um teste técnico local."} | ConvertTo-Json -Compress
+  $claim = Invoke-RestMethod "$api/projects/$($project.id)/claims" -Method Post -ContentType "application/json" -Body $claimBody
+  if ($claim.status -ne "REVIEW_REQUIRED") { throw "A alegação não aguardou revisão humana." }
+  $claimApproval = @{expected_revision=$claim.revision;source_opened=$true;excerpt_matches=$true;context_checked=$true} | ConvertTo-Json -Compress
+  $claim = Invoke-RestMethod "$api/projects/$($project.id)/claims/$($claim.id)/approve" -Method Post -ContentType "application/json" -Body $claimApproval
+  if ($claim.status -ne "APPROVED") { throw "Alegação sintética não foi aprovada no CI." }
+
   # Synthetic CI review verifies the package flow; editorial approval remains a human action.
   $caption = "Legenda de teste para publicação manual."
   $reviewBody = @{
-    source_urls = @("https://www.camara.leg.br/")
+    source_urls = @("https://example.com/")
     facts_confirmed = $true
     rights_confirmed = $true
     notes = "Revisão sintética do instalador no CI"
@@ -283,6 +291,10 @@ try {
     $reader = [System.IO.StreamReader]::new($zip.GetEntry("caption.txt").Open())
     try { if ($reader.ReadToEnd() -ne $caption) { throw "Legenda exportada está incorreta." } }
     finally { $reader.Dispose() }
+    $manifestReader = [System.IO.StreamReader]::new($zip.GetEntry("manifest.json").Open())
+    try { $manifest = $manifestReader.ReadToEnd() | ConvertFrom-Json }
+    finally { $manifestReader.Dispose() }
+    if ($manifest.knowledge_claims[0].id -ne $claim.id -or -not $manifest.approved_review.claim_digest) { throw "Pacote sem alegação e hash da revisão." }
   } finally { $zip.Dispose() }
   Write-Host "Revisão sintética e exportação manual geraram vídeo, legenda e manifesto."
 } catch {
@@ -304,7 +316,7 @@ $restoredData = Join-Path $env:RUNNER_TEMP "MediaGridSmokeRestored"
 $env:MEDIAGRID_DATA_DIR = $restoredData
 & $service restore --path $archive
 if ($LASTEXITCODE -ne 0) { throw "Restauração pela instalação falhou." }
-foreach ($restored in @("Database\mediagrid.db", "renders\$($project.id).mp4", "assets\$($imageAsset.id)", "assets\$($videoAsset.id)")) {
+foreach ($restored in @("Database\mediagrid.db", "renders\$($project.id).mp4", "football-renders\$($footballSequence.id)-r$($footballSequence.revision).mp4", "assets\$($imageAsset.id)", "assets\$($videoAsset.id)")) {
   if (-not (Test-Path (Join-Path $restoredData $restored))) { throw "Restauração sem $restored." }
 }
 Write-Host "Backup e restauração do app instalado preservaram SQLite, MP4 e mídias importadas."

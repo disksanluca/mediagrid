@@ -16,6 +16,7 @@ from .routes import (
     football,
     geo,
     jobs,
+    knowledge,
     politics,
     projects,
     system,
@@ -93,6 +94,7 @@ for router in (
     transcripts.router,
     clips.router,
     football.router,
+    knowledge.router,
     jobs.router,
     system.router,
 ):

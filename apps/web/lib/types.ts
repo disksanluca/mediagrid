@@ -54,6 +54,20 @@ export interface FootballSequence {
   score_source_url: string | null;
 }
 
+export interface KnowledgeClaim {
+  id: string;
+  project_id: string;
+  scene_id: string;
+  text: string;
+  source_url: string;
+  source_title: string;
+  published_at: string;
+  support_excerpt: string;
+  revision: number;
+  status: "REVIEW_REQUIRED" | "APPROVED" | "REMOVED";
+  reviewed_at: string | null;
+}
+
 export interface Scene {
   id: string;
   duration_seconds: number;

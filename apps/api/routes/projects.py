@@ -29,6 +29,8 @@ from ..schemas import (
     Scene,
 )
 from ..services import build_local_plan, create_plan, enqueue_job, record_event
+from .knowledge import claim_digest, current_claims, invalidate_claim_approvals
+from .knowledge import serialize as serialize_claim
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -308,6 +310,7 @@ def write_edl_v2(project_id: str, payload: RevisionWrite, db: Session = Depends(
     }
     project.edl = legacy
     project.status = ProjectStatus.SCRIPTED.value
+    invalidate_claim_approvals(db, project)
     try:
         saved = append_revision(db, project, payload.edl)
         record_event(db, "EDL_REVISION_SAVED", "project", project.id, after={
@@ -360,6 +363,7 @@ def plan_project(project_id: str, db: Session = Depends(get_db)) -> ContentPlan:
         raise HTTPException(409, "Wait for the current render before editing")
     previous = latest_revision(db, project_id)
     plan = create_plan(db, project)
+    invalidate_claim_approvals(db, project)
     channel = db.get(Channel, project.channel_id)
     try:
         if project.edl and project.format in {"vertical", "horizontal", "square"}:
@@ -447,6 +451,7 @@ def update_plan(
         },
     }
     project.status = ProjectStatus.SCRIPTED.value
+    invalidate_claim_approvals(db, project)
     try:
         if project.format in {"vertical", "horizontal", "square"}:
             revised = from_legacy(
@@ -638,6 +643,15 @@ def approve_project_review(
         raise HTTPException(409, "Rendered MP4 is missing")
     if not payload.facts_confirmed or not payload.rights_confirmed:
         raise HTTPException(409, "Confirm facts and media rights before approval")
+    claims = current_claims(db, project_id) if project.content_type == "knowledge" else []
+    if project.content_type == "knowledge":
+        scene_ids = {str(scene.get("id")) for scene in (project.plan or {}).get("scenes", [])}
+        submitted_urls = {str(url).rstrip("/") for url in payload.source_urls}
+        if (not claims or any(claim.status != "APPROVED"
+                              or claim.scene_id not in scene_ids
+                              or claim.source_url.rstrip("/") not in submitted_urls
+                              for claim in claims)):
+            raise HTTPException(409, "Approve every cited claim and include its source URL")
     review = {
         "approved_at": datetime.now(UTC).isoformat(),
         "source_urls": [str(url) for url in payload.source_urls],
@@ -648,6 +662,8 @@ def approve_project_review(
         "edl_sha256": legacy_hash(project.edl),
         "video_sha256": file_hash(output),
     }
+    if project.content_type == "knowledge":
+        review["claim_digest"] = claim_digest(claims)
     current = latest_revision(db, project_id)
     if current:
         review["revision"] = current.revision
@@ -681,6 +697,12 @@ def export_reviewed_project(project_id: str, db: Session = Depends(get_db)) -> F
         not current or review["revision_sha256"] != current.sha256
     ):
         raise HTTPException(409, "Approved timeline changed; review again")
+    claims = current_claims(db, project_id) if project.content_type == "knowledge" else []
+    if project.content_type == "knowledge" and (
+        not claims or any(claim.status != "APPROVED" for claim in claims)
+        or review.get("claim_digest") != claim_digest(claims)
+    ):
+        raise HTTPException(409, "Claim evidence changed; review again")
     exports = data_dir / "exports"
     exports.mkdir(parents=True, exist_ok=True)
     target = exports / f"{project_id}.zip"
@@ -691,6 +713,7 @@ def export_reviewed_project(project_id: str, db: Session = Depends(get_db)) -> F
         "title": project.title,
         "channel_id": project.channel_id,
         "approved_review": review,
+        "knowledge_claims": [serialize_claim(claim) for claim in claims],
         "publication": "manual",
         "platform_status": "not_published",
     }

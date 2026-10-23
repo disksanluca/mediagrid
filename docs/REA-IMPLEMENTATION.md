@@ -383,6 +383,40 @@ por isso cada lance é normalizado a H.264/AAC e 30 fps antes da junção. O
 insere os rótulos revisados. Documentação conferida em 23/10/2026; nenhuma API
 externa ou serviço pago foi acionado.
 
+## Marco 7 — alegações com evidência por cena (primeira entrega vertical)
+
+- A migração `0007_knowledge_claims` acrescenta um ledger de alegações por
+  projeto/cena com URL, título da fonte, `published_at`, trecho de apoio,
+  revisão e aprovação humana individual. O Editor permite adicionar, corrigir,
+  consultar e retirar uma alegação sem apagar seu histórico. A primeira
+  alegação ativa `content_type=knowledge`; projetos antigos sem alegações
+  conservam o fluxo anterior.
+- A API não baixa URLs arbitrárias e não afirma verificar fatos. A pessoa abre
+  a fonte, confere trecho/contexto e aprova. O export manual exige ao menos
+  uma alegação ativa, todas aprovadas, cenas válidas e URLs presentes na
+  revisão final. O manifesto contém o ledger e `claim_digest` SHA-256;
+  qualquer edição/remoção revoga a aprovação e bloqueia o pacote anterior.
+  Salvar um novo roteiro ou EDL também exige nova conferência de todas as
+  alegações aprovadas; o Editor inclui as URLs delas na revisão final.
+  O worker de vídeo existente segue renderizando a cena; o ledger é o gate
+  editorial do artefato, sem texto factual criado automaticamente.
+- Teste de integração usa projeto e MP4 sintéticos: fonte ausente, alegação
+  não revisada, URL omitida e revisão alterada bloqueiam o export; o pacote
+  aprovado inclui digest e fonte. O smoke Windows instalado exercita o mesmo
+  gate com dados explicitamente fictícios de CI. Isso não é prova de uma
+  reportagem factual nem de qualidade da narração.
+- Validação local desta etapa: `uv run pytest -q tests` (69 passaram),
+  `uv run ruff check .`, TypeScript e build Next passaram; o parser do script
+  PowerShell passou. Uma alegação sintética foi salva pelo Editor e voltou
+  após recarga, ainda em `REVIEW_REQUIRED`; a captura está em
+  `data/rea-proof/20261023T003747Z/knowledge-claim-persisted.png` (ignorada
+  pelo Git). Não houve revisão factual humana da alegação de teste.
+- REAL local: API, SQLite, Editor, revisão/export e worker de vídeo existente.
+  PAPER/MOCK: checagem factual automática, captura/arquivo da página de fonte,
+  base de fontes por domínio e explainer jornalístico aprovado. O aceite
+  criativo depende de fontes e revisão humanas. Nenhuma variável nova em
+  `.env.example`, serviço pago, VPS ou publicação externa.
+
 ## Ordem restante e gates
 
 1. Fechar Marco 1: validação visual/auditiva no desktop empacotado.
