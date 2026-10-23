@@ -145,7 +145,7 @@ def build_politics_plan(
 ) -> ContentPlan:
     label = f"PL {proposal['number']}/{proposal['year']}"
     presented = str(proposal["presented_at"])[:10]
-    introduction = f"A Câmara dos Deputados registra o {label}"
+    introduction = f"O que propõe o {label}? A Câmara dos Deputados registra o projeto"
     if presented:
         introduction += f", apresentado em {presented[8:10]}/{presented[5:7]}/{presented[:4]}"
     introduction += "."
@@ -166,7 +166,7 @@ def build_politics_plan(
             narration=introduction,
             visual_type="headline",
             visual_query=label,
-            on_screen_text=label,
+            on_screen_text=summary_headline(str(proposal["summary"])),
             transition="impact",
         ),
     ]
