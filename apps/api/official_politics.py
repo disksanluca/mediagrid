@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 from datetime import UTC, date, datetime
 
 import httpx
@@ -21,7 +22,23 @@ def short_caption(text: str, limit: int = 60) -> str:
 
 
 def summary_headline(text: str) -> str:
-    first_clause = " ".join(text.split()).split(",", 1)[0].rstrip(" .;:")
+    clean = " ".join(text.split())
+    if clean.lower().startswith("e ") and len(clean) > 22:
+        clean = clean[2:]
+        clean = clean[0].upper() + clean[1:]
+    if re.match(r"^(?:Altera|Acrescenta|Modifica|Revoga)\b", clean, re.IGNORECASE):
+        purpose = re.search(r",\s*para\s+(.+)", clean, re.IGNORECASE)
+        if purpose:
+            excerpt = re.sub(
+                r"^dispor\s+sobre\s+", "", purpose.group(1), flags=re.IGNORECASE
+            )
+            excerpt = re.split(
+                r"\s+e\s+(?=(?:instituir|estabelecer|alterar|assegurar)\b)",
+                excerpt, maxsplit=1, flags=re.IGNORECASE,
+            )[0].rstrip(" .;:")
+            if len(excerpt) >= 20:
+                return short_caption(excerpt[0].upper() + excerpt[1:], 70)
+    first_clause = clean.split(",", 1)[0].rstrip(" .;:")
     return first_clause if 20 <= len(first_clause) <= 70 else short_caption(text)
 
 
@@ -35,7 +52,7 @@ def _record_date(value: object) -> date:
     return recorded
 
 
-def _summary_chunks(summary: str, limit: int = 260) -> list[str]:
+def _summary_chunks(summary: str, limit: int = 120) -> list[str]:
     chunks: list[str] = []
     current = ""
     for word in summary.split():
@@ -162,9 +179,7 @@ def build_politics_plan(
                 narration=narration,
                 visual_type="quote",
                 visual_query=label,
-                on_screen_text=(
-                    summary_headline(excerpt) if index == 0 else short_caption(excerpt)
-                ),
+                on_screen_text=summary_headline(excerpt),
                 transition="slide",
             )
         )

@@ -168,6 +168,24 @@ def test_caption_shortening_keeps_whole_words() -> None:
     )
 
 
+def test_official_legal_summary_uses_subject_in_headline_and_short_scenes() -> None:
+    summary = (
+        "Altera a Lei nº 14.601, de 19 de junho de 2023, para dispor sobre "
+        "o reajuste anual dos valores do Programa Bolsa Família e instituir "
+        "política de valorização real."
+    )
+    chunks = official_politics._summary_chunks(summary)
+    assert len(chunks) == 2
+    assert " ".join(chunks) == summary
+    assert all(len(chunk) <= 120 for chunk in chunks)
+    assert official_politics.summary_headline(chunks[0]) == (
+        "O reajuste anual dos valores do Programa Bolsa Família"
+    )
+    assert official_politics.summary_headline(chunks[1]) == (
+        "Instituir política de valorização real"
+    )
+
+
 def test_official_import_rejects_missing_record_date(
     client: TestClient, monkeypatch
 ) -> None:
