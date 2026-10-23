@@ -118,7 +118,8 @@ only synthetic technical tests are possible.
 
 For a factual explainer in a Geo, Politics or Trends project, use
 **Editor → Alegações e fontes**. Attach each factual statement to a scene,
-source URL, publication date and the supporting excerpt. Open the source and
+source URL, publication date when the source provides it, and the supporting
+excerpt. Open the source and
 confirm its context before approving that individual claim. Adding a claim
 turns the project into a knowledge explainer: final review requires every
 current claim approved and its URL in the source list. The Editor adds the

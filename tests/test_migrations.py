@@ -161,6 +161,30 @@ def test_geo_source_date_migration_preserves_existing_claims(tmp_path: Path) -> 
             "PRAGMA table_info(knowledge_claims)"
         )}
         assert columns["published_at"] == 0
+        connection.execute("""
+            INSERT INTO knowledge_claims
+            (id, project_id, scene_id, text, source_url, source_title,
+             published_at, support_excerpt, revision, status, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            "new-claim", "old-project", "scene-2", "Geo claim without source date",
+            "https://example.org/geo", "Undated Geo source", None,
+            "Source fields checked at import time", 1, "REVIEW_REQUIRED",
+            "2026-10-23 00:00:00", "2026-10-23 00:00:00",
+        ))
+    blocked = subprocess.run(
+        [sys.executable, "-m", "alembic", "-c", "alembic.ini", "downgrade",
+         "0009_job_leases"],
+        cwd=root, env=env, capture_output=True, text=True,
+    )
+    assert blocked.returncode != 0
+    assert "Cannot downgrade" in blocked.stderr
+    with sqlite3.connect(database) as connection:
+        assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == (
+            "0010_geo_claim_source_dates",
+        )
+        assert connection.execute("SELECT COUNT(*) FROM knowledge_claims").fetchone() == (2,)
+        connection.execute("DELETE FROM knowledge_claims WHERE id='new-claim'")
     subprocess.run(
         [sys.executable, "-m", "alembic", "-c", "alembic.ini", "downgrade",
          "0009_job_leases"],
