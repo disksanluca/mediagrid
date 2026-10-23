@@ -47,3 +47,26 @@ próprio ou licenciado. Custo de API paga: zero. Não houve VPS, instalação do
 novo build no PC, publicação ou merge.
 
 Não há alteração de schema nem nova variável de ambiente nesta etapa.
+
+## Abertura por assunto da fonte — 23/10/2026
+
+A primeira cena agora apresenta no título o assunto abreviado da ementa,
+enquanto a narração pergunta o que o PL propõe e informa a data do registro.
+O número do projeto, a indicação de proposição, a fonte e a data da consulta
+continuam visíveis no quadro. Isso oferece uma entrada concreta para o vídeo
+vertical sem tratar a proposta como lei aprovada. O teste de API verifica o
+texto exato, a persistência e as alegações ainda pendentes.
+
+A [documentação oficial da API Dados Abertos](https://dadosabertos.camara.leg.br/swagger/api.html)
+foi consultada em 23/10/2026: a API v2 documentava `/proposicoes` e
+`/proposicoes/{id}` e mostrava versão 0.4.346 de 21/10/2026. Esta mudança
+editorial não alterou o protocolo nem adicionou provedor.
+
+Uma nova execução com os binários FFmpeg/FFprobe portáteis do lockfile salvou
+`data/politics-proof/20261023T223503Z/` (ignorado pelo Git). Consulta ao vivo,
+quatro cenas e quatro alegações `REVIEW_REQUIRED`; jobs VOICE/RENDER em
+`SUCCEEDED`; projeto `QC` e exportação negada. FFprobe confirmou H.264/AAC,
+1080×1920 e 45,739 s; SHA-256 do MP4:
+`a24f56cf17ed730930227731fb1a82cae13d3538fce6a7dc1063fbcf4b94d76b`.
+O quadro em 4 s foi inspecionado: assunto, pergunta, número do PL e fonte
+legíveis. Não houve escuta integral, aprovação editorial ou publicação.

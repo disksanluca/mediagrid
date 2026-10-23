@@ -64,6 +64,13 @@ def test_official_politics_creates_editable_sourced_plan(
     assert project["plan"]["origin"] == "OFFICIAL_SOURCE"
     assert project["plan"]["source_refs"][0]["api_url"].endswith("/123456")
     assert len(project["plan"]["source_refs"][0]["source_sha256"]) == 64
+    assert project["plan"]["scenes"][0]["narration"].startswith("O que propõe o PL 42/2026?")
+    assert "registra o projeto, apresentado em 16/10/2026" in (
+        project["plan"]["scenes"][0]["narration"]
+    )
+    assert project["plan"]["scenes"][0]["on_screen_text"] == (
+        "Institui diretrizes para publicar dados públicos em formato acessível"
+    )
     assert "Institui diretrizes" in project["plan"]["scenes"][1]["narration"]
     assert "Apresentação de Proposição" in project["plan"]["scenes"][-1]["narration"]
     assert project["script"]["segments"] == [
