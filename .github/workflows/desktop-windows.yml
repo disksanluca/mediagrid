@@ -51,6 +51,18 @@ jobs:
       - run: npm ci
       - run: uv python install 3.12
       - run: uv sync --frozen --extra asr
+      - name: Bundle local renderer runtime
+        shell: pwsh
+        run: .\scripts\build-desktop-runtime.ps1
+      - name: Use bundled FFmpeg in Python tests
+        shell: pwsh
+        run: |
+          $bin = (Resolve-Path "apps/desktop/src-tauri/runtime/bin").Path
+          if (-not (Test-Path (Join-Path $bin "ffmpeg.exe")) -or
+              -not (Test-Path (Join-Path $bin "ffprobe.exe"))) {
+            throw "Runtime portátil sem FFmpeg/FFprobe para os testes"
+          }
+          $bin | Out-File -FilePath $env:GITHUB_PATH -Append
       - name: Test local Python services
         shell: pwsh
         run: |
@@ -71,9 +83,6 @@ jobs:
       - name: Build local Python service
         shell: pwsh
         run: .\scripts\build-desktop-sidecar.ps1
-      - name: Bundle local renderer runtime
-        shell: pwsh
-        run: .\scripts\build-desktop-runtime.ps1
       - name: Build Windows application
         shell: pwsh
         run: |

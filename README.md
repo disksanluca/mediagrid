@@ -113,6 +113,13 @@ In a saved project, use **Editor → Cartões em movimento** to add a versioned
 title/body card to a scene. Edit its text, color, layout and timing, then save
 the EDL revision. The Remotion preview and MP4 use the same card props; the
 existing local voice and licensed music/SFX tracks can be mixed with it.
+
+For an original animated advertisement, choose **Nova produção → Motion Ad**
+and supply four distinct messages plus the product, audience and brand color.
+MediaGrid saves an editable script and two animated cards, renders with the
+existing local worker and requires cited claims and human review before manual
+export. It does not create or verify marketing promises. See
+[Motion Ad brief](docs/MOTION-AD-BRIEF.md).
 Changing the card invalidates the previous render and editorial approval.
 This is one motion component, not a complete automated ad or explainer.
 Use **Editor → Diagrama de ideias** to add a conceptual two to four step flow.

@@ -231,6 +231,11 @@ ou implantado. Serviços pagos e publicação automática seguem desligados.
   local. A API congelada reportou `word_asr_available=true`; o worker EXE
   processou um WAV sintético em `ASR_WORDS` com `SUCCEEDED`, 13 palavras e
   três cues. O smoke do instalador Tauri também passou no CI citado acima.
+- O CI Windows posterior revelou que a geração de proxy ainda passava
+  `-stats_period` ao FFmpeg portátil 4.1, que não reconhece essa opção. O
+  worker foi ajustado para usar `-progress pipe:1` sem esse argumento; o teste
+  de ingestão agora exibe o erro do job em caso de falha. A suíte completa foi
+  repetida com os binários portáteis exatos do lockfile.
 - `uv run pytest -q tests`: **63 passed**. `uv run ruff check .`:
   passou. TypeScript do web/renderer e `next build apps/web`: passaram.
 - Nenhuma API paga, VPS ou publicação foi ativada. O custo de inferência local
@@ -510,7 +515,7 @@ externa ou serviço pago foi acionado.
 2. Ingestão longa com hash, probe, direitos, proxy e retomada.
 3. Fechar Marco 3 no instalador Windows e fazer QA auditivo/visual humano.
 4. Fechar Marco 4 com filmagem autorizada, revisão integral de dois cortes e
-   smoke do instalador. Continuar Motion Ad, Explainer, Football Edit,
+   smoke do instalador. Fechar Motion Ad no desktop instalado e continuar Explainer, Football Edit,
    conhecimento com evidências, Humor 2D e 3D.
 5. Web/VPS apenas depois de auth por recurso, PostgreSQL, fila com leases,
    worker Windows de saída e backup testados. Sem worker, o estado deverá ser
@@ -561,3 +566,24 @@ Blender no PC final do usuário, VPS, OAuth de publicação, mídia autorizada p
 provas criativas e revisão humana final.
 Custo de API paga nesta etapa: zero. Tempo/custo de GPU, VPS e provedores não
 foram medidos; não há estimativa fictícia.
+
+## Incremento Motion Ad — 23/10/2026
+
+O formulário React e `POST /motion-ads/projects` criam quatro cenas a partir
+do texto fornecido pelo criador, com EDL v2 versionado e dois cartões animados
+renderizáveis. O banco atual guarda o briefing inicial e SHA-256 no plano;
+não houve migração. Edições de cenas atualizam duração e texto dos cartões,
+e a revisão exige fontes aprovadas para gancho, problema e benefício.
+`POST /plan` não substitui o briefing por um plano genérico. O projeto segue
+o worker local e a exportação manual existentes. Detalhes e prova em
+[MOTION-AD-BRIEF.md](MOTION-AD-BRIEF.md).
+
+Validação desta etapa: `pytest -q tests` com 121 passed e 1 skipped
+(Blender opt-in), Ruff, TypeScript, `next build` 16.3.8 e `git diff --check`.
+Um MP4 sintético 1080×1920 H.264/AAC de 17 s foi renderizado e o bloqueio
+de exportação sem revisão foi confirmado. O formulário criou outro projeto
+real em banco isolado; Editor e modal foram vistos em 1440×900, 1280×800
+e 1000×900. REAL: API, SQLite, revisão EDL, UI, voz Windows e render.
+PAPER: qualidade editorial/auditiva humana, mídia autorizada e instalação
+do novo build no PC do usuário. MOCK: nenhum conteúdo fictício foi chamado
+de pronto para publicação. Custo de API paga zero; sem VPS ou postagem.

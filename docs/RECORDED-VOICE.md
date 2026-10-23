@@ -50,6 +50,13 @@ Na branch de desenvolvimento, `pytest -q tests` passou com 115 testes e
 
 ## Prova técnica local em 23/10/2026
 
+O primeiro CI Windows da branch falhou porque os testes de normalização
+rodavam antes de o workflow preparar FFmpeg/FFprobe portátil (503 em vez de
+422 ao enviar áudio inválido). O workflow agora monta o runtime primeiro e
+adiciona seu diretório `bin` ao PATH dos testes Python. A confirmação desta
+correção depende do CI do PR seguinte; não é tratada como aprovada pelo teste
+local, que já tinha FFmpeg no PATH.
+
 Base isolada em `data/recorded-voice-visual` (ignorada pelo Git): projeto de
 cinco cenas com roteiro salvo; o job `VOICE` local gerou 18,48 s de fala SAPI
 correspondente ao texto. Uma cópia foi importada pelo Editor usando o novo
