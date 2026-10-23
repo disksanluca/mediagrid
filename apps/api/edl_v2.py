@@ -75,13 +75,34 @@ class OverlaySpec(BaseModel):
         return self
 
 
-def validate_overlay(item: TimelineItem) -> OverlaySpec:
+class MotionCardSpec(OverlaySpec):
+    text: str = Field(min_length=1, max_length=60)
+    label: str = Field(min_length=1, max_length=24)
+    body: str = Field(min_length=1, max_length=100)
+    layout: Literal["stack", "split"] = "stack"
+
+    @model_validator(mode="after")
+    def safe_area(self) -> "MotionCardSpec":
+        if not self.label.strip() or not self.body.strip():
+            raise ValueError("Motion card text must not be blank")
+        if any(abs(frame.x - 0.5) > 0.01 or abs(frame.y - 0.5) > 0.01
+               or not 0.75 <= frame.scale <= 1.05 for frame in self.keyframes):
+            raise ValueError("Motion cards must remain centered inside the safe area")
+        return self
+
+
+def validate_overlay(item: TimelineItem) -> OverlaySpec | MotionCardSpec:
     if (
-        item.preset != "kinetic_title_v1" or item.source_asset_id is not None
+        item.preset not in {"kinetic_title_v1", "motion_card_v1"}
+        or item.source_asset_id is not None
         or item.source_in_ms is not None or item.speed != 1 or item.z_index < 1
     ):
-        raise ValueError("Only local kinetic text is supported on caption tracks")
-    spec = OverlaySpec.model_validate(item.params)
+        raise ValueError("Only local kinetic text or motion cards are supported on caption tracks")
+    spec = (MotionCardSpec if item.preset == "motion_card_v1" else OverlaySpec).model_validate(
+        item.params
+    )
+    if item.preset == "motion_card_v1" and item.duration_ms < 2500:
+        raise ValueError("Motion cards need at least 2.5 seconds to read")
     times = [frame.at_ms for frame in spec.keyframes]
     if (
         times[0] != 0 or times[-1] > item.duration_ms

@@ -2,6 +2,7 @@
 
 import io
 import wave
+from copy import deepcopy
 
 import pytest
 from fastapi.testclient import TestClient
@@ -176,6 +177,50 @@ def test_preview_uses_saved_timeline_props_before_render(client: TestClient) -> 
     updated = client.get(f"/api/v1/projects/{project_id}/preview").json()
     assert updated["revision"] == result.json()["revision"]
     assert updated["props"]["overlays"][0]["text"] == "Prévia real"
+
+
+def test_motion_card_is_versioned_and_reaches_shared_preview(client: TestClient) -> None:
+    channel = client.post("/api/v1/channels", json={
+        "name": "Motion", "slug": "motion-test", "niche": "ads", "default_engine": "music",
+    }).json()
+    project = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Motion local",
+        "topic": "Primeira frase concreta para anúncio.\n"
+                 "Segunda frase concreta para produto.\n"
+                 "Terceira frase concreta para encerramento.",
+        "format": "vertical",
+    }).json()
+    project_id = project["id"]
+    assert client.post(f"/api/v1/projects/{project_id}/plan").status_code == 200
+    url = f"/api/v1/projects/{project_id}/edl-v2"
+    timeline = client.get(url).json()
+    card = {
+        "id": "card-1", "start_ms": 0, "duration_ms": 3000,
+        "z_index": 15, "preset": "motion_card_v1",
+        "params": {"label": "BENEFÍCIO", "text": "Uma ideia clara",
+                   "body": "Texto revisado pelo editor.", "color": "#dcf769",
+                   "layout": "stack", "keyframes": [
+                       {"at_ms": 0, "x": 0.5, "y": 0.5, "opacity": 0, "scale": 0.85},
+                       {"at_ms": 500, "x": 0.5, "y": 0.5, "opacity": 1, "scale": 1},
+                       {"at_ms": 3000, "x": 0.5, "y": 0.5, "opacity": 1, "scale": 1},
+                   ]},
+    }
+    timeline["edl"]["tracks"].append({
+        "id": "motion-cards", "kind": "caption", "items": [card],
+    })
+    payload = {"expected_revision": timeline["revision"],
+               "expected_legacy_sha256": timeline["legacy_sha256"],
+               "edl": timeline["edl"]}
+    unsafe_payload = deepcopy(payload)
+    unsafe_payload["edl"]["tracks"][-1]["items"][0]["params"]["keyframes"][0]["x"] = 0.9
+    unsafe = client.put(url, json=unsafe_payload)
+    assert unsafe.status_code == 422
+    saved = client.put(url, json=payload)
+    assert saved.status_code == 200, saved.text
+    preview = client.get(f"/api/v1/projects/{project_id}/preview").json()
+    assert preview["props"]["overlays"][0]["preset"] == "motion_card_v1"
+    assert preview["props"]["overlays"][0]["body"] == "Texto revisado pelo editor."
+    assert client.get(url).json()["renderer"] == "timeline-v2"
 
 
 def test_v2_revision_api_preserves_legacy_render_and_rejects_stale_edit(

@@ -81,6 +81,7 @@ def render_props(
             {
                 "id": item.id, "start_ms": item.start_ms,
                 "duration_ms": item.duration_ms, "z_index": item.z_index,
+                "preset": item.preset,
                 **item.params,
             }
             for item in overlays

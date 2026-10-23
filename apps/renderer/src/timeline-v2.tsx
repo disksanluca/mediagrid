@@ -22,6 +22,40 @@ function KineticTitle({item}: {item: RenderOverlay}) {
   </AbsoluteFill>;
 }
 
+function MotionCard({item}: {item: RenderOverlay}) {
+  const frame = useCurrentFrame();
+  const {fps, width, height} = useVideoConfig();
+  const points = item.keyframes.map((keyframe) => Math.round(keyframe.at_ms * fps / 1000));
+  const value = (key: "x" | "y" | "opacity" | "scale") => interpolate(
+    frame, points, item.keyframes.map((keyframe) => keyframe[key]),
+    {extrapolateLeft: "clamp", extrapolateRight: "clamp"},
+  );
+  const unit = width / 1080;
+  const horizontal = width > height;
+  const split = item.layout === "split" && horizontal;
+  return <AbsoluteFill style={{pointerEvents: "none", zIndex: item.z_index,
+    background: "rgba(7, 15, 16, .68)", color: "#f5f7f2", fontFamily: "Arial, sans-serif"}}>
+    <div style={{position: "absolute", left: `${value("x") * 100}%`,
+      top: `${value("y") * 100}%`, width: "82%", maxWidth: horizontal ? 1380 : 900,
+      transform: `translate(-50%, -50%) scale(${value("scale")})`,
+      opacity: value("opacity"), boxSizing: "border-box", overflow: "hidden",
+      border: `2px solid ${item.color}`, borderRadius: 28 * unit,
+      background: "#101a18", boxShadow: "0 30px 100px #0009"}}>
+      <div style={{height: 14 * unit, background: item.color}} />
+      <div style={{padding: `${Math.max(28, 46 * unit)}px`,
+        display: split ? "grid" : "block", gridTemplateColumns: split ? "1fr 2fr" : undefined,
+        gap: split ? 36 * unit : undefined}}>
+        <div style={{color: item.color, fontSize: 25 * unit, fontWeight: 800,
+          letterSpacing: 4 * unit, marginBottom: 24 * unit, overflowWrap: "anywhere"}}>{item.label}</div>
+        <div><div style={{fontSize: (horizontal ? 72 : 82) * unit,
+          lineHeight: 1.02, fontWeight: 900, overflowWrap: "anywhere"}}>{item.text}</div>
+          <div style={{marginTop: 32 * unit, fontSize: 34 * unit,
+            lineHeight: 1.24, color: "#c3cec8", overflowWrap: "anywhere"}}>{item.body}</div></div>
+      </div>
+    </div>
+  </AbsoluteFill>;
+}
+
 function SoundItem({item}: {item: RenderSound}) {
   const {fps} = useVideoConfig();
   return <Audio
@@ -62,7 +96,7 @@ export function MediaGridTimelineV2(input: Partial<RenderProps>) {
       key={item.id}
       from={Math.round(item.start_ms * fps / 1000)}
       durationInFrames={Math.max(1, Math.round(item.duration_ms * fps / 1000))}
-    ><KineticTitle item={item}/></Sequence>)}
+    >{item.preset === "motion_card_v1" ? <MotionCard item={item}/> : <KineticTitle item={item}/>}</Sequence>)}
     {(props.sounds ?? []).map((item) => <Sequence
       key={item.id}
       from={Math.round(item.start_ms * fps / 1000)}

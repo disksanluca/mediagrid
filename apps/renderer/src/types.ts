@@ -26,11 +26,15 @@ export interface RenderProps {
 
 export interface RenderOverlay {
   id: string;
+  preset?: "kinetic_title_v1" | "motion_card_v1";
   start_ms: number;
   duration_ms: number;
   z_index: number;
   text: string;
   color: string;
+  label?: string;
+  body?: string;
+  layout?: "stack" | "split";
   keyframes: Array<{
     at_ms: number;
     x: number;

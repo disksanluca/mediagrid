@@ -79,6 +79,13 @@ does not measure editorial quality or predict reach. Review every frame and the
 full audio before publishing. Without owned or licensed footage, use synthetic
 media only for technical testing.
 
+In a saved project, use **Editor → Cartões em movimento** to add a versioned
+title/body card to a scene. Edit its text, color, layout and timing, then save
+the EDL revision. The Remotion preview and MP4 use the same card props; the
+existing local voice and licensed music/SFX tracks can be mixed with it.
+Changing the card invalidates the previous render and editorial approval.
+This is one motion component, not a complete automated ad or explainer.
+
 ## Current development fallback on Windows
 
 See [SETUP.md](SETUP.md) for installation and troubleshooting. On Windows, double-click
