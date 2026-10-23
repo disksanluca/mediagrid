@@ -263,8 +263,9 @@ def test_missing_staged_render_cannot_report_success(client, tmp_path: Path) -> 
 
 @pytest.mark.parametrize("job_type", [
     "CAPTION_RENDER", "CLIP_RENDER", "FOOTBALL_RENDER", "NARRATIVE_3D_RENDER",
+    "TRANSCRIBE",
 ])
-def test_stale_media_render_cannot_replace_newer_video(
+def test_stale_media_artifact_cannot_replace_newer_output(
     client, tmp_path: Path, job_type: str,
 ) -> None:
     channel = client.post("/api/v1/channels", json={

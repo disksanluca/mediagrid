@@ -564,7 +564,9 @@ def media_one() -> bool:
                 if not source.is_file():
                     raise ValueError("Asset file not found")
                 output = settings.mediagrid_data_dir / "transcripts" / f"{asset.id}.txt"
-                transcribe_media(source, output)
+                transcript_stage = staged_output.with_name(f"transcript-{attempt_id}.txt")
+                staged_artifact = (transcript_stage, output)
+                transcribe_media(source, transcript_stage)
             job.status = JobStatus.SUCCEEDED.value
             job.progress = 1
             job.result = {
