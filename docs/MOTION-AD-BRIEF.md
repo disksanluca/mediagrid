@@ -46,6 +46,16 @@ O teste visual do Editor e do formulário React em 1440×900, 1280×800 e
 verticalmente e o botão Criar permanece alcançável. Uma criação pelo
 formulário gerou um segundo projeto real no banco isolado.
 
+O smoke Windows instalado chama `POST /motion-ads/projects`, confere o
+briefing salvo, as quatro cenas, os dois cartões no EDL e na prévia, gera MP4
+H.264/AAC e exige que a exportação sem aprovação siga bloqueada. Quando o
+runner tem voz SAPI pt-BR, o job VOICE também sintetiza a narração. Quando não
+tem, o teste usa um tom sintético declarado apenas para exercer o render. A
+primeira execução no CI encontrou exatamente essa ausência de voz no runner;
+ela não é falha silenciosa do projeto. A prova local acima executou SAPI real
+em outro Windows. Esse gate usa texto sintético e banco descartável; não
+equivale à instalação no PC do usuário nem a uma aprovação criativa.
+
 O projeto usa Remotion 4.0.532 do lockfile. A [licença oficial do
 Remotion](https://www.remotion.dev/docs/license/pricing) permite uso gratuito
 para indivíduos e equipes de até três pessoas, mas prevê licença paga para
