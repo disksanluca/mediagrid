@@ -40,12 +40,17 @@ from apps.api.render_plan import source_label as source_label
 from apps.api.scene_media import stage_scene_assets, stage_sound_assets
 from apps.api.services import claim_next_job, fence_job_completion, record_event
 from apps.api.transcripts import replace_words
-from workers.render.artifacts import finish_render_attempt
-from workers.render.caption_video import burn_captions
-from workers.render.clips import analyze_asset, render_selected_clip
-from workers.render.football import render_football
+from workers.render.artifacts import finish_media_render_attempt, finish_render_attempt
+from workers.render.caption_video import burn_captions, caption_output
+from workers.render.clips import analyze_asset, clip_output, render_selected_clip
+from workers.render.football import football_output, render_football
 from workers.render.lease import start_lease_heartbeat
-from workers.render.narrative_3d import blender_script, render_narrative, story_sha256
+from workers.render.narrative_3d import (
+    blender_script,
+    narrative_output,
+    render_narrative,
+    story_sha256,
+)
 from workers.render.proxy import build_proxy
 
 logger = logging.getLogger(__name__)
@@ -406,7 +411,11 @@ def media_one() -> bool:
         lease_owner = job.lease_owner
         stop_heartbeat = start_lease_heartbeat(job.id, job.lease_owner)
         output = None
+        staged_artifact: tuple[Path, Path] | None = None
+        attempt_id = f"{job.id}-{uuid4().hex}"
+        staged_output = settings.mediagrid_data_dir / "temp" / f"media-{attempt_id}.mp4"
         try:
+            staged_output.parent.mkdir(parents=True, exist_ok=True)
             if job.job_type == "VOICE":
                 project = db.get(Project, job.project_id) if job.project_id else None
                 if project is None or not project.script:
@@ -476,7 +485,8 @@ def media_one() -> bool:
                 if (job.payload.get("sha256") != asset.sha256
                         or job.payload.get("revision") != transcript.revision):
                     raise ValueError("Caption source or review changed after queueing")
-                job.result = burn_captions(asset, transcript, job.id)
+                staged_artifact = (staged_output, caption_output(asset.id, transcript.revision))
+                job.result = burn_captions(asset, transcript, attempt_id, staged_output)
             elif job.job_type == "CLIP_ANALYSIS":
                 asset_id = job.payload.get("asset_id")
                 asset = db.get(Asset, asset_id) if asset_id else None
@@ -499,13 +509,17 @@ def media_one() -> bool:
                         or job.payload.get("revision") != candidate.revision
                         or job.payload.get("transcript_revision") != transcript.revision):
                     raise ValueError("Clip source or human selection changed after queueing")
-                job.result = render_selected_clip(asset, transcript, candidate, job.id)
+                staged_artifact = (staged_output, clip_output(candidate.id, candidate.revision))
+                job.result = render_selected_clip(
+                    asset, transcript, candidate, attempt_id, staged_output,
+                )
             elif job.job_type == "FOOTBALL_RENDER":
                 sequence = db.get(FootballSequence, job.payload.get("sequence_id"))
                 if (sequence is None or sequence.revision != job.payload.get("revision")
                         or sequence.project_id != job.project_id):
                     raise ValueError("Football sequence changed after queueing")
-                job.result = render_football(db, sequence, job.id)
+                staged_artifact = (staged_output, football_output(sequence.id, sequence.revision))
+                job.result = render_football(db, sequence, attempt_id, staged_output)
             elif job.job_type == "NARRATIVE_3D_RENDER":
                 sequence = db.get(Narrative3D, job.payload.get("sequence_id"))
                 if (sequence is None or sequence.revision != job.payload.get("revision")
@@ -521,7 +535,12 @@ def media_one() -> bool:
                     job.progress = value
                     db.commit()
 
-                job.result = render_narrative(db, sequence, job.id, quality, progress)
+                staged_artifact = (staged_output, narrative_output(
+                    sequence.id, sequence.revision, quality,
+                ))
+                job.result = render_narrative(
+                    db, sequence, attempt_id, quality, progress, staged_output,
+                )
             else:
                 asset_id = job.payload.get("asset_id")
                 asset = db.get(Asset, asset_id) if asset_id else None
@@ -537,7 +556,9 @@ def media_one() -> bool:
             job.result = {
                 **(job.result or {}), **({"output": str(output)} if output else {}),
             }
-            record_event(db, f"{job.job_type}_FINISHED", "job", job.id, after=job.result)
+            if staged_artifact is None:
+                record_event(db, f"{job.job_type}_FINISHED", "job", job.id,
+                             after=job.result)
         except (OSError, ValueError, RuntimeError, ImportError,
                 subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             job.status = JobStatus.FAILED.value
@@ -553,7 +574,12 @@ def media_one() -> bool:
         finally:
             stop_heartbeat()
         job.finished_at = now()
-        if fence_job_completion(db, job.id, lease_owner):
+        if staged_artifact is not None:
+            if not finish_media_render_attempt(
+                db, job, lease_owner, *staged_artifact,
+            ):
+                logger.warning("Media result discarded after losing job lease %s", job.id)
+        elif fence_job_completion(db, job.id, lease_owner):
             db.commit()
         else:
             db.rollback()

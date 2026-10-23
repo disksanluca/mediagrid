@@ -35,7 +35,8 @@ def picture_filter(source: Path, aspect: str, focus_x: float, focus_y: float) ->
             f"scale={target_w}:{target_h}:flags=lanczos,fps=30")
 
 
-def render_football(db: Session, sequence: FootballSequence, job_id: str) -> dict:
+def render_football(db: Session, sequence: FootballSequence, job_id: str,
+                    staged_output: Path | None = None) -> dict:
     if sequence.status != "APPROVED" or not sequence.shots_json:
         raise ValueError("Current football sequence needs human approval")
     settings = get_settings()
@@ -113,7 +114,7 @@ def render_football(db: Session, sequence: FootballSequence, job_id: str) -> dic
         if not has_audio or abs(actual_ms - expected_ms) > max(750, len(segment_paths) * 150):
             raise ValueError("Football MP4 lost audio or has invalid duration")
         digest = sha256_file(combined)
-        combined.replace(output)
+        combined.replace(staged_output or output)
         return {
             "output": str(output), "sha256": digest,
             "sequence_id": sequence.id, "revision": sequence.revision,
