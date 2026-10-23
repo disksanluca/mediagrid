@@ -79,6 +79,16 @@ When a generated WAV lasts longer than the estimated scene times, the renderer e
 video scenes to keep the full narration audible. Generating a new voice or render after review
 invalidates the old approval until the new video is reviewed.
 
+In **Editor → Saída**, the desktop can also capture microphone audio (where the WebView
+supports it) or import your own WAV/MP3/M4A/WebM/OGG recording. Listen to the selection,
+confirm that you own its rights and that it follows the saved script, then choose **Usar esta
+narração no projeto**. The local API verifies an audio stream (0.2 seconds to 5 minutes;
+50 MB upload limit), converts it to 48 kHz mono PCM WAV with FFmpeg, records hashes and
+human attestations, and uses that WAV in the existing render worker. Changing the script
+invalidates the recording; replacing voice after review invalidates the previous approval.
+No automatic word alignment or audio quality approval is claimed. The system voice option
+remains available. See [recorded voice implementation](docs/RECORDED-VOICE.md).
+
 For a video or audio asset, open **Biblioteca → Legendas**. Run offline word ASR, listen
 to the media and correct words, cue text and timing. Save and approve the current revision
 before downloading SRT/VTT. For a rights-cleared MP4, **Gerar MP4 legendado** starts a

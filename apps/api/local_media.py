@@ -26,7 +26,7 @@ def voice_matches(project_id: str, script: dict | None) -> bool:
     if not parts or parts[0] != expected:
         return False
     configuration = voice_choice()
-    if len(parts) == 3 and parts[2] != voice_configuration_digest():
+    if len(parts) == 3 and parts[2] not in {"RECORDED", voice_configuration_digest()}:
         return False
     if len(parts) in {1, 2} and configuration != (None, 0):
         return False

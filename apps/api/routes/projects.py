@@ -1,12 +1,13 @@
 import hashlib
 import json
 import os
+import shutil
 import zipfile
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import select
@@ -17,7 +18,7 @@ from ..config import get_settings
 from ..database import get_db
 from ..edl_v2 import EDLV2, from_legacy, scene_projection
 from ..engines import get_engine
-from ..local_media import voice_configuration_digest, voice_matches
+from ..local_media import narration_text, voice_configuration_digest, voice_matches
 from ..models import (
     ACTIVE_JOB_STATUSES,
     Channel,
@@ -27,6 +28,7 @@ from ..models import (
     ProjectRevision,
     ProjectStatus,
 )
+from ..recorded_voice import normalize_recording
 from ..render_plan import fit_video_to_voice, probe_source, render_props
 from ..scene_media import scene_asset, sound_asset, validate_scene_assets
 from ..schemas import (
@@ -658,6 +660,111 @@ def download_voice(project_id: str, db: Session = Depends(get_db)) -> FileRespon
     if not voice_matches(project_id, project.script):
         raise HTTPException(404, "Voice is not available")
     return FileResponse(output, media_type="audio/wav", filename=f"mediagrid-{project_id}.wav")
+
+
+@router.post("/{project_id}/voice/recorded", response_model=ProjectRead)
+def import_recorded_voice(
+    project_id: str,
+    file: UploadFile = File(...),
+    rights_confirmed: bool = Form(False),
+    script_confirmed: bool = Form(False),
+    db: Session = Depends(get_db),
+) -> Project:
+    """Use a rights-confirmed recording without claiming auto-alignment."""
+    if get_settings().mediagrid_mode != "LOCAL":
+        raise HTTPException(409, "Importação de narração disponível apenas no desktop local")
+    project = db.get(Project, project_id)
+    if project is None:
+        raise HTTPException(404, "Project not found")
+    if not rights_confirmed or not script_confirmed:
+        raise HTTPException(422, "Confirme direitos e correspondência com o roteiro salvo")
+    if not project.script or (project.plan or {}).get("origin") == "OUTLINE":
+        raise HTTPException(409, "Salve a narração de todas as cenas antes de importar a voz")
+    if any(not str(scene.get("narration", "")).strip()
+           for scene in (project.plan or {}).get("scenes", [])):
+        raise HTTPException(409, "Preencha a narração de todas as cenas")
+    active = db.scalar(select(Job).where(
+        Job.project_id == project_id,
+        Job.job_type.in_(("VOICE", "RENDER")),
+        Job.status.in_(ACTIVE_JOB_STATUSES),
+    ))
+    if active:
+        raise HTTPException(409, "Aguarde a geração de voz ou o render atual")
+
+    folder = get_settings().mediagrid_data_dir / "voice"
+    temp = get_settings().mediagrid_data_dir / "temp"
+    folder.mkdir(parents=True, exist_ok=True)
+    temp.mkdir(parents=True, exist_ok=True)
+    attempt = uuid4().hex
+    source = temp / f"recorded-{attempt}.input"
+    staged_wav = temp / f"recorded-{attempt}.wav"
+    staged_manifest = temp / f"recorded-{attempt}.sha256"
+    previous_wav = temp / f"recorded-{attempt}.previous.wav"
+    preserve_previous = False
+    try:
+        proof = normalize_recording(file, source, staged_wav)
+        script_hash = hashlib.sha256(narration_text(project.script).encode("utf-8")).hexdigest()
+        staged_manifest.write_text(
+            f"{script_hash} {proof['wav_sha256']} RECORDED", encoding="utf-8"
+        )
+        if project.status in {ProjectStatus.QC.value, ProjectStatus.APPROVED.value}:
+            was_approved = project.status == ProjectStatus.APPROVED.value
+            project.plan = {key: value for key, value in (project.plan or {}).items()
+                            if key != "review"}
+            project.status = ProjectStatus.SCRIPTED.value
+            record_event(
+                db,
+                "PROJECT_APPROVAL_REVOKED" if was_approved else "PROJECT_OUTPUT_INVALIDATED",
+                "project", project.id,
+            )
+        output = folder / f"{project_id}.wav"
+        manifest = folder / f"{project_id}.sha256"
+        if output.is_file():
+            try:
+                shutil.copy2(output, previous_wav)
+            except OSError as exc:
+                raise HTTPException(409, "Não foi possível proteger a voz anterior") from exc
+        # Commit the invalidation before replacing files: an approved MP4 can
+        # never remain paired with a newly imported narration.
+        db.commit()
+        replaced_audio = False
+        try:
+            os.replace(staged_wav, output)
+            replaced_audio = True
+            os.replace(staged_manifest, manifest)
+        except OSError as exc:
+            if replaced_audio:
+                try:
+                    if previous_wav.is_file():
+                        os.replace(previous_wav, output)
+                    else:
+                        output.unlink(missing_ok=True)
+                except OSError as restore_exc:
+                    preserve_previous = True
+                    raise HTTPException(
+                        500,
+                        f"Falha ao restaurar a voz anterior; backup preservado em {previous_wav}",
+                    ) from restore_exc
+            raise HTTPException(
+                409, "O arquivo de voz está em uso ou a pasta não permite substituição. "
+                     "Feche a reprodução e tente novamente."
+            ) from exc
+        record_event(db, "RECORDED_VOICE_IMPORTED", "project", project_id, after={
+            **proof,
+            "filename": (file.filename or "recording").replace("\\", "/").split("/")[-1][:240],
+            "script_sha256": script_hash,
+            "rights_status": "RIGHTS_CONFIRMED",
+            "script_match": "HUMAN_CONFIRMED",
+        })
+        db.commit()
+        db.refresh(project)
+        return project
+    finally:
+        source.unlink(missing_ok=True)
+        staged_wav.unlink(missing_ok=True)
+        staged_manifest.unlink(missing_ok=True)
+        if not preserve_previous:
+            previous_wav.unlink(missing_ok=True)
 
 
 @router.get("/{project_id}/output")
