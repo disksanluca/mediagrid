@@ -20,16 +20,20 @@ fila PostgreSQL. Não oferece ainda worker remoto ou VPS utilizável.
   legado ou com lease expirado são reencaminhados, respeitando `max_attempts`.
 - Antes do commit final, o worker faz atualização condicional pelo token, status
   e prazo da lease na mesma transação. Se outro claim assumiu o job, descarta as
-  alterações de estado e evento da transação antiga. O arquivo de render pode
-  ter sido gravado antes desse fence; reconciliação de artefatos ainda é
-  necessária para operação remota segura.
+  alterações de estado e evento da transação antiga. O job `RENDER` escreve um
+  MP4 temporário exclusivo por tentativa e só substitui o MP4 do projeto depois
+  de passar esse fence. Uma tentativa vencida apaga seu temporário. Falha na
+  promoção marca o job e projeto como `FAILED`, sem devolver sucesso.
 - Os testes cobrem claim distinto por dois workers, rejeição de renovação por
   proprietário errado, heartbeat real, recuperação seletiva e migração
   SQLite de base legada e nova, inclusive rejeição de conclusão após reclaim.
-  PostgreSQL real e concorrência entre hosts
-  seguem pendentes porque nenhum servidor PostgreSQL foi disponibilizado.
+  Também cobrem a preservação do MP4 anterior após reclaim e a falha de promoção.
+  A CI executa migração, concorrência de claim, dump e restore em PostgreSQL real
+  com serviço temporário; concorrência entre hosts e worker remoto seguem sem prova.
 
 Ainda faltam idempotency key persistida, token de dispositivo, escopo por dono,
-cancelamento do subprocesso, reconciliação de artefato após lease perdido e
-prova ponta a ponta com worker Windows conectado de saída. Não promover este
-marco como web funcional até esses contratos passarem no PostgreSQL real.
+cancelamento do subprocesso, reconciliação de artefatos dos demais jobs de mídia
+e prova ponta a ponta com worker Windows conectado de saída. O rename do MP4 e o
+commit do banco não formam uma transação atômica: uma queda nesse intervalo pode
+deixar um arquivo novo sem estado terminal; falta recuperação/reconciliação para
+esse caso. Não promover este marco como web funcional até fechar esses contratos.

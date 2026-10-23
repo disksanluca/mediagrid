@@ -40,6 +40,7 @@ from apps.api.render_plan import source_label as source_label
 from apps.api.scene_media import stage_scene_assets, stage_sound_assets
 from apps.api.services import claim_next_job, fence_job_completion, record_event
 from apps.api.transcripts import replace_words
+from workers.render.artifacts import finish_render_attempt
 from workers.render.caption_video import burn_captions
 from workers.render.clips import analyze_asset, render_selected_clip
 from workers.render.football import render_football
@@ -191,8 +192,10 @@ def render_one() -> bool:
         output_dir = settings.mediagrid_data_dir / "renders"
         temp_dir.mkdir(parents=True, exist_ok=True)
         output_dir.mkdir(parents=True, exist_ok=True)
-        props_path = (temp_dir / f"{job.id}.json").resolve()
-        public_dir = (temp_dir / f"{job.id}-media").resolve()
+        attempt_id = f"{job.id}-{uuid4().hex}"
+        props_path = (temp_dir / f"{attempt_id}.json").resolve()
+        public_dir = (temp_dir / f"{attempt_id}-media").resolve()
+        staged_output_path = (temp_dir / f"{attempt_id}.mp4").resolve()
         output_path = (output_dir / f"{project.id}.mp4").resolve()
         channel = db.get(Channel, project.channel_id)
         voice = settings.mediagrid_data_dir / "voice" / f"{project.id}.wav"
@@ -280,7 +283,7 @@ def render_one() -> bool:
                     str(renderer_root / "src" / "index.ts"),
                     "MediaGridTimelineV2" if overlays or sounds or video_layers
                     else "MediaGridVideo",
-                    str(output_path),
+                    str(staged_output_path),
                     "--props",
                     str(props_path),
                 ]
@@ -305,7 +308,7 @@ def render_one() -> bool:
                     "--workspace",
                     "@mediagrid/renderer",
                     "--",
-                    str(output_path),
+                    str(staged_output_path),
                     "--props",
                     str(props_path),
                 ]
@@ -315,13 +318,13 @@ def render_one() -> bool:
             command.append(f"--public-dir={public_dir}")
             subprocess.run(command, check=True, cwd=renderer_root if renderer_root else None)
             if valid_voice is not None:
-                voiced = temp_dir / f"{job.id}-voiced.mp4"
+                voiced = temp_dir / f"{attempt_id}-voiced.mp4"
                 ffmpeg = settings.mediagrid_ffmpeg_path or "ffmpeg"
                 voice_command = [
                         str(ffmpeg),
                         "-y",
                         "-i",
-                        str(output_path),
+                        str(staged_output_path),
                         "-i",
                         str(voice),
                         "-map",
@@ -347,12 +350,12 @@ def render_one() -> bool:
                     capture_output=True,
                     text=True,
                 )
-                voiced.replace(output_path)
-            video_info = validate_video(output_path)
+                voiced.replace(staged_output_path)
+            video_info = validate_video(staged_output_path)
             job.status = JobStatus.SUCCEEDED.value
             job.progress = 1
             digest = hashlib.sha256()
-            with output_path.open("rb") as rendered:
+            with staged_output_path.open("rb") as rendered:
                 for chunk in iter(lambda: rendered.read(1024 * 1024), b""):
                     digest.update(chunk)
             job.result = {
@@ -363,7 +366,6 @@ def render_one() -> bool:
                 job.result["revision_sha256"] = revision_sha256
             job.finished_at = now()
             project.status = ProjectStatus.QC.value
-            record_event(db, "RENDER_FINISHED", "project", project.id, after=job.result)
         except (
             subprocess.CalledProcessError,
             ValueError,
@@ -381,12 +383,11 @@ def render_one() -> bool:
         finally:
             stop_heartbeat()
             props_path.unlink(missing_ok=True)
-            if public_dir.parent == temp_dir.resolve() and public_dir.name == f"{job.id}-media":
+            if public_dir.parent == temp_dir.resolve() and public_dir.name == f"{attempt_id}-media":
                 shutil.rmtree(public_dir, ignore_errors=True)
-            if fence_job_completion(db, job.id, lease_owner):
-                db.commit()
-            else:
-                db.rollback()
+            if not finish_render_attempt(
+                db, job, project, lease_owner, staged_output_path, output_path,
+            ):
                 logger.warning("Render result discarded after losing job lease %s", job.id)
         return True
 
