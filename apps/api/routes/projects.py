@@ -328,6 +328,10 @@ def write_edl_v2(project_id: str, payload: RevisionWrite, db: Session = Depends(
         except ValidationError as exc:
             raise HTTPException(422, exc.errors()) from exc
         scenes.append(scene)
+    if project.content_type == "motion_ad" and not {
+        "ad-hook", "ad-problem", "ad-benefit", "ad-cta"
+    }.issubset({scene.id for scene in scenes}):
+        raise HTTPException(422, "Preserve as quatro etapas do Motion Ad")
     old_origin = project.plan.get("origin")
     unchanged = [scene.model_dump() for scene in scenes] == project.plan.get("scenes")
     still_outline = old_origin == "OUTLINE" and any(
@@ -340,7 +344,13 @@ def write_edl_v2(project_id: str, payload: RevisionWrite, db: Session = Depends(
         "origin": old_origin if unchanged else "OUTLINE" if still_outline else "MANUAL",
         "target_duration_seconds": round(payload.edl.duration_ms / 1000),
     })
+    original_plan = project.plan or {}
     project.plan = {key: value for key, value in plan.model_dump().items() if key != "review"}
+    if project.content_type == "motion_ad":
+        project.plan = {**project.plan, **{
+            key: value for key, value in original_plan.items()
+            if key in {"initial_motion_ad_brief", "initial_motion_ad_brief_sha256"}
+        }}
     channel = db.get(Channel, project.channel_id)
     if channel is None:
         raise HTTPException(404, "Channel not found")
@@ -377,6 +387,8 @@ def create_project(payload: ProjectCreate, db: Session = Depends(get_db)) -> Pro
     if channel is None:
         raise HTTPException(status_code=404, detail="Channel not found")
     values = payload.model_dump()
+    if values["content_type"] == "motion_ad":
+        raise HTTPException(422, "Use o briefing estruturado de Motion Ad")
     if channel.default_engine == "politics" and values["content_type"] == "video":
         values["content_type"] = "knowledge"
     project = Project(**values)
@@ -403,6 +415,10 @@ def plan_project(project_id: str, db: Session = Depends(get_db)) -> ContentPlan:
     project = db.get(Project, project_id)
     if project is None:
         raise HTTPException(status_code=404, detail="Project not found")
+    if project.content_type == "motion_ad":
+        raise HTTPException(
+            409, "Edite as cenas do anúncio no Editor; o briefing inicial é preservado"
+        )
     if active_render_for(db, project_id):
         raise HTTPException(409, "Wait for the current render before editing")
     previous = latest_revision(db, project_id)
@@ -450,6 +466,10 @@ def update_plan(
     scene_ids = [scene.id for scene in payload.scenes]
     if len(scene_ids) != len(set(scene_ids)):
         raise HTTPException(422, "Scene IDs must be unique")
+    if project.content_type == "motion_ad" and not {
+        "ad-hook", "ad-problem", "ad-benefit", "ad-cta"
+    }.issubset(scene_ids):
+        raise HTTPException(422, "Preserve as quatro etapas do Motion Ad")
     validate_scene_assets(db, payload.scenes)
     original_narrations = {
         scene.id: scene.narration.strip()
@@ -472,7 +492,15 @@ def update_plan(
         or list(get_engine(channel.default_engine).review_checks),
         source_refs=(project.plan or {}).get("source_refs", []),
     )
+    original_plan = project.plan or {}
     project.plan = plan.model_dump()
+    if project.content_type == "motion_ad":
+        # The original brief is provenance, while edited scenes are the current script.
+        project.plan = {**project.plan, **{
+            key: original_plan[key]
+            for key in ("initial_motion_ad_brief", "initial_motion_ad_brief_sha256")
+            if key in original_plan
+        }}
     project.script = {"language": channel.language, "segments": [s.narration for s in plan.scenes]}
     project.edl = {
         "version": 1,
@@ -509,6 +537,37 @@ def update_plan(
                     or track.kind == "video" and track.id != "picture"
                 ]
                 if extra_tracks:
+                    if project.content_type == "motion_ad":
+                        picture = {
+                            item.params.get("scene_id"): item
+                            for item in revised.tracks[0].items
+                        }
+                        scene_by_id = {scene.id: scene for scene in payload.scenes}
+                        for track in extra_tracks:
+                            for item in track.items:
+                                scene_id = {
+                                    "ad-card-benefit": "ad-benefit",
+                                    "ad-card-cta": "ad-cta",
+                                }.get(item.id)
+                                if scene_id is None:
+                                    continue
+                                scene = scene_by_id[scene_id]
+                                anchor = picture[scene_id]
+                                item.start_ms = anchor.start_ms
+                                item.duration_ms = anchor.duration_ms
+                                frames = item.params.get("keyframes")
+                                if isinstance(frames, list) and frames:
+                                    frames[-1]["at_ms"] = anchor.duration_ms
+                                if scene_id == "ad-benefit":
+                                    if len(scene.narration.strip()) > 100:
+                                        raise HTTPException(
+                                            422, "Benefício longo demais para o cartão"
+                                        )
+                                    item.params["body"] = scene.narration.strip()
+                                else:
+                                    if len(scene.on_screen_text.strip()) > 60:
+                                        raise HTTPException(422, "CTA longo demais para o cartão")
+                                    item.params["text"] = scene.on_screen_text.strip()
                     try:
                         revised = EDLV2.model_validate({
                             **revised.model_dump(),
@@ -796,7 +855,7 @@ def approve_project_review(
     if not payload.facts_confirmed or not payload.rights_confirmed:
         raise HTTPException(409, "Confirm facts and media rights before approval")
     channel = db.get(Channel, project.channel_id)
-    requires_claims = project.content_type == "knowledge" or (
+    requires_claims = project.content_type in {"knowledge", "motion_ad"} or (
         channel is not None and channel.default_engine in {"politics", "geo", "trends"}
     )
     claims = current_claims(db, project_id) if requires_claims else []
@@ -808,6 +867,14 @@ def approve_project_review(
                               or claim.source_url.rstrip("/") not in submitted_urls
                               for claim in claims)):
             raise HTTPException(409, "Approve every cited claim and include its source URL")
+        if project.content_type == "motion_ad":
+            required_scenes = scene_ids - {"ad-cta"}
+            if required_scenes - {claim.scene_id for claim in claims}:
+                raise HTTPException(409, "Cite each advertising claim before approval")
+            narration = {str(scene.get("id")): str(scene.get("narration"))
+                         for scene in (project.plan or {}).get("scenes", [])}
+            if any(claim.text != narration.get(claim.scene_id) for claim in claims):
+                raise HTTPException(409, "Update ad claims to match the current script")
         if (channel is not None and channel.default_engine in {"geo", "trends"}
                 and (project.plan or {}).get("source_refs")):
             if scene_ids - {claim.scene_id for claim in claims}:
@@ -861,13 +928,14 @@ def export_reviewed_project(project_id: str, db: Session = Depends(get_db)) -> F
     ):
         raise HTTPException(409, "Approved timeline changed; review again")
     channel = db.get(Channel, project.channel_id)
-    requires_claims = project.content_type == "knowledge" or (
+    requires_claims = project.content_type in {"knowledge", "motion_ad"} or (
         channel is not None and channel.default_engine in {"politics", "geo", "trends"}
     )
     claims = current_claims(db, project_id) if requires_claims else []
     legacy_geo_or_trends = (
         channel is not None and channel.default_engine in {"geo", "trends"}
-        and project.content_type != "knowledge" and "claim_digest" not in review
+        and project.content_type not in {"knowledge", "motion_ad"}
+        and "claim_digest" not in review
         and not claims
     )
     if requires_claims and not legacy_geo_or_trends and (

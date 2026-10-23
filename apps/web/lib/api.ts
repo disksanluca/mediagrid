@@ -147,6 +147,8 @@ export const api = {
   createChannel: (body: Record<string, unknown>) => request<Channel>("/channels", {method: "POST", body: JSON.stringify(body)}),
   updateChannel: (id: string, body: Record<string, unknown>) => request<Channel>(`/channels/${id}`, {method: "PATCH", body: JSON.stringify(body)}),
   createProject: (body: Record<string, unknown>) => request<Project>("/projects", {method: "POST", body: JSON.stringify(body)}),
+  createMotionAd: (body: {channel_id:string;format:"vertical"|"horizontal";product_name:string;audience:string;hook:string;problem:string;benefit:string;call_to_action:string;brand_color:string}) =>
+    request<Project>("/motion-ads/projects", {method:"POST", body:JSON.stringify(body)}),
   politicsProposals: (query: string, year: number) => request<OfficialProposal[]>(`/politics/proposals?query=${encodeURIComponent(query)}&year=${year}`),
   importPoliticsProposal: (channelId: string, proposalId: number) => request<Project>("/politics/projects", {method:"POST", body:JSON.stringify({channel_id:channelId,proposal_id:proposalId})}),
   geoMunicipalities: (query: string) => request<GeoMunicipality[]>(`/geo/municipalities?query=${encodeURIComponent(query)}`),
