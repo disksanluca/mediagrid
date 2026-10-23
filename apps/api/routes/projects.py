@@ -17,7 +17,7 @@ from ..config import get_settings
 from ..database import get_db
 from ..edl_v2 import EDLV2, from_legacy, scene_projection
 from ..engines import get_engine
-from ..local_media import voice_matches
+from ..local_media import voice_configuration_digest, voice_matches
 from ..models import (
     ACTIVE_JOB_STATUSES,
     Channel,
@@ -642,7 +642,9 @@ def queue_voice(project_id: str, db: Session = Depends(get_db)) -> dict[str, str
             "project",
             project.id,
         )
-    job = enqueue_job(db, project.id, "VOICE")
+    job = enqueue_job(db, project.id, "VOICE", payload={
+        "voice_config_sha256": voice_configuration_digest()
+    } if get_settings().mediagrid_mode == "LOCAL" else {})
     db.commit()
     return {"job_id": job.id, "status": job.status}
 

@@ -20,7 +20,13 @@ from apps.api.config import get_settings
 from apps.api.database import SessionLocal
 from apps.api.edl_v2 import EDLV2, scene_projection
 from apps.api.ingestion import sha256_file
-from apps.api.local_media import narration_text, synthesize_voice, transcribe_media, voice_matches
+from apps.api.local_media import (
+    narration_text,
+    synthesize_voice,
+    transcribe_media,
+    voice_configuration_digest,
+    voice_matches,
+)
 from apps.api.models import (
     Asset,
     Channel,
@@ -429,15 +435,21 @@ def media_one() -> bool:
                     raise ValueError("Project or script not found")
                 output = settings.mediagrid_data_dir / "voice" / f"{project.id}.wav"
                 text = narration_text(project.script)
+                selected_digest = voice_configuration_digest()
+                queued_digest = job.payload.get("voice_config_sha256")
+                if queued_digest and queued_digest != selected_digest:
+                    raise ValueError("Voice selection changed after this job was queued")
                 voice_stage = staged_output.with_name(f"voice-{attempt_id}.wav")
                 digest_stage = voice_stage.with_suffix(".sha256")
                 staged_voice = (
                     voice_stage, output, digest_stage, output.with_suffix(".sha256"),
                 )
                 synthesize_voice(text, voice_stage)
+                if voice_configuration_digest() != selected_digest:
+                    raise ValueError("Voice selection changed during synthesis")
                 digest_stage.write_text(
                     f"{hashlib.sha256(text.encode('utf-8')).hexdigest()} "
-                    f"{sha256_file(voice_stage)}",
+                    f"{sha256_file(voice_stage)} {selected_digest}",
                     encoding="utf-8",
                 )
             elif job.job_type == "PROXY":

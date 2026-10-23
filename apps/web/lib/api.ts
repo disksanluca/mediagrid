@@ -136,6 +136,8 @@ export const api = {
   removeClaim: (projectId:string,claimId:string,revision:number) =>
     request<KnowledgeClaim>(`/projects/${projectId}/claims/${claimId}/remove`,{method:"POST",body:JSON.stringify({expected_revision:revision})}),
   system: () => request<SystemStatus>("/system"),
+  voiceStatus: () => request<{available:boolean;voices:string[];voice_name:string|null;rate:number}>("/system/voice"),
+  setVoice: (voice_name:string,rate:number) => request<{available:boolean;voices:string[];voice_name:string|null;rate:number}>("/system/voice",{method:"PUT",body:JSON.stringify({voice_name,rate})}),
   blenderStatus: () => request<{available:boolean;path:string|null;required_version:string}>("/system/blender"),
   setBlender: (path:string) => request<{available:boolean;path:string;required_version:string}>("/system/blender",{method:"PUT",body:JSON.stringify({path})}),
   hardware: () => request<HardwareProfile>("/system/hardware"),

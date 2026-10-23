@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ..config import get_settings
 from ..database import get_db
+from ..local_media import voice_configuration_digest
 from ..models import Asset, Job, JobStatus, initial_job_status
 from ..schemas import JobRead
 
@@ -37,6 +39,9 @@ def retry_job(job_id: str, db: Session = Depends(get_db)) -> Job:
     job.status = initial_job_status()
     job.error = None
     job.progress = 0
+    if job.job_type == "VOICE" and get_settings().mediagrid_mode == "LOCAL":
+        job.payload = {**(job.payload or {}),
+                       "voice_config_sha256": voice_configuration_digest()}
     if job.job_type == "PROXY":
         asset = db.get(Asset, job.payload.get("asset_id"))
         if asset:

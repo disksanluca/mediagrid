@@ -1,4 +1,5 @@
 import hashlib
+import json
 import shutil
 import subprocess
 import sys
@@ -24,10 +25,15 @@ def voice_matches(project_id: str, script: dict | None) -> bool:
     parts = manifest.read_text(encoding="utf-8").split()
     if not parts or parts[0] != expected:
         return False
+    configuration = voice_choice()
+    if len(parts) == 3 and parts[2] != voice_configuration_digest():
+        return False
+    if len(parts) in {1, 2} and configuration != (None, 0):
+        return False
     if len(parts) == 1:
         # Existing desktop data used a script-only digest. Keep it readable.
         return True
-    if len(parts) != 2:
+    if len(parts) not in {2, 3}:
         return False
     digest = hashlib.sha256()
     with audio.open("rb") as source:
@@ -69,7 +75,50 @@ def windows_speech_features() -> tuple[bool, bool]:
 
 
 def voice_available() -> bool:
-    return windows_speech_features()[0]
+    selected, _ = voice_choice()
+    voices = installed_portuguese_voices()
+    return bool(voices) and (selected is None or selected in voices)
+
+
+@lru_cache(maxsize=1)
+def installed_portuguese_voices() -> tuple[str, ...]:
+    if sys.platform != "win32" or not shutil.which("powershell.exe"):
+        return ()
+    try:
+        result = subprocess.run([
+            "powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
+            "Add-Type -AssemblyName System.Speech; "
+            "$s=New-Object System.Speech.Synthesis.SpeechSynthesizer; "
+            "try { $s.GetInstalledVoices() | Where-Object { "
+            "$_.Enabled -and $_.VoiceInfo.Culture.Name -eq 'pt-BR' } | "
+            "ForEach-Object { $_.VoiceInfo.Name } } finally { $s.Dispose() }",
+        ], check=True, capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return ()
+    return tuple(line.strip() for line in result.stdout.splitlines() if line.strip())
+
+
+def voice_choice() -> tuple[str | None, int]:
+    path = get_settings().mediagrid_data_dir / "settings.json"
+    try:
+        saved = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None, 0
+    if not isinstance(saved, dict):
+        return None, 0
+    voice = saved.get("voice_name")
+    rate = saved.get("voice_rate", 0)
+    if not isinstance(voice, str) or not voice:
+        voice = None
+    if type(rate) is not int or not -5 <= rate <= 5:
+        rate = 0
+    return voice, rate
+
+
+def voice_configuration_digest() -> str:
+    voice, rate = voice_choice()
+    value = json.dumps({"voice": voice, "rate": rate}, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
 def transcription_available() -> bool:
@@ -86,6 +135,7 @@ def synthesize_voice(text: str, output: Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     source = output.with_suffix(".txt")
     source.write_text(text, encoding="utf-8")
+    selected, rate = voice_choice()
     try:
         subprocess.run(
             [
@@ -98,6 +148,10 @@ def synthesize_voice(text: str, output: Path) -> None:
                 str(ROOT / "scripts" / "speak.ps1"),
                 str(source),
                 str(output),
+                "-VoiceName",
+                selected or "",
+                "-Rate",
+                str(rate),
             ],
             check=True,
             capture_output=True,

@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from workers.render.narrative_3d import blender_executable
@@ -15,7 +15,12 @@ from ..database import get_db
 from ..doctor import DoctorReport, run_doctor
 from ..engines import ENGINES
 from ..hardware import HardwareProfile, profile_hardware
-from ..local_media import transcription_available, voice_available
+from ..local_media import (
+    installed_portuguese_voices,
+    transcription_available,
+    voice_available,
+    voice_choice,
+)
 from ..schemas import SystemStatus
 from ..services import ffmpeg_available, ollama_connected
 
@@ -106,6 +111,42 @@ def complete_setup(choice: SetupChoice) -> SetupState:
 
 class BlenderChoice(BaseModel):
     path: str
+
+
+class VoiceChoice(BaseModel):
+    voice_name: str
+    rate: int = Field(ge=-5, le=5)
+
+
+@router.get("/voice")
+def voice_status() -> dict:
+    if get_settings().mediagrid_mode != "LOCAL":
+        raise HTTPException(403, "Voice selection is local-desktop only")
+    voice, rate = voice_choice()
+    options = installed_portuguese_voices()
+    return {"available": bool(options) and (voice is None or voice in options),
+            "voices": list(options), "voice_name": voice, "rate": rate}
+
+
+@router.put("/voice")
+def set_voice(choice: VoiceChoice) -> dict:
+    if get_settings().mediagrid_mode != "LOCAL":
+        raise HTTPException(403, "Voice selection is local-desktop only")
+    if choice.voice_name not in installed_portuguese_voices():
+        raise HTTPException(422, "Choose an installed pt-BR voice")
+    path = _setup_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        saved = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        saved = {}
+    if not isinstance(saved, dict):
+        saved = {}
+    saved.update({"voice_name": choice.voice_name, "voice_rate": choice.rate})
+    temporary = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    temporary.write_text(json.dumps(saved, ensure_ascii=False, indent=2), encoding="utf-8")
+    temporary.replace(path)
+    return voice_status()
 
 
 @router.get("/blender")
