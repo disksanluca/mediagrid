@@ -256,7 +256,10 @@ class KnowledgeClaim(TimestampMixin, Base):
     text: Mapped[str] = mapped_column(Text)
     source_url: Mapped[str] = mapped_column(Text)
     source_title: Mapped[str] = mapped_column(String(240))
-    published_at: Mapped[date] = mapped_column(Date)
+    published_at: Mapped[date | None] = mapped_column(Date, nullable=True)
+    source_checked_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     support_excerpt: Mapped[str] = mapped_column(Text)
     revision: Mapped[int] = mapped_column(Integer, default=1)
     status: Mapped[str] = mapped_column(String(24), default="REVIEW_REQUIRED")

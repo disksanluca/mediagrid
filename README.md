@@ -47,6 +47,14 @@ official search. A manual political draft remains possible, but every political 
 requires cited, approved claims before review and export, including older drafts.
 The [isolated Politics pipeline proof](docs/POLITICS-TECHNICAL-PROOF.md) records a
 live Câmara import, local voice, vertical MP4, hashes and the blocked export.
+For a Geo channel, **Radar** can import a municipality from the
+[IBGE Localidades API](https://servicodados.ibge.gov.br/api/docs/localidades).
+The saved draft now creates one source-linked claim for each factual scene. The
+API does not provide a publication date for that municipality record, so the
+claim leaves it empty and records the consultation time separately. Verify each
+claim against the live source before approving the render; new Geo and Trends
+reviews require citations. Already approved Geo/Trends exports keep their prior
+review if untouched. See [Geo evidence gate](docs/GEO-EVIDENCE-GATE.md).
 
 For a Geo channel, **Radar** searches the official [IBGE Localidades API v1.0.0](https://servicodados.ibge.gov.br/api/docs/localidades) by municipality name and creates an editable three-scene plan from the selected municipality, state and administrative regions. It stores the source URL and retrieval time, and the render labels the source as IBGE. This flow does not supply maps, population data or licensed footage. Review the current IBGE entry and add your own rights-cleared visuals in the Editor.
 
@@ -110,7 +118,8 @@ only synthetic technical tests are possible.
 
 For a factual explainer in a Geo, Politics or Trends project, use
 **Editor → Alegações e fontes**. Attach each factual statement to a scene,
-source URL, publication date and the supporting excerpt. Open the source and
+source URL, publication date when the source provides it, and the supporting
+excerpt. Open the source and
 confirm its context before approving that individual claim. Adding a claim
 turns the project into a knowledge explainer: final review requires every
 current claim approved and its URL in the source list. The Editor adds the

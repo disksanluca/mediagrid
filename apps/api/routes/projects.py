@@ -690,7 +690,7 @@ def approve_project_review(
         raise HTTPException(409, "Confirm facts and media rights before approval")
     channel = db.get(Channel, project.channel_id)
     requires_claims = project.content_type == "knowledge" or (
-        channel is not None and channel.default_engine == "politics"
+        channel is not None and channel.default_engine in {"politics", "geo", "trends"}
     )
     claims = current_claims(db, project_id) if requires_claims else []
     if requires_claims:
@@ -701,6 +701,14 @@ def approve_project_review(
                               or claim.source_url.rstrip("/") not in submitted_urls
                               for claim in claims)):
             raise HTTPException(409, "Approve every cited claim and include its source URL")
+        if (channel is not None and channel.default_engine == "geo"
+                and (project.plan or {}).get("source_refs")):
+            if scene_ids - {claim.scene_id for claim in claims}:
+                raise HTTPException(409, "Cite every sourced Geo scene before approval")
+            narration = {str(scene.get("id")): str(scene.get("narration"))
+                         for scene in (project.plan or {}).get("scenes", [])}
+            if any(claim.text != narration.get(claim.scene_id) for claim in claims):
+                raise HTTPException(409, "Update Geo claims to match the current script")
     review = {
         "approved_at": datetime.now(UTC).isoformat(),
         "source_urls": [str(url) for url in payload.source_urls],
@@ -747,10 +755,15 @@ def export_reviewed_project(project_id: str, db: Session = Depends(get_db)) -> F
         raise HTTPException(409, "Approved timeline changed; review again")
     channel = db.get(Channel, project.channel_id)
     requires_claims = project.content_type == "knowledge" or (
-        channel is not None and channel.default_engine == "politics"
+        channel is not None and channel.default_engine in {"politics", "geo", "trends"}
     )
     claims = current_claims(db, project_id) if requires_claims else []
-    if requires_claims and (
+    legacy_geo_or_trends = (
+        channel is not None and channel.default_engine in {"geo", "trends"}
+        and project.content_type != "knowledge" and "claim_digest" not in review
+        and not claims
+    )
+    if requires_claims and not legacy_geo_or_trends and (
         not claims or any(claim.status != "APPROVED" for claim in claims)
         or review.get("claim_digest") != claim_digest(claims)
     ):

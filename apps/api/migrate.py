@@ -7,6 +7,7 @@ from pathlib import Path
 from alembic import command
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
+from alembic.script import ScriptDirectory
 from sqlalchemy import inspect
 
 from . import models  # noqa: F401
@@ -70,6 +71,10 @@ def main() -> None:
             command.stamp(_config(), "head")
             return
         command.stamp(_config(), "0001_legacy")
+    if revision is not None and revision != ScriptDirectory.from_config(
+        _config()
+    ).get_current_head():
+        _backup_existing_sqlite()
     command.upgrade(_config(), "head")
 
 

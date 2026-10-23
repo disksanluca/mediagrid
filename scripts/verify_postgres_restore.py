@@ -14,7 +14,7 @@ def main() -> None:
     engine = create_engine(database_url, pool_pre_ping=True)
     with engine.connect() as connection:
         assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-            "0009_job_leases"
+            "0010_geo_claim_source_dates"
         )
         assert {"channels", "projects", "jobs", "knowledge_claims", "narrative_3d"} <= (
             set(inspect(connection).get_table_names())

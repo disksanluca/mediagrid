@@ -43,6 +43,31 @@ def test_manual_politics_requires_claims_even_for_legacy_video(
     assert client.post(f"/api/v1/projects/{project_id}/review", json=review).status_code == 409
 
 
+def test_trends_review_requires_cited_claims(
+    client: TestClient, monkeypatch, tmp_path: Path, seed_completed_render,
+) -> None:
+    monkeypatch.setattr(get_settings(), "mediagrid_data_dir", tmp_path)
+    channel = client.post("/api/v1/channels", json={
+        "name": "Tendências", "slug": "tendencias-evidencia", "niche": "Trends",
+        "default_engine": "trends",
+    }).json()
+    project = client.post("/api/v1/projects", json={
+        "channel_id": channel["id"], "title": "Tema em alta",
+        "topic": "Sem fonte confirmada", "content_type": "video",
+    }).json()
+    project_id = project["id"]
+    client.post(f"/api/v1/projects/{project_id}/plan")
+    seed_completed_render(project_id, b"synthetic-trends-video")
+    review = {
+        "source_urls": ["https://example.org/fonte"],
+        "facts_confirmed": True, "rights_confirmed": True,
+        "notes": "Teste sem alegações", "caption": "Teste sintético",
+    }
+    assert client.post(
+        f"/api/v1/projects/{project_id}/review", json=review
+    ).status_code == 409
+
+
 def test_claim_ledger_blocks_uncited_or_changed_knowledge_export(
     client: TestClient, monkeypatch, tmp_path: Path, seed_completed_render,
 ) -> None:
