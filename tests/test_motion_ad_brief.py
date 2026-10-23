@@ -153,6 +153,43 @@ def test_card_edit_keeps_original_brief(client: TestClient) -> None:
     assert "#abcdef" in {item["color"] for item in preview["props"]["overlays"]}
 
 
+def test_adding_claim_preserves_ad_mode_and_script_edit_revokes_claim(
+    client: TestClient,
+) -> None:
+    brief = _brief(_channel(client))
+    project = client.post("/api/v1/motion-ads/projects", json=brief).json()
+    project_id = project["id"]
+    claim = client.post(f"/api/v1/projects/{project_id}/claims", json={
+        "scene_id": "ad-problem", "text": brief["problem"],
+        "source_url": "https://example.org/synthetic-evidence",
+        "source_title": "Registro de teste sintético",
+        "support_excerpt": "Texto sintético para exercício do cadastro de fontes.",
+    })
+    assert claim.status_code == 201, claim.text
+    assert client.get(f"/api/v1/projects/{project_id}").json()["content_type"] == "motion_ad"
+    approved = client.post(
+        f"/api/v1/projects/{project_id}/claims/{claim.json()['id']}/approve",
+        json={"expected_revision": 1, "source_opened": True,
+              "excerpt_matches": True, "context_checked": True},
+    )
+    assert approved.status_code == 200, approved.text
+    assert approved.json()["status"] == "APPROVED"
+    timeline = client.get(f"/api/v1/projects/{project_id}/edl-v2").json()
+    scenes = project["plan"]["scenes"]
+    scenes[1]["narration"] = "Texto do problema alterado pelo criador."
+    changed = client.put(f"/api/v1/projects/{project_id}/plan", json={
+        "scenes": scenes, "hook": project["plan"]["hook"],
+        "angle": project["plan"]["angle"],
+        "expected_revision": timeline["revision"],
+        "expected_legacy_sha256": timeline["legacy_sha256"],
+    })
+    assert changed.status_code == 200, changed.text
+    current_claim = client.get(f"/api/v1/projects/{project_id}/claims").json()[0]
+    assert current_claim["status"] == "REVIEW_REQUIRED"
+    assert current_claim["revision"] == 2
+    assert client.get(f"/api/v1/projects/{project_id}").json()["content_type"] == "motion_ad"
+
+
 def test_unverified_ad_cannot_be_approved_or_exported(
     client: TestClient, monkeypatch, tmp_path: Path, seed_completed_render,
 ) -> None:

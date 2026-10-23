@@ -109,7 +109,7 @@ def invalidate_review(db: Session, project: Project) -> None:
 
 def invalidate_claim_approvals(db: Session, project: Project) -> None:
     """A changed script requires fresh human review of its factual claims."""
-    if project.content_type != "knowledge":
+    if project.content_type not in {"knowledge", "motion_ad"}:
         return
     for claim in current_claims(db, project.id):
         if claim.status == "APPROVED":
@@ -133,7 +133,8 @@ def add_claim(project_id: str, payload: ClaimWrite,
     project = project_for(db, project_id)
     scene_check(project, payload.scene_id)
     invalidate_review(db, project)
-    project.content_type = "knowledge"
+    if project.content_type != "motion_ad":
+        project.content_type = "knowledge"
     claim = KnowledgeClaim(
         project_id=project_id, scene_id=payload.scene_id,
         text=payload.text.strip(), source_url=str(payload.source_url),

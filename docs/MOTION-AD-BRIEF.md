@@ -15,6 +15,8 @@ worker local usa o mesmo pipeline Remotion/FFmpeg dos outros projetos. A
 revisão exige fonte e aprovação por alegação do gancho, problema e benefício,
 além de atestados de fatos e direitos. A entrega é um pacote manual. Não há
 publicação automática nem métricas de campanha.
+Cadastrar uma alegação mantém o projeto em `motion_ad`; editar o roteiro
+revoga aprovações anteriores de alegações.
 
 ## Verificação
 

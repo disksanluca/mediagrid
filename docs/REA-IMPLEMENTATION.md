@@ -573,7 +573,7 @@ e a revisão exige fontes aprovadas para gancho, problema e benefício.
 o worker local e a exportação manual existentes. Detalhes e prova em
 [MOTION-AD-BRIEF.md](MOTION-AD-BRIEF.md).
 
-Validação desta etapa: `pytest -q tests` com 120 passed e 1 skipped
+Validação desta etapa: `pytest -q tests` com 121 passed e 1 skipped
 (Blender opt-in), Ruff, TypeScript, `next build` 16.3.8 e `git diff --check`.
 Um MP4 sintético 1080×1920 H.264/AAC de 17 s foi renderizado e o bloqueio
 de exportação sem revisão foi confirmado. O formulário criou outro projeto
