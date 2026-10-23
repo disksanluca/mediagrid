@@ -1,4 +1,4 @@
-import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, DoctorReport, FootballSequence, FootballShot, GeoMunicipality, HardwareProfile, Job, KnowledgeClaim, Narrative3DSequence, Narrative3DShot, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord} from "./types";
+import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, DoctorReport, FootballSequence, FootballShot, GeoMunicipality, HardwareProfile, Job, KnowledgeClaim, Narrative3DSequence, Narrative3DShot, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord, WikiTopPage} from "./types";
 import {desktopRuntime} from "./desktop";
 
 export interface UploadState {
@@ -151,6 +151,8 @@ export const api = {
   importPoliticsProposal: (channelId: string, proposalId: number) => request<Project>("/politics/projects", {method:"POST", body:JSON.stringify({channel_id:channelId,proposal_id:proposalId})}),
   geoMunicipalities: (query: string) => request<GeoMunicipality[]>(`/geo/municipalities?query=${encodeURIComponent(query)}`),
   importGeoMunicipality: (channelId: string, municipalityId: number) => request<Project>("/geo/projects", {method:"POST", body:JSON.stringify({channel_id:channelId,municipality_id:municipalityId})}),
+  wikiTopPages: (day: string, query: string) => request<WikiTopPage[]>(`/trends/wiki-top?day=${encodeURIComponent(day)}&query=${encodeURIComponent(query)}`),
+  importWikiTopPage: (channelId: string, day: string, article: string) => request<Project>("/trends/projects", {method:"POST", body:JSON.stringify({channel_id:channelId,day,article})}),
   createPlan: (id: string) => request<ContentPlan>(`/projects/${id}/plan`, {method: "POST"}),
   updatePlan: (id: string, body: Record<string, unknown>) => request<Project>(`/projects/${id}/plan`, {method: "PUT", body: JSON.stringify(body)}),
   timeline: (id: string) => request<TimelineResponse>(`/projects/${id}/edl-v2`),

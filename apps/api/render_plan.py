@@ -21,6 +21,8 @@ def source_label(plan: dict | None) -> str | None:
             return "Fonte: Câmara dos Deputados"
         if isinstance(url, str) and urlparse(url).hostname == "servicodados.ibge.gov.br":
             return "Fonte: IBGE"
+        if isinstance(url, str) and urlparse(url).hostname == "wikimedia.org":
+            return "Fonte: Wikimedia Analytics"
     return None
 
 

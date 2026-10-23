@@ -22,6 +22,7 @@ from .routes import (
     projects,
     system,
     transcripts,
+    trends,
 )
 
 
@@ -106,6 +107,7 @@ for router in (
     projects.router,
     politics.router,
     geo.router,
+    trends.router,
     assets.router,
     transcripts.router,
     clips.router,
