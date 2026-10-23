@@ -39,4 +39,4 @@ jobs:
           DATABASE_URL: postgresql+psycopg://postgres:ci-only@127.0.0.1:5432/mediagrid_ci
           MEDIAGRID_ALLOW_EPHEMERAL_PG_SMOKE: "1"
           MEDIAGRID_DATA_DIR: ./data/postgres-ci
-        run: uv run python scripts/smoke_postgres_migrations.py
+        run: uv run python -m scripts.smoke_postgres_migrations
