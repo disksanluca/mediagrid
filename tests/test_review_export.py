@@ -17,10 +17,10 @@ def test_manual_export_requires_review_and_is_revoked_after_edit(
     channel = client.post(
         "/api/v1/channels",
         json={
-            "name": "Jornal local",
-            "slug": "jornal-local",
-            "niche": "Política",
-            "default_engine": "politics",
+            "name": "Canal geral",
+            "slug": "canal-geral",
+            "niche": "Vídeo",
+            "default_engine": "music",
         },
     ).json()
     project = client.post(

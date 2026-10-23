@@ -43,10 +43,10 @@ def test_new_voice_revokes_approval_and_hides_stale_output(
     channel = client.post(
         "/api/v1/channels",
         json={
-            "name": "Política",
-            "slug": "politica",
-            "niche": "Política",
-            "default_engine": "politics",
+            "name": "Canal de áudio",
+            "slug": "canal-de-audio",
+            "niche": "Música",
+            "default_engine": "music",
         },
     ).json()
     project = client.post(
@@ -72,10 +72,10 @@ def test_new_voice_revokes_approval_and_hides_stale_output(
     assert client.post(
         f"/api/v1/projects/{project_id}/review",
         json={
-            "source_urls": ["https://www.camara.leg.br/"],
+            "source_urls": ["https://example.org/fonte"],
             "facts_confirmed": True,
             "rights_confirmed": True,
-            "notes": "Conferido na Câmara",
+            "notes": "Conferido manualmente",
         },
     ).status_code == 200
     assert client.post(f"/api/v1/projects/{project_id}/voice").status_code == 202

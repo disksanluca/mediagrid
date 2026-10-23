@@ -7,6 +7,16 @@ registro gera um roteiro vertical editável, com origem `OFFICIAL_SOURCE`,
 referência, horário da consulta e SHA-256 dos campos usados. Não afirma que
 uma proposição virou lei nem que o resumo cobre todo o debate político.
 
+Em **Nova produção**, selecionar um canal Política agora oferece primeiro a
+pesquisa no Radar. Isso evita criar um plano genérico por acidente quando a
+pessoa ainda não tem uma pauta nem fontes. A opção de rascunho com briefing
+próprio permanece disponível: a API grava novos projetos editoriais de
+Política como `knowledge`, e a revisão/exportação exigem pelo menos uma
+alegação com fonte aprovada. O mesmo gate de revisão se aplica a projetos
+políticos `video` criados por versões anteriores; seus dados não são alterados.
+O editor permite cadastrar e revisar as alegações. Renderizar um rascunho
+factual ainda não significa que ele está pronto para publicação.
+
 O import agora cria um projeto `knowledge` e uma alegação `REVIEW_REQUIRED`
 para a identificação/data, cada trecho da ementa e a situação, quando a API
 fornece data e descrição válidas. Os trechos de ementa têm tamanho limitado
