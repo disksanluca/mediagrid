@@ -60,6 +60,20 @@ class JobStatus(StrEnum):
     CANCELLED = "CANCELLED"
 
 
+ACTIVE_JOB_STATUSES = (
+    JobStatus.QUEUED.value,
+    JobStatus.RUNNING.value,
+    JobStatus.WAITING_FOR_WORKER.value,
+)
+
+
+def initial_job_status() -> str:
+    from .config import get_settings
+
+    return (JobStatus.QUEUED.value if get_settings().mediagrid_mode == "LOCAL"
+            else JobStatus.WAITING_FOR_WORKER.value)
+
+
 class TimestampMixin:
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
@@ -275,7 +289,7 @@ class Job(TimestampMixin, Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     project_id: Mapped[str | None] = mapped_column(ForeignKey("projects.id"), nullable=True)
     job_type: Mapped[str] = mapped_column(String(80), index=True)
-    status: Mapped[str] = mapped_column(String(40), default=JobStatus.QUEUED.value, index=True)
+    status: Mapped[str] = mapped_column(String(40), default=initial_job_status, index=True)
     priority: Mapped[int] = mapped_column(Integer, default=100)
     attempt: Mapped[int] = mapped_column(Integer, default=0)
     max_attempts: Mapped[int] = mapped_column(Integer, default=3)

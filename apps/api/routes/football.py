@@ -16,6 +16,7 @@ from ..config import get_settings
 from ..database import get_db
 from ..ingestion import sha256_file
 from ..models import (
+    ACTIVE_JOB_STATUSES,
     Asset,
     Channel,
     FootballSequence,
@@ -187,7 +188,7 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict:
     if sequence is None or sequence.status != "APPROVED":
         raise HTTPException(409, "Approve the current football sequence before rendering")
     existing = render_job(db, sequence)
-    if existing and existing.status in {"QUEUED", "RUNNING"}:
+    if existing and existing.status in ACTIVE_JOB_STATUSES:
         return {"job_id": existing.id, "status": existing.status}
     if existing and existing.status == "SUCCEEDED":
         output = football_output(sequence.id, sequence.revision)
@@ -198,7 +199,7 @@ def queue_render(project_id: str, db: Session = Depends(get_db)) -> dict:
     })
     db.add(job)
     db.flush()
-    record_event(db, "FOOTBALL_RENDER_QUEUED", "job", job.id,
+    record_event(db, f"FOOTBALL_RENDER_{job.status}", "job", job.id,
                  after={"sequence_id": sequence.id, "revision": sequence.revision})
     db.commit()
     return {"job_id": job.id, "status": job.status}

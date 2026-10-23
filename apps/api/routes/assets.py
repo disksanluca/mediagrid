@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 from ..config import get_settings
 from ..database import get_db
 from ..ingestion import probe_video, sha256_file
-from ..models import Asset, Job, JobStatus, UploadSession, new_id
+from ..models import ACTIVE_JOB_STATUSES, Asset, Job, JobStatus, UploadSession, new_id
 from ..schemas import AssetRead, AssetRightsUpdate
 from ..services import record_event
 
@@ -100,7 +100,10 @@ def proxy_job(db: Session, asset: Asset) -> Job | None:
     job = Job(job_type="PROXY", payload={"asset_id": asset.id, "sha256": asset.sha256})
     db.add(job)
     db.flush()
-    record_event(db, "PROXY_QUEUED", "job", job.id, after={"asset_id": asset.id})
+    asset.metadata_json = {**(asset.metadata_json or {}), "ingest_status": (
+        "PROXY_QUEUED" if job.status == JobStatus.QUEUED.value else "WAITING_FOR_WORKER")}
+    record_event(db, f"PROXY_{job.status}", "job", job.id,
+                 after={"asset_id": asset.id})
     return job
 
 
@@ -407,7 +410,7 @@ def transcribe_asset(asset_id: str, db: Session = Depends(get_db)) -> dict[str, 
     active = db.scalar(
         select(Job).where(
             Job.job_type == "TRANSCRIBE",
-            Job.status.in_([JobStatus.QUEUED.value, JobStatus.RUNNING.value]),
+            Job.status.in_(ACTIVE_JOB_STATUSES),
             Job.payload["asset_id"].as_string() == asset_id,
         )
     )

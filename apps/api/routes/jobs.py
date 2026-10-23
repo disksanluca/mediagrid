@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Asset, Job, JobStatus
+from ..models import Asset, Job, JobStatus, initial_job_status
 from ..schemas import JobRead
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
@@ -34,14 +34,16 @@ def retry_job(job_id: str, db: Session = Depends(get_db)) -> Job:
         raise HTTPException(status_code=409, detail="Only failed jobs can be retried")
     if job.attempt >= job.max_attempts:
         raise HTTPException(status_code=409, detail="Retry limit reached")
-    job.status = JobStatus.QUEUED.value
+    job.status = initial_job_status()
     job.error = None
     job.progress = 0
     if job.job_type == "PROXY":
         asset = db.get(Asset, job.payload.get("asset_id"))
         if asset:
             asset.metadata_json = {
-                **(asset.metadata_json or {}), "ingest_status": "PROXY_QUEUED",
+                **(asset.metadata_json or {}), "ingest_status": (
+                    "PROXY_QUEUED" if job.status == JobStatus.QUEUED.value
+                    else "WAITING_FOR_WORKER"),
             }
     db.commit()
     db.refresh(job)

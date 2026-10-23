@@ -237,7 +237,8 @@ def enqueue_job(
     job = Job(project_id=project_id, job_type=job_type, payload=payload or {})
     db.add(job)
     db.flush()
-    record_event(db, f"{job_type}_QUEUED", "job", job.id, after={"project_id": project_id})
+    record_event(db, f"{job_type}_{job.status}", "job", job.id,
+                 after={"project_id": project_id})
     return job
 
 
