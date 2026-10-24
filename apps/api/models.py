@@ -266,6 +266,33 @@ class KnowledgeClaim(TimestampMixin, Base):
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
+class MusicDraftSchedule(TimestampMixin, Base):
+    """A local, source-backed draft request; the project and completion commit together."""
+
+    __tablename__ = "music_draft_schedules"
+    __table_args__ = (UniqueConstraint(
+        "channel_id", "release_group_id", "scheduled_at",
+        name="uq_music_draft_schedule",
+    ),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    channel_id: Mapped[str] = mapped_column(ForeignKey("channels.id"), index=True)
+    release_group_id: Mapped[str] = mapped_column(String(36))
+    scheduled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    run_after: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    status: Mapped[str] = mapped_column(String(24), default="PENDING", index=True)
+    attempt: Mapped[int] = mapped_column(Integer, default=0)
+    max_attempts: Mapped[int] = mapped_column(Integer, default=3)
+    lease_token: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True,
+    )
+    project_id: Mapped[str | None] = mapped_column(
+        ForeignKey("projects.id"), nullable=True, unique=True,
+    )
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
 class Narrative3D(TimestampMixin, Base):
     """Original procedural story; blocking approval pins the final render."""
 

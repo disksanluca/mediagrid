@@ -186,6 +186,18 @@ export interface MusicReleaseGroup {
   source_url: string;
 }
 
+export interface MusicDraftSchedule {
+  id: string;
+  channel_id: string;
+  release_group_id: string;
+  scheduled_at: string;
+  status: "PENDING" | "RUNNING" | "SUCCEEDED" | "FAILED" | "CANCELLED";
+  attempt: number;
+  max_attempts: number;
+  project_id: string | null;
+  error: string | null;
+}
+
 export interface WikiTopPage {
   article: string;
   title: string;

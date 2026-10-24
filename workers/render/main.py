@@ -666,19 +666,22 @@ def backup_local_database() -> None:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="MediaGrid local worker")
-    parser.add_argument("--once", action="store_true", help="Process at most one queued job")
+    parser.add_argument("--once", action="store_true",
+                        help="Process at most one due draft or queued media job")
     args = parser.parse_args(argv)
     if get_settings().mediagrid_mode != "LOCAL":
         raise RuntimeError("The local media worker cannot process server jobs directly")
     recover_interrupted_jobs()
     backup_local_database()
+    from .scheduled_music import draft_one
+
     if args.once:
-        if not media_one():
+        if not draft_one() and not media_one():
             render_one()
         return
     while True:
         backup_local_database()
-        if not media_one() and not render_one():
+        if not draft_one() and not media_one() and not render_one():
             # A laptop may resume after its five-minute lease expired while
             # Remotion was blocked. Requeue that attempt only after the idle
             # loop confirms there is no job to process; fencing still rejects

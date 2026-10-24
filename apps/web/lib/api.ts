@@ -1,4 +1,4 @@
-import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, DoctorReport, FootballSequence, FootballShot, GeoMunicipality, HardwareProfile, Job, KnowledgeClaim, MusicReleaseGroup, Narrative3DSequence, Narrative3DShot, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord, WikiTopPage} from "./types";
+import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, DoctorReport, FootballSequence, FootballShot, GeoMunicipality, HardwareProfile, Job, KnowledgeClaim, MusicDraftSchedule, MusicReleaseGroup, Narrative3DSequence, Narrative3DShot, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord, WikiTopPage} from "./types";
 import {desktopRuntime} from "./desktop";
 
 export interface UploadState {
@@ -155,6 +155,10 @@ export const api = {
   importGeoMunicipality: (channelId: string, municipalityId: number) => request<Project>("/geo/projects", {method:"POST", body:JSON.stringify({channel_id:channelId,municipality_id:municipalityId})}),
   musicReleaseGroups: (query: string) => request<MusicReleaseGroup[]>(`/music/release-groups?query=${encodeURIComponent(query)}`),
   importMusicReleaseGroup: (channelId: string, releaseGroupId: string) => request<Project>("/music/projects", {method:"POST", body:JSON.stringify({channel_id:channelId,release_group_id:releaseGroupId})}),
+  musicDraftSchedules: () => request<MusicDraftSchedule[]>("/music/drafts/schedules"),
+  scheduleMusicDraft: (channelId:string,releaseGroupId:string,scheduledAt:string) => request<MusicDraftSchedule>("/music/drafts/schedules", {method:"POST",body:JSON.stringify({channel_id:channelId,release_group_id:releaseGroupId,scheduled_at:scheduledAt})}),
+  cancelMusicDraft: (id:string) => request<MusicDraftSchedule>(`/music/drafts/schedules/${id}/cancel`,{method:"POST"}),
+  retryMusicDraft: (id:string) => request<MusicDraftSchedule>(`/music/drafts/schedules/${id}/retry`,{method:"POST"}),
   wikiTopPages: (day: string, query: string) => request<WikiTopPage[]>(`/trends/wiki-top?day=${encodeURIComponent(day)}&query=${encodeURIComponent(query)}`),
   importWikiTopPage: (channelId: string, day: string, article: string) => request<Project>("/trends/projects", {method:"POST", body:JSON.stringify({channel_id:channelId,day,article})}),
   createPlan: (id: string) => request<ContentPlan>(`/projects/${id}/plan`, {method: "POST"}),

@@ -619,3 +619,13 @@ revisão humana e os direitos como bloqueios reais de exportação. Documentaç�
 protocolo, limites e prova em [MUSIC-METADATA.md](MUSIC-METADATA.md). Esta etapa
 não entrega gravações, capas licenciadas, pesquisa crítica nem instalação no PC
 do usuário. Não houve migração, API paga, VPS ou publicação automática.
+
+## Incremento Autopilot local — agendamento Música
+
+O Radar Música agenda a criação de rascunhos com fonte MusicBrainz, estado
+visível, cancelamento e retry. O worker local busca o registro na hora marcada e
+grava projeto e conclusão na mesma transação. A migração `0011` adiciona a
+tabela de agendamentos; o modo servidor retorna indisponível até existir worker
+remoto com isolamento por proprietário. O recurso não renderiza nem publica
+sozinho. API, banco, worker, UI, testes, prova técnica, limites operacionais e
+comandos estão em [AUTOPILOT-MUSIC-DRAFTS.md](AUTOPILOT-MUSIC-DRAFTS.md).

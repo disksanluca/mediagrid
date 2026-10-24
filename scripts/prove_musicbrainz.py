@@ -11,7 +11,8 @@ import os
 import shutil
 import subprocess
 import sys
-from datetime import UTC, datetime
+import time
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from uuid import UUID
 
@@ -38,6 +39,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("release_group_id", type=UUID)
     parser.add_argument("--output", type=Path, default=ROOT / "data" / "music-proof")
+    parser.add_argument("--scheduled", action="store_true",
+                        help="Wait for a real local schedule before rendering the draft")
     args = parser.parse_args()
     run_dir = (args.output / datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")).resolve()
     run_dir.mkdir(parents=True, exist_ok=False)
@@ -60,6 +63,7 @@ def main() -> None:
     from apps.api.main import app
     from apps.api.official_music import fetch_release_group
     from workers.render.main import media_one, render_one
+    from workers.render.scheduled_music import draft_one
 
     if not voice_available():
         raise RuntimeError("Windows speech synthesis is unavailable")
@@ -78,9 +82,34 @@ def main() -> None:
             "name": "Prova editorial Música", "slug": "prova-musica",
             "niche": "Música", "default_engine": "music",
         }))
-        project = checked(client.post("/api/v1/music/projects", json={
-            "channel_id": channel["id"], "release_group_id": str(args.release_group_id),
-        }))
+        schedule_id = None
+        scheduled_state = None
+        if args.scheduled:
+            due_at = datetime.now(UTC) + timedelta(seconds=12)
+            schedule = checked(client.post("/api/v1/music/drafts/schedules", json={
+                "channel_id": channel["id"],
+                "release_group_id": str(args.release_group_id),
+                "scheduled_at": due_at.isoformat(),
+            }))
+            schedule_id = schedule["id"]
+            if draft_one():
+                raise RuntimeError("A future draft was created before its scheduled time")
+            time.sleep(max(0, (due_at - datetime.now(UTC)).total_seconds() + 0.2))
+            if not draft_one():
+                raise RuntimeError("Local worker did not claim the due music draft")
+            completed = next(item for item in checked(client.get(
+                "/api/v1/music/drafts/schedules"
+            )) if item["id"] == schedule_id)
+            if completed["status"] != "SUCCEEDED" or not completed["project_id"]:
+                raise RuntimeError(f"Scheduled draft failed: {completed}")
+            scheduled_state = completed
+            project = checked(client.get(
+                f"/api/v1/projects/{completed['project_id']}"
+            ))
+        else:
+            project = checked(client.post("/api/v1/music/projects", json={
+                "channel_id": channel["id"], "release_group_id": str(args.release_group_id),
+            }))
         project_id = project["id"]
         plan = project["plan"]
         if plan["source_refs"][0]["snapshot_sha256"] != source_digest:
@@ -135,7 +164,11 @@ def main() -> None:
         "duration_seconds": float(media["format"]["duration"]),
         "width": video["width"], "height": video["height"],
         "video_codec": video["codec_name"], "audio_codec": audio["codec_name"],
-        "paid_ai_enabled": False,
+        "paid_ai_enabled": False, "scheduled": args.scheduled,
+        "schedule_id": schedule_id,
+        "scheduled_at": scheduled_state["scheduled_at"] if scheduled_state else None,
+        "schedule_status": scheduled_state["status"] if scheduled_state else None,
+        "schedule_attempts": scheduled_state["attempt"] if scheduled_state else None,
     }
     (run_dir / "evidence.json").write_text(json.dumps(
         evidence, ensure_ascii=False, indent=2,
