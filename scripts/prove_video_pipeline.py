@@ -88,7 +88,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--character-2d", action="store_true",
-        help="Render the original SVG rig with manual mouth cues (technical proof only)",
+        help="Render two original SVG rigs in alternating and paired scenes (technical proof only)",
     )
     parser.add_argument(
         "--format", choices=("vertical", "horizontal"), default="vertical",
@@ -251,6 +251,32 @@ def main() -> None:
                                 {"start_ms": 0, "end_ms": 500, "viseme": "closed"},
                                 {"start_ms": 500, "end_ms": 1000, "viseme": "open"},
                                 {"start_ms": 1000, "end_ms": 1500, "viseme": "smile"},
+                            ], "keyframes": [
+                                {"at_ms": 0, "x": 0.5, "y": 0.5,
+                                 "opacity": 0, "scale": 0.9},
+                                {"at_ms": 350, "x": 0.5, "y": 0.5,
+                                 "opacity": 1, "scale": 1},
+                                {"at_ms": 4000, "x": 0.5, "y": 0.5,
+                                 "opacity": 1, "scale": 1},
+                            ],
+                        },
+                    }, {
+                        "id": "proof-pair", "start_ms": 10_000,
+                        "duration_ms": 4000, "z_index": 18,
+                        "preset": "character_dialogue_v1", "params": {
+                            "text": "Migo inicia a conversa.", "color": "#dcf769",
+                            "character_id": "migo_v1", "expression": "happy",
+                            "pose": "point", "mouth_cues": [
+                                {"start_ms": 0, "end_ms": 500, "viseme": "open"},
+                                {"start_ms": 500, "end_ms": 1000, "viseme": "round"},
+                            ],
+                            "partner_character_id": "luma_v1",
+                            "partner_text": "Luma responde no mesmo quadro.",
+                            "partner_color": "#80d5ed",
+                            "partner_expression": "skeptical", "partner_pose": "shrug",
+                            "partner_mouth_cues": [
+                                {"start_ms": 0, "end_ms": 500, "viseme": "closed"},
+                                {"start_ms": 800, "end_ms": 1300, "viseme": "open"},
                             ], "keyframes": [
                                 {"at_ms": 0, "x": 0.5, "y": 0.5,
                                  "opacity": 0, "scale": 0.9},

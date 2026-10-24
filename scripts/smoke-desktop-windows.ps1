@@ -234,6 +234,9 @@ try {
   $characterItem = @{id="smoke-character";start_ms=0;duration_ms=3000;z_index=18;preset="character_dialogue_v1";params=@{
     text="Personagem original em teste.";color="#dcf769";character_id="migo_v1";expression="surprised";pose="shrug";
     mouth_cues=@(@{start_ms=0;end_ms=500;viseme="closed"},@{start_ms=500;end_ms=1000;viseme="round"},@{start_ms=1000;end_ms=1500;viseme="open"});
+    partner_character_id="luma_v1";partner_text="Luma responde no mesmo quadro.";partner_color="#80d5ed";
+    partner_expression="skeptical";partner_pose="point";
+    partner_mouth_cues=@(@{start_ms=0;end_ms=500;viseme="closed"},@{start_ms=1000;end_ms=1500;viseme="open"});
     keyframes=@(@{at_ms=0;x=0.5;y=0.5;opacity=0;scale=0.9},@{at_ms=350;x=0.5;y=0.5;opacity=1;scale=1},@{at_ms=3000;x=0.5;y=0.5;opacity=1;scale=1})
   }}
   $lumaItem = @{id="smoke-luma";start_ms=3500;duration_ms=1500;z_index=18;preset="character_dialogue_v1";params=@{
@@ -246,6 +249,8 @@ try {
   Invoke-RestMethod "$api/projects/$($characterProject.id)/edl-v2" -Method Put -ContentType "application/json" -Body $characterEDLBody | Out-Null
   $characterPreview = Invoke-RestMethod "$api/projects/$($characterProject.id)/preview"
   if ($characterPreview.props.overlays[0].mouth_cues[1].viseme -ne "round" -or
+      $characterPreview.props.overlays[0].partner_character_id -ne "luma_v1" -or
+      $characterPreview.props.overlays[0].partner_mouth_cues[1].viseme -ne "open" -or
       $characterPreview.props.overlays[1].character_id -ne "luma_v1") { throw "Dois rigs 2D não chegaram à prévia instalada." }
   $characterVoicePath = Join-Path $voiceDir "$($characterProject.id).wav"
   & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "sine=frequency=620:duration=1" -ac 1 -ar 44100 $characterVoicePath
@@ -264,7 +269,7 @@ try {
   $characterVideo = Join-Path $dataDir "renders\$($characterProject.id).mp4"
   $characterStreams = @(& $ffprobe.FullName -v error -show_entries stream=codec_type -of csv=p=0 $characterVideo | ForEach-Object { $_.Trim() })
   if ($characterStreams -notcontains "video" -or $characterStreams -notcontains "audio") { throw "Personagem instalado sem vídeo ou áudio." }
-  Write-Host "Instalação validou Migo e Luma, marcas manuais de boca e MP4 com áudio sintético."
+  Write-Host "Instalação validou Migo e Luma juntos e alternados, marcas manuais de boca e MP4 com áudio sintético."
 
   $storyProjectBody = @{channel_id=$channel.id;title="Narrativa 3D";topic="História original de Migo em três tomadas";content_type="narrative_3d";format="horizontal"} | ConvertTo-Json -Compress
   $storyProject = Invoke-RestMethod "$api/projects" -Method Post -ContentType "application/json" -Body $storyProjectBody

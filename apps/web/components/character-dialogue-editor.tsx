@@ -16,6 +16,7 @@ export function CharacterDialogueEditor({projectId,timeline,selectedScene,busy,d
   const characters=draft.tracks.filter((track)=>track.kind==="caption").flatMap((track)=>
     track.items.filter((item)=>item.preset==="character_dialogue_v1"));
   const selected=characters.find((item)=>item.id===selectedId)??characters[0];
+  const paired=Boolean(selected?.params.partner_character_id);
   const picture=draft.tracks.find((track)=>track.id==="picture")?.items.find(
     (item)=>item.params.scene_id===selectedScene);
   const changed=JSON.stringify(draft)!==JSON.stringify(timeline.edl);
@@ -49,16 +50,41 @@ export function CharacterDialogueEditor({projectId,timeline,selectedScene,busy,d
     setSelectedId(id);
   };
   const cues=(selected?.params.mouth_cues??[]) as Cue[];
+  const partnerCues=(selected?.params.partner_mouth_cues??[]) as Cue[];
   const changeCue=(index:number,patch:Partial<Cue>)=>update((item)=>{
     const revised=[...(item.params.mouth_cues as Cue[])];
     revised[index]={...revised[index],...patch};
     item.params.mouth_cues=revised;
+  });
+  const changePartnerCue=(index:number,patch:Partial<Cue>)=>update((item)=>{
+    const revised=[...(item.params.partner_mouth_cues as Cue[])];
+    revised[index]={...revised[index],...patch};
+    item.params.partner_mouth_cues=revised;
   });
   const appendCue=()=>update((item)=>{
     const current=item.params.mouth_cues as Cue[];
     const start=current[current.length-1].end_ms;
     if(start+50>=item.duration_ms)return;
     item.params.mouth_cues=[...current,{start_ms:start,end_ms:Math.min(start+400,item.duration_ms),viseme:"open"}];
+  });
+  const appendPartnerCue=()=>update((item)=>{
+    const current=item.params.partner_mouth_cues as Cue[];
+    const start=current[current.length-1].end_ms;
+    if(start+50>=item.duration_ms)return;
+    item.params.partner_mouth_cues=[...current,{start_ms:start,end_ms:Math.min(start+400,item.duration_ms),viseme:"open"}];
+  });
+  const togglePartner=()=>update((item)=>{
+    if(item.params.partner_character_id){
+      for(const key of ["partner_character_id","partner_text","partner_color",
+        "partner_expression","partner_pose","partner_mouth_cues"])delete item.params[key];
+    }else{
+      item.params.partner_character_id=item.params.character_id==="luma_v1"?"migo_v1":"luma_v1";
+      item.params.partner_text="Escreva a resposta revisada.";
+      item.params.partner_color=item.params.partner_character_id==="luma_v1"?"#80d5ed":"#dcf769";
+      item.params.partner_expression="neutral";
+      item.params.partner_pose="idle";
+      item.params.partner_mouth_cues=[{start_ms:0,end_ms:400,viseme:"closed"}];
+    }
   });
   const remove=()=>{
     if(!selected)return;
@@ -72,6 +98,9 @@ export function CharacterDialogueEditor({projectId,timeline,selectedScene,busy,d
   const validCues=cues.length>0&&cues.every((cue,index)=>cue.end_ms-cue.start_ms>=50&&
     cue.start_ms>=0&&cue.end_ms<=(selected?.duration_ms??0)&&
     (index===0||cue.start_ms>=cues[index-1].end_ms));
+  const validPartnerCues=!paired||(partnerCues.length>0&&partnerCues.every((cue,index)=>
+    cue.end_ms-cue.start_ms>=50&&cue.start_ms>=0&&cue.end_ms<=(selected?.duration_ms??0)&&
+    (index===0||cue.start_ms>=partnerCues[index-1].end_ms)));
   const save=()=>void onRun(async()=>{
     await api.updateTimeline(projectId,{expected_revision:timeline.revision,
       expected_legacy_sha256:timeline.legacy_sha256,edl:draft});
@@ -83,19 +112,24 @@ export function CharacterDialogueEditor({projectId,timeline,selectedScene,busy,d
     onClick={add}>Adicionar à cena</button></div><div className="panel-body">
     {characters.length?<div className="overlay-list">{characters.map((item)=><button key={item.id}
       className={`button small ${selected?.id===item.id?"selected":""}`}
-      onClick={()=>setSelectedId(item.id)}>{item.params.character_id==="luma_v1"?"Luma":"Migo"} · {String(item.params.text??"Personagem").slice(0,45)}</button>)}</div>
+      onClick={()=>setSelectedId(item.id)}>{item.params.partner_character_id?"Migo + Luma":item.params.character_id==="luma_v1"?"Luma":"Migo"} · {String(item.params.text??"Personagem").slice(0,45)}</button>)}</div>
       :<p className="small-note">Selecione uma cena de pelo menos 1,5 s para inserir o personagem.</p>}
     {selected&&<><div className="field-grid"><label className="field">Personagem<select
       value={String(selected.params.character_id??"migo_v1")}
       onChange={(event)=>update((item)=>{
         const previous=item.params.character_id;
         item.params.character_id=event.target.value;
+        if(item.params.partner_character_id){
+          item.params.partner_character_id=event.target.value==="luma_v1"?"migo_v1":"luma_v1";
+          if(item.params.partner_color==="#80d5ed"||item.params.partner_color==="#dcf769")
+            item.params.partner_color=item.params.partner_character_id==="luma_v1"?"#80d5ed":"#dcf769";
+        }
         if(previous==="migo_v1"&&event.target.value==="luma_v1"&&item.params.color==="#dcf769")
           item.params.color="#80d5ed";
         if(previous==="luma_v1"&&event.target.value==="migo_v1"&&item.params.color==="#80d5ed")
           item.params.color="#dcf769";
       })}><option value="migo_v1">Migo</option><option value="luma_v1">Luma</option></select></label></div>
-      <label className="field">Fala no balão<textarea rows={2} maxLength={100}
+      <label className="field">Fala no balão<textarea rows={2} maxLength={paired?80:100}
       value={String(selected.params.text??"")} onChange={(event)=>update((item)=>{
         item.params.text=event.target.value;
       })}/></label><div className="field-grid">
@@ -132,11 +166,52 @@ export function CharacterDialogueEditor({projectId,timeline,selectedScene,busy,d
           onClick={()=>update((item)=>{item.params.mouth_cues=(item.params.mouth_cues as Cue[]).slice(0,-1);})}>Remover última</button>
         <button className="button small" disabled={busy||disabled} onClick={remove}>Remover personagem</button></div>
       {!validCues&&<p className="small-note" role="alert">Marcas devem durar pelo menos 0,05 s, ficar ordenadas, sem sobreposição e dentro do cartão.</p>}
+      <div className="upload-actions"><button className="button small"
+        disabled={busy||disabled||(!paired&&String(selected.params.text??"").length>80)}
+        onClick={togglePartner}>{paired?"Remover segundo personagem":"Mostrar Migo e Luma no mesmo quadro"}</button></div>
+      {paired&&<><p className="small-note">Segundo rig: {selected.params.partner_character_id==="luma_v1"?"Luma":"Migo"}. Cada boca segue suas próprias marcas manuais; importe um WAV gravado com as duas vozes.</p>
+        <label className="field">Fala do segundo personagem<textarea rows={2} maxLength={80}
+          value={String(selected.params.partner_text??"")}
+          onChange={(event)=>update((item)=>{item.params.partner_text=event.target.value;})}/></label>
+        <div className="field-grid"><label className="field">Expressão do segundo<select
+          value={String(selected.params.partner_expression??"neutral")}
+          onChange={(event)=>update((item)=>{item.params.partner_expression=event.target.value;})}>
+          <option value="neutral">Neutra</option><option value="happy">Feliz</option>
+          <option value="skeptical">Desconfiada</option><option value="surprised">Surpresa</option>
+        </select></label><label className="field">Pose do segundo<select
+          value={String(selected.params.partner_pose??"idle")}
+          onChange={(event)=>update((item)=>{item.params.partner_pose=event.target.value;})}>
+          <option value="idle">Parado</option><option value="point">Apontando</option>
+          <option value="shrug">Ombros erguidos</option></select></label>
+        <label className="field">Cor do segundo<input type="color"
+          value={String(selected.params.partner_color??"#80d5ed")}
+          onChange={(event)=>update((item)=>{item.params.partner_color=event.target.value;})}/></label></div>
+        <h4>Marcas manuais da boca · segundo personagem</h4>
+        {partnerCues.map((cue,index)=><div className="field-grid" key={index}>
+          <label className="field">Início {index+1} (s)<input type="number" min="0" step="0.05"
+            value={cue.start_ms/1000} onChange={(event)=>changePartnerCue(index,{start_ms:Math.round(Number(event.target.value)*1000)})}/></label>
+          <label className="field">Fim {index+1} (s)<input type="number" min="0.05" step="0.05"
+            value={cue.end_ms/1000} onChange={(event)=>changePartnerCue(index,{end_ms:Math.round(Number(event.target.value)*1000)})}/></label>
+          <label className="field">Forma<select value={cue.viseme}
+            onChange={(event)=>changePartnerCue(index,{viseme:event.target.value as Cue["viseme"]})}>
+            <option value="closed">Fechada</option><option value="open">Aberta</option>
+            <option value="round">Arredondada</option><option value="smile">Sorriso</option>
+          </select></label></div>)}
+        <div className="upload-actions"><button className="button small"
+          disabled={busy||disabled||partnerCues.length>=64||!validPartnerCues||
+            partnerCues[partnerCues.length-1]?.end_ms+50>selected.duration_ms}
+          onClick={appendPartnerCue}>Adicionar marca do segundo</button>
+          <button className="button small" disabled={busy||disabled||partnerCues.length<=1}
+            onClick={()=>update((item)=>{item.params.partner_mouth_cues=(item.params.partner_mouth_cues as Cue[]).slice(0,-1);})}>Remover última marca do segundo</button></div>
+        {!validPartnerCues&&<p className="small-note" role="alert">As marcas do segundo personagem precisam ficar ordenadas e dentro do cartão.</p>}
+      </>}
     </>}
     {changed&&<p className="small-note">Salve para atualizar a prévia e invalidar o MP4 anterior.</p>}
-    <button className="button primary" disabled={busy||disabled||!changed||(characters.length>0&&!validCues)||
-      characters.some((item)=>!String(item.params.text??"").trim())}
+    <button className="button primary" disabled={busy||disabled||!changed||(characters.length>0&&(!validCues||!validPartnerCues))||
+      characters.some((item)=>!String(item.params.text??"").trim()||
+        (Boolean(item.params.partner_character_id)&&(!String(item.params.partner_text??"").trim()||
+          String(item.params.text??"").length>80)))}
       onClick={save}>Salvar personagem na timeline</button>
-    <p className="small-note">Cada cartão mostra um personagem por vez; alterne os cartões para montar um diálogo. A boca segue apenas as marcas manuais. Para vozes diferentes, importe um WAV com as falas gravadas e revise o vídeo e áudio completos.</p>
+    <p className="small-note">Você pode alternar cartões ou mostrar Migo e Luma juntos. As duas bocas seguem marcas manuais independentes. Para vozes diferentes, importe um WAV com as falas gravadas e revise o vídeo e áudio completos.</p>
   </div></section>;
 }
