@@ -112,13 +112,43 @@ function WikimediaTrendsScene({scene,accent,article,views,rank,observedOn,source
   </AbsoluteFill>;
 }
 
+function MusicbrainzScene({scene,accent,title,artist,firstDate,recordId,checkedAt,index,total}:{scene:RenderScene;accent:string;title:string;artist:string;firstDate:string;recordId:string;checkedAt?:string;index:number;total:number}) {
+  const frame=useCurrentFrame();
+  const {fps}=useVideoConfig();
+  const enter=spring({frame,fps,config:{damping:20,stiffness:120}});
+  const progress=Math.min(1,frame/Math.max(1,Math.round(scene.duration*fps)));
+  const identity=scene.scene_id==="music-identity";
+  const dating=scene.scene_id==="music-date";
+  const text=scene.on_screen_text||title;
+  const date=checkedAt&&/^\d{4}-\d{2}-\d{2}$/.test(checkedAt)?`${checkedAt.slice(8,10)}/${checkedAt.slice(5,7)}/${checkedAt.slice(0,4)}`:"DATA DA CONSULTA INDISPONÍVEL";
+  const vinylRotate=frame*0.12;
+  return <AbsoluteFill style={{background:"radial-gradient(circle at 78% 20%, #314238 0%, #17211c 35%, #0B100D 75%)",color:"#F2F0E8",fontFamily:"system-ui, sans-serif",overflow:"hidden"}}>
+    <SceneMedia scene={scene} fps={fps}/>
+    {scene.media_file&&<AbsoluteFill style={{background:"linear-gradient(90deg,rgba(11,16,13,.97),rgba(11,16,13,.76))"}}/>}
+    <div style={{position:"absolute",width:630,height:630,right:-225,top:300,borderRadius:"50%",border:"2px solid #576B57",boxShadow:"0 0 0 24px #151D18,0 0 0 27px #435146,0 0 0 65px #111A15,0 0 0 67px #334238,0 0 0 104px #101711,0 0 0 106px #2A3830",opacity:.65,transform:`rotate(${vinylRotate}deg)`}}><div style={{position:"absolute",inset:230,borderRadius:"50%",background:accent,boxShadow:"0 0 0 17px #253429"}}/><div style={{position:"absolute",width:17,height:17,borderRadius:"50%",background:"#0B100D",left:307,top:307}}/></div>
+    <div style={{position:"absolute",top:103,left:86,right:86,display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:21,fontWeight:800,letterSpacing:6}}><span>MEDIAGRID</span><span style={{fontFamily:"ui-monospace, monospace",fontSize:18,color:accent,letterSpacing:2}}>{String(index+1).padStart(2,"0")} / {String(total).padStart(2,"0")}</span></div>
+    <div style={{position:"absolute",top:275,left:86,right:86,display:"flex",alignItems:"center",gap:16,color:accent,fontSize:20,fontWeight:750,letterSpacing:4}}><span style={{width:11,height:11,borderRadius:"50%",background:accent}}/>FICHA MUSICAL<span style={{height:1,background:"#536859",flex:1}}/></div>
+    <div style={{position:"absolute",left:86,right:86,top:470,opacity:enter,transform:`translateY(${(1-enter)*65}px)`}}>
+      <div style={{fontFamily:"ui-monospace, monospace",fontSize:20,letterSpacing:3,color:"#ADC2A8",marginBottom:34}}>{identity?"IDENTIDADE DO REGISTRO":dating?"PRIMEIRA DATA CADASTRADA":"DIREITOS DE USO"}</div>
+      {dating&&<div style={{fontSize:!firstDate?91:firstDate.length>4?143:235,lineHeight:.95,fontWeight:850,letterSpacing:-10,color:accent,marginBottom:43}}>{firstDate||"NÃO INFORMADA"}</div>}
+      <div style={{fontSize:dating?56:text.length>75?56:text.length>42?70:84,fontWeight:790,lineHeight:1.08,letterSpacing:-2.5,maxWidth:900,overflowWrap:"anywhere"}}>{text}</div>
+      {identity&&<div style={{marginTop:61,paddingTop:34,borderTop:`4px solid ${accent}`,fontSize:39,lineHeight:1.2,color:"#C8D8C5",overflowWrap:"anywhere"}}>Artista creditado · {artist}</div>}
+      {!identity&&<div style={{marginTop:67,width:156,height:5,background:accent}}/>}
+    </div>
+    <div style={{position:"absolute",left:86,right:86,bottom:336,borderLeft:`3px solid ${accent}`,paddingLeft:25,fontSize:27,lineHeight:1.3,color:"#B9C7B8",maxWidth:835}}>{identity?"Crédito e título do grupo de lançamentos.":dating?"Campo do catálogo; confira a edição e a data antes de publicar.":"Este cartão não inclui gravação nem capa. Use mídia somente com direitos verificados."}</div>
+    <div style={{position:"absolute",left:86,right:86,bottom:179,borderTop:"1px solid #536859",paddingTop:25,display:"flex",justifyContent:"space-between",gap:20,fontFamily:"ui-monospace, monospace",fontSize:17,color:"#ADBEAA"}}><span>FONTE · MUSICBRAINZ</span><span>CONSULTA {date}</span></div>
+    <div style={{position:"absolute",left:86,right:86,bottom:127,fontFamily:"ui-monospace, monospace",fontSize:17,color:"#849784"}}>REGISTRO {recordId.slice(0,8).toUpperCase()} · METADADOS, NÃO LICENÇA DE ÁUDIO</div>
+    <div style={{position:"absolute",left:86,right:86,bottom:91,height:4,background:"#304238"}}><div style={{width:`${100*(index+progress)/total}%`,height:"100%",background:accent}}/></div>
+  </AbsoluteFill>;
+}
+
 export function MediaGridVideo(input: Partial<RenderProps>) {
   const props = {...fallback, ...input};
   const {fps} = useVideoConfig();
   let start = 0;
   return <AbsoluteFill>{props.scenes.map((scene,index) => {
     const durationInFrames = Math.max(1, Math.round(scene.duration * fps));
-    const item = <Sequence key={scene.scene_id} from={start} durationInFrames={durationInFrames}>{props.editorial_style==="official_politics"&&props.format==="vertical"?<OfficialPoliticsScene scene={scene} accent={props.accent} title={props.title} sourceLabel={props.source_label} reference={props.official_reference} checkedAt={props.source_checked_at} index={index} total={props.scenes.length}/>:props.editorial_style==="wikimedia_trends"&&props.format==="vertical"&&props.wiki_article&&props.wiki_views&&props.wiki_rank&&props.wiki_observed_on?<WikimediaTrendsScene scene={scene} accent={props.accent} article={props.wiki_article} views={props.wiki_views} rank={props.wiki_rank} observedOn={props.wiki_observed_on} sourceLabel={props.source_label} index={index} total={props.scenes.length}/>:<Scene scene={scene} accent={props.accent} title={props.title} sourceLabel={props.source_label}/>}</Sequence>;
+    const item = <Sequence key={scene.scene_id} from={start} durationInFrames={durationInFrames}>{props.editorial_style==="official_politics"&&props.format==="vertical"?<OfficialPoliticsScene scene={scene} accent={props.accent} title={props.title} sourceLabel={props.source_label} reference={props.official_reference} checkedAt={props.source_checked_at} index={index} total={props.scenes.length}/>:props.editorial_style==="wikimedia_trends"&&props.format==="vertical"&&props.wiki_article&&props.wiki_views&&props.wiki_rank&&props.wiki_observed_on?<WikimediaTrendsScene scene={scene} accent={props.accent} article={props.wiki_article} views={props.wiki_views} rank={props.wiki_rank} observedOn={props.wiki_observed_on} sourceLabel={props.source_label} index={index} total={props.scenes.length}/>:props.editorial_style==="musicbrainz_metadata"&&props.format==="vertical"&&props.music_title&&props.music_artist&&props.music_record_id?<MusicbrainzScene scene={scene} accent={props.accent} title={props.music_title} artist={props.music_artist} firstDate={props.music_first_release_date??""} recordId={props.music_record_id} checkedAt={props.source_checked_at} index={index} total={props.scenes.length}/>:<Scene scene={scene} accent={props.accent} title={props.title} sourceLabel={props.source_label}/>}</Sequence>;
     start += durationInFrames;
     return item;
   })}</AbsoluteFill>;

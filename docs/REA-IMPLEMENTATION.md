@@ -607,5 +607,15 @@ Editor, prévia e render usam os dados persistidos; o smoke instalado inclui
 uma dupla e uma tomada alternada. As provas técnicas 9:16 e 16:9 geraram
 MP4 H.264/AAC de 31 s, com quadros da dupla inspecionados. Contrato, hashes,
 limites e comandos estão em [CHARACTER-2D.md](CHARACTER-2D.md). A CI Windows
-da dupla e a revisão editorial/auditiva continuam pendentes. Sem migração,
+da dupla passou; a revisão editorial/auditiva continua pendente. Sem migração,
 serviço pago, VPS, postagem ou instalação no PC do usuário.
+
+## Incremento Música — ficha MusicBrainz
+
+O Radar agora consulta e importa grupos de lançamentos MusicBrainz em um roteiro
+local com três cenas, alegações rastreáveis, metadados com hash e um tratamento
+visual próprio no Remotion. O worker existente produz voz e MP4, mas mantém a
+revisão humana e os direitos como bloqueios reais de exportação. Documentação,
+protocolo, limites e prova em [MUSIC-METADATA.md](MUSIC-METADATA.md). Esta etapa
+não entrega gravações, capas licenciadas, pesquisa crítica nem instalação no PC
+do usuário. Não houve migração, API paga, VPS ou publicação automática.
