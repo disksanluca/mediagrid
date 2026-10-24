@@ -18,13 +18,17 @@ export interface RenderProps {
   format: "horizontal" | "vertical" | "square";
   accent: string;
   source_label?: string | null;
-  editorial_style?: "official_politics" | "wikimedia_trends";
+  editorial_style?: "official_politics" | "wikimedia_trends" | "musicbrainz_metadata";
   official_reference?: string;
   source_checked_at?: string;
   wiki_article?: string;
   wiki_views?: number;
   wiki_rank?: number;
   wiki_observed_on?: string;
+  music_title?: string;
+  music_artist?: string;
+  music_first_release_date?: string;
+  music_record_id?: string;
   scenes: RenderScene[];
   overlays?: RenderOverlay[];
   sounds?: RenderSound[];

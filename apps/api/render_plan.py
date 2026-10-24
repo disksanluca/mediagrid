@@ -25,6 +25,8 @@ def source_label(plan: dict | None) -> str | None:
             return "Fonte: IBGE"
         if isinstance(url, str) and urlparse(url).hostname == "wikimedia.org":
             return "Fonte: Wikimedia Analytics"
+        if isinstance(url, str) and urlparse(url).hostname == "musicbrainz.org":
+            return "Fonte: MusicBrainz"
     return None
 
 
@@ -171,6 +173,52 @@ def render_props(
             })
             if accent == "#c5ccd6":
                 props["accent"] = "#D0E5BC"
+            break
+    if project.format == "vertical" and plan.get("engine") == "music":
+        for source in plan.get("source_refs", []):
+            if not isinstance(source, dict):
+                continue
+            identifier = source.get("record_id")
+            title = source.get("record_title")
+            artist = source.get("artist")
+            first_date = source.get("first_release_date")
+            primary_type = source.get("primary_type")
+            digest = source.get("snapshot_sha256")
+            api_url = source.get("api_url")
+            if (not isinstance(identifier, str)
+                    or not re.fullmatch(r"[0-9a-f-]{36}", identifier)
+                    or source.get("url") != f"https://musicbrainz.org/release-group/{identifier}"
+                    or not isinstance(api_url, str)
+                    or urlparse(api_url).hostname != "musicbrainz.org"
+                    or not isinstance(title, str) or not 0 < len(title) <= 140
+                    or not isinstance(artist, str) or not 0 < len(artist) <= 180
+                    or not isinstance(first_date, str)
+                    or not re.fullmatch(r"|\d{4}(?:-\d{2}(?:-\d{2})?)?", first_date)
+                    or not isinstance(primary_type, str)
+                    or primary_type not in {"", "Album", "Single", "EP", "Broadcast", "Other"}
+                    or not isinstance(digest, str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", digest)):
+                continue
+            snapshot = {
+                "id": identifier, "title": title, "artist": artist,
+                "first_release_date": first_date, "primary_type": primary_type,
+            }
+            actual = hashlib.sha256(json.dumps(
+                snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+            ).encode("utf-8")).hexdigest()
+            if actual != digest:
+                continue
+            props.update({
+                "editorial_style": "musicbrainz_metadata",
+                "music_title": title, "music_artist": artist,
+                "music_first_release_date": first_date,
+                "music_record_id": identifier,
+            })
+            fetched_at = str(source.get("fetched_at", ""))
+            if re.match(r"^\d{4}-\d{2}-\d{2}T", fetched_at):
+                props["source_checked_at"] = fetched_at[:10]
+            if accent == "#c5ccd6":
+                props["accent"] = "#C7EAAB"
             break
     if overlays:
         props["overlays"] = [

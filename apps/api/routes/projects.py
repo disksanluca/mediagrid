@@ -875,7 +875,7 @@ def approve_project_review(
                          for scene in (project.plan or {}).get("scenes", [])}
             if any(claim.text != narration.get(claim.scene_id) for claim in claims):
                 raise HTTPException(409, "Update ad claims to match the current script")
-        if (channel is not None and channel.default_engine in {"geo", "trends"}
+        if (channel is not None and channel.default_engine in {"geo", "trends", "music"}
                 and (project.plan or {}).get("source_refs")):
             if scene_ids - {claim.scene_id for claim in claims}:
                 raise HTTPException(409, "Cite every sourced scene before approval")
