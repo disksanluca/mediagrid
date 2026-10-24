@@ -78,14 +78,24 @@ export function CharacterDialogueEditor({projectId,timeline,selectedScene,busy,d
     onSaved(await api.timeline(projectId));
   });
   return <section className="panel overlay-editor"><div className="panel-head"><div>
-    <h3>Personagem 2D · Migo</h3><p>Rig SVG original, expressão, pose e boca marcada no tempo pela pessoa editora.</p>
+    <h3>Personagens 2D · Migo e Luma</h3><p>Rigs SVG originais, expressão, pose e boca marcada no tempo pela pessoa editora.</p>
   </div><button className="button small" disabled={busy||disabled||!picture||picture.duration_ms<1500}
     onClick={add}>Adicionar à cena</button></div><div className="panel-body">
     {characters.length?<div className="overlay-list">{characters.map((item)=><button key={item.id}
       className={`button small ${selected?.id===item.id?"selected":""}`}
-      onClick={()=>setSelectedId(item.id)}>{String(item.params.text??"Personagem").slice(0,50)}</button>)}</div>
+      onClick={()=>setSelectedId(item.id)}>{item.params.character_id==="luma_v1"?"Luma":"Migo"} · {String(item.params.text??"Personagem").slice(0,45)}</button>)}</div>
       :<p className="small-note">Selecione uma cena de pelo menos 1,5 s para inserir o personagem.</p>}
-    {selected&&<><label className="field">Fala no balão<textarea rows={2} maxLength={100}
+    {selected&&<><div className="field-grid"><label className="field">Personagem<select
+      value={String(selected.params.character_id??"migo_v1")}
+      onChange={(event)=>update((item)=>{
+        const previous=item.params.character_id;
+        item.params.character_id=event.target.value;
+        if(previous==="migo_v1"&&event.target.value==="luma_v1"&&item.params.color==="#dcf769")
+          item.params.color="#80d5ed";
+        if(previous==="luma_v1"&&event.target.value==="migo_v1"&&item.params.color==="#80d5ed")
+          item.params.color="#dcf769";
+      })}><option value="migo_v1">Migo</option><option value="luma_v1">Luma</option></select></label></div>
+      <label className="field">Fala no balão<textarea rows={2} maxLength={100}
       value={String(selected.params.text??"")} onChange={(event)=>update((item)=>{
         item.params.text=event.target.value;
       })}/></label><div className="field-grid">
@@ -127,6 +137,6 @@ export function CharacterDialogueEditor({projectId,timeline,selectedScene,busy,d
     <button className="button primary" disabled={busy||disabled||!changed||(characters.length>0&&!validCues)||
       characters.some((item)=>!String(item.params.text??"").trim())}
       onClick={save}>Salvar personagem na timeline</button>
-    <p className="small-note">A boca segue apenas as marcas manuais. Para uma cena dialogada, importe ou gere voz e revise o vídeo e áudio completos.</p>
+    <p className="small-note">Cada cartão mostra um personagem por vez; alterne os cartões para montar um diálogo. A boca segue apenas as marcas manuais. Para vozes diferentes, importe um WAV com as falas gravadas e revise o vídeo e áudio completos.</p>
   </div></section>;
 }

@@ -587,3 +587,14 @@ e 1000×900. REAL: API, SQLite, revisão EDL, UI, voz Windows e render.
 PAPER: qualidade editorial/auditiva humana, mídia autorizada e instalação
 do novo build no PC do usuário. MOCK: nenhum conteúdo fictício foi chamado
 de pronto para publicação. Custo de API paga zero; sem VPS ou postagem.
+
+## Incremento Humor 2D — 24/10/2026
+
+O preset `character_dialogue_v1` agora aceita dois rigs vetoriais originais,
+Migo e Luma, em cartões alternados. API/EDL valida o identificador, Editor
+salva a escolha, Player e worker Remotion compartilham a composição. A prova
+vertical e horizontal gerou MP4 H.264/AAC com ambos, e uma instância web
+isolada salvou dois cartões pela UI até a revisão 3. Contrato, hashes, comandos,
+quadros inspecionados e limites editoriais estão em
+[CHARACTER-2D.md](CHARACTER-2D.md). Ainda falta a prova do instalador neste
+incremento. Não houve migração, serviço pago ou alteração do PC do usuário.
