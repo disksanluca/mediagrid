@@ -236,11 +236,17 @@ try {
     mouth_cues=@(@{start_ms=0;end_ms=500;viseme="closed"},@{start_ms=500;end_ms=1000;viseme="round"},@{start_ms=1000;end_ms=1500;viseme="open"});
     keyframes=@(@{at_ms=0;x=0.5;y=0.5;opacity=0;scale=0.9},@{at_ms=350;x=0.5;y=0.5;opacity=1;scale=1},@{at_ms=3000;x=0.5;y=0.5;opacity=1;scale=1})
   }}
-  $characterTimeline.edl.tracks = @($characterTimeline.edl.tracks) + @(@{id="character-dialogue";kind="caption";items=@($characterItem)})
+  $lumaItem = @{id="smoke-luma";start_ms=3500;duration_ms=1500;z_index=18;preset="character_dialogue_v1";params=@{
+    text="Luma responde.";color="#80d5ed";character_id="luma_v1";expression="skeptical";pose="point";
+    mouth_cues=@(@{start_ms=0;end_ms=400;viseme="closed"},@{start_ms=400;end_ms=800;viseme="open"});
+    keyframes=@(@{at_ms=0;x=0.5;y=0.5;opacity=0;scale=0.9},@{at_ms=350;x=0.5;y=0.5;opacity=1;scale=1},@{at_ms=1500;x=0.5;y=0.5;opacity=1;scale=1})
+  }}
+  $characterTimeline.edl.tracks = @($characterTimeline.edl.tracks) + @(@{id="character-dialogue";kind="caption";items=@($characterItem,$lumaItem)})
   $characterEDLBody = @{expected_revision=$characterTimeline.revision;expected_legacy_sha256=$characterTimeline.legacy_sha256;edl=$characterTimeline.edl} | ConvertTo-Json -Depth 20 -Compress
   Invoke-RestMethod "$api/projects/$($characterProject.id)/edl-v2" -Method Put -ContentType "application/json" -Body $characterEDLBody | Out-Null
   $characterPreview = Invoke-RestMethod "$api/projects/$($characterProject.id)/preview"
-  if ($characterPreview.props.overlays[0].mouth_cues[1].viseme -ne "round") { throw "Rig 2D não chegou à prévia instalada." }
+  if ($characterPreview.props.overlays[0].mouth_cues[1].viseme -ne "round" -or
+      $characterPreview.props.overlays[1].character_id -ne "luma_v1") { throw "Dois rigs 2D não chegaram à prévia instalada." }
   $characterVoicePath = Join-Path $voiceDir "$($characterProject.id).wav"
   & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "sine=frequency=620:duration=1" -ac 1 -ar 44100 $characterVoicePath
   if ($LASTEXITCODE -ne 0) { throw "Áudio sintético do rig 2D não foi criado." }
@@ -258,7 +264,7 @@ try {
   $characterVideo = Join-Path $dataDir "renders\$($characterProject.id).mp4"
   $characterStreams = @(& $ffprobe.FullName -v error -show_entries stream=codec_type -of csv=p=0 $characterVideo | ForEach-Object { $_.Trim() })
   if ($characterStreams -notcontains "video" -or $characterStreams -notcontains "audio") { throw "Personagem instalado sem vídeo ou áudio." }
-  Write-Host "Instalação validou rig SVG, marcas manuais de boca e MP4 com áudio sintético."
+  Write-Host "Instalação validou Migo e Luma, marcas manuais de boca e MP4 com áudio sintético."
 
   $storyProjectBody = @{channel_id=$channel.id;title="Narrativa 3D";topic="História original de Migo em três tomadas";content_type="narrative_3d";format="horizontal"} | ConvertTo-Json -Compress
   $storyProject = Invoke-RestMethod "$api/projects" -Method Post -ContentType "application/json" -Body $storyProjectBody

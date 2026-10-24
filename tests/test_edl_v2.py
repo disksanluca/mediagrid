@@ -312,20 +312,32 @@ def test_character_dialogue_cues_are_validated_and_reach_preview(client: TestCli
     invalid_pose["tracks"][-1]["items"][0]["params"]["pose"] = "unknown"
     with pytest.raises(ValidationError, match="pose"):
         EDLV2.model_validate(invalid_pose)
+    invalid_character = deepcopy(timeline["edl"])
+    invalid_character["tracks"][-1]["items"][0]["params"]["character_id"] = "unknown"
+    with pytest.raises(ValidationError, match="character_id"):
+        EDLV2.model_validate(invalid_character)
     out_of_range = deepcopy(timeline["edl"])
     out_of_range["tracks"][-1]["items"][0]["params"]["mouth_cues"][2]["end_ms"] = 2600
     with pytest.raises(ValidationError, match="Mouth cues must be ordered"):
         EDLV2.model_validate(out_of_range)
+    second = deepcopy(character)
+    second["id"] = "character-2"
+    second["start_ms"] = 4000
+    second["params"].update({"text": "Luma responde no plano seguinte.",
+                             "color": "#80d5ed", "character_id": "luma_v1",
+                             "expression": "skeptical", "pose": "point"})
+    timeline["edl"]["tracks"][-1]["items"].append(second)
     saved = client.put(url, json={
         "expected_revision": timeline["revision"],
         "expected_legacy_sha256": timeline["legacy_sha256"],
         "edl": timeline["edl"],
     })
     assert saved.status_code == 200, saved.text
-    overlay = client.get(f"/api/v1/projects/{project_id}/preview").json()["props"]["overlays"][0]
-    assert overlay["preset"] == "character_dialogue_v1"
-    assert overlay["mouth_cues"][1]["viseme"] == "round"
-    assert overlay["pose"] == "shrug"
+    overlays = client.get(f"/api/v1/projects/{project_id}/preview").json()["props"]["overlays"]
+    assert [item["character_id"] for item in overlays] == ["migo_v1", "luma_v1"]
+    assert overlays[0]["mouth_cues"][1]["viseme"] == "round"
+    assert overlays[0]["pose"] == "shrug"
+    assert overlays[1]["pose"] == "point"
 
 
 def test_v2_revision_api_preserves_legacy_render_and_rejects_stale_edit(

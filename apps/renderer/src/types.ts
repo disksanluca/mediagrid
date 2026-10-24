@@ -45,7 +45,7 @@ export interface RenderOverlay {
   layout?: "stack" | "split";
   steps?: string[];
   source_label?: string | null;
-  character_id?: "migo_v1";
+  character_id?: "migo_v1" | "luma_v1";
   expression?: "neutral" | "happy" | "skeptical" | "surprised";
   pose?: "idle" | "point" | "shrug";
   mouth_cues?: Array<{start_ms:number;end_ms:number;viseme:"closed"|"open"|"round"|"smile"}>;

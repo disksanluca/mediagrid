@@ -241,6 +241,25 @@ def main() -> None:
                                  "opacity": 1, "scale": 1},
                             ],
                         },
+                    }, {
+                        "id": "proof-luma", "start_ms": 5000,
+                        "duration_ms": 4000, "z_index": 18,
+                        "preset": "character_dialogue_v1", "params": {
+                            "text": "Luma responde em outra tomada.", "color": "#80d5ed",
+                            "character_id": "luma_v1", "expression": "skeptical",
+                            "pose": "point", "mouth_cues": [
+                                {"start_ms": 0, "end_ms": 500, "viseme": "closed"},
+                                {"start_ms": 500, "end_ms": 1000, "viseme": "open"},
+                                {"start_ms": 1000, "end_ms": 1500, "viseme": "smile"},
+                            ], "keyframes": [
+                                {"at_ms": 0, "x": 0.5, "y": 0.5,
+                                 "opacity": 0, "scale": 0.9},
+                                {"at_ms": 350, "x": 0.5, "y": 0.5,
+                                 "opacity": 1, "scale": 1},
+                                {"at_ms": 4000, "x": 0.5, "y": 0.5,
+                                 "opacity": 1, "scale": 1},
+                            ],
+                        },
                     }],
                 })
             if args.synthetic_sound:

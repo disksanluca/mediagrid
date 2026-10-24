@@ -116,7 +116,7 @@ class MouthCue(BaseModel):
 
 class CharacterDialogueSpec(OverlaySpec):
     text: str = Field(min_length=1, max_length=100)
-    character_id: Literal["migo_v1"]
+    character_id: Literal["migo_v1", "luma_v1"]
     expression: Literal["neutral", "happy", "skeptical", "surprised"]
     pose: Literal["idle", "point", "shrug"]
     mouth_cues: list[MouthCue] = Field(min_length=1, max_length=64)
