@@ -62,7 +62,7 @@ def main() -> None:
     command.upgrade(_config(), "head")
     with engine.connect() as connection:
         assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-            "0010_geo_claim_source_dates"
+            "0011_music_draft_schedule"
         )
         assert {"lease_owner", "lease_expires_at", "heartbeat_at"} <= {
             column["name"] for column in inspect(connection).get_columns("jobs")
@@ -73,6 +73,7 @@ def main() -> None:
         }
         assert claim_columns["published_at"]["nullable"]
         assert claim_columns["source_checked_at"]["nullable"]
+        assert "music_draft_schedules" in inspect(connection).get_table_names()
 
     with SessionLocal() as first, SessionLocal() as second:
         project = first.get(Project, project_id)

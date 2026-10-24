@@ -8,7 +8,8 @@ usa dados do usuário. O script de migração recusa qualquer banco que não sej
 verificador de restauração aceita somente `mediagrid_restored` no mesmo host.
 
 A prova cria o schema atual numa base descartável, grava canal, projeto e job
-sintéticos, volta a Alembic `0001_legacy` e avança até `0009_job_leases`.
+sintéticos, volta a Alembic `0001_legacy` e avança até o head
+`0011_music_draft_schedule` (incluindo `0009_job_leases`).
 Confere que os dados baseline sobrevivem, que as colunas de lease aparecem,
 que um segundo claim não rouba a linha bloqueada por `FOR UPDATE SKIP LOCKED`,
 e que heartbeat e conclusão condicional funcionam em PostgreSQL.

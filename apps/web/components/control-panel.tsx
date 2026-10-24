@@ -22,7 +22,7 @@ import {api} from "@/lib/api";
 import {uploadLongVideo} from "@/lib/resumable-upload";
 import {desktopChooseDataDir, desktopCreateBackup, desktopOpenLogs, desktopRestart, desktopRestoreBackup, desktopServices, desktopStart, desktopStop, runningInDesktop} from "@/lib/desktop";
 import type {DesktopServices} from "@/lib/desktop";
-import type {Asset, Channel, DoctorReport, Engine, GeoMunicipality, HardwareProfile, Job, MusicReleaseGroup, OfficialProposal, Project, Scene, SetupState, SystemStatus, TimelineItem, TimelineResponse, WikiTopPage} from "@/lib/types";
+import type {Asset, Channel, DoctorReport, Engine, GeoMunicipality, HardwareProfile, Job, MusicDraftSchedule, MusicReleaseGroup, OfficialProposal, Project, Scene, SetupState, SystemStatus, TimelineItem, TimelineResponse, WikiTopPage} from "@/lib/types";
 
 type View = AtelierView;
 type Dialog = "project" | "channel" | null;
@@ -253,6 +253,10 @@ function MusicRadar({channels,busy,onProject,onRun}:{channels:Channel[];busy:boo
   const [results,setResults]=useState<MusicReleaseGroup[]|null>(null);
   const [searching,setSearching]=useState(false);
   const [searchError,setSearchError]=useState<string|null>(null);
+  const [scheduleError,setScheduleError]=useState<string|null>(null);
+  const [schedules,setSchedules]=useState<MusicDraftSchedule[]>([]);
+  const [scheduledAt,setScheduledAt]=useState(()=>new Date(Date.now()+3600000-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16));
+  useEffect(()=>{let active=true;const refresh=()=>{void api.musicDraftSchedules().then((items)=>{if(active){setSchedules(items);setScheduleError(null);}}).catch((reason)=>{if(active)setScheduleError(message(reason));});};refresh();const timer=setInterval(refresh,10000);return()=>{active=false;clearInterval(timer);};},[]);
   const selectedChannel=musicChannels.some((channel)=>channel.id===channelId)?channelId:(musicChannels[0]?.id??"");
   const search=async(event:FormEvent<HTMLFormElement>)=>{
     event.preventDefault();setSearching(true);setSearchError(null);
@@ -263,17 +267,27 @@ function MusicRadar({channels,busy,onProject,onRun}:{channels:Channel[];busy:boo
   const importGroup=(group:MusicReleaseGroup)=>onRun(async()=>{
     const project=await api.importMusicReleaseGroup(selectedChannel,group.id);onProject(project.id);
   });
+  const scheduleGroup=(group:MusicReleaseGroup)=>onRun(async()=>{
+    const when=new Date(scheduledAt);
+    if(Number.isNaN(when.getTime()))throw new Error("Escolha data e hora válidas.");
+    await api.scheduleMusicDraft(selectedChannel,group.id,when.toISOString());
+    setSchedules(await api.musicDraftSchedules());
+  });
+  const changeSchedule=(id:string,action:"cancel"|"retry")=>onRun(async()=>{
+    if(action==="cancel")await api.cancelMusicDraft(id);else await api.retryMusicDraft(id);
+    setSchedules(await api.musicDraftSchedules());
+  });
   return <><div className="panel"><div className="panel-head"><div><h3>Música · catálogo MusicBrainz</h3><p>Metadados de grupos de lançamentos. Consulta feita somente ao buscar.</p></div><Radio size={19}/></div><div className="panel-body">
     <form onSubmit={(event)=>void search(event)}><Field label="Artista ou álbum"><input value={query}
       onChange={(event)=>setQuery(event.target.value)} placeholder="Ex.: Clube da Esquina"
       minLength={3} maxLength={80} required/></Field><button className="button primary"
       disabled={searching} type="submit"><RefreshCw size={15}/>{searching?"Consultando…":"Buscar no MusicBrainz"}</button></form>
     {searchError&&<Alert text={searchError}/>}
-    {results!==null&&<><p className="small-note">{results.length} registros exibidos. Confirme artista, edição e data antes de usar o roteiro.</p>
+    {results!==null&&<><p className="small-note">{results.length} registros exibidos. Confirme artista, edição e data antes de usar o roteiro.</p><Field label="Criar rascunho em (horário local)"><input type="datetime-local" value={scheduledAt} onChange={(event)=>setScheduledAt(event.target.value)}/></Field>
       {!results.length&&<p>Nenhum grupo de lançamentos encontrado.</p>}
-      {results.map((group)=><div className="row" key={group.id}><span className="row-icon"><Radio size={17}/></span><span className="row-main"><strong>{group.title}</strong><small>{group.artist} · {group.primary_type||"Tipo não informado"} · primeira data: {group.first_release_date||"não informada"}</small><a href={group.source_url} target="_blank" rel="noopener noreferrer">Abrir registro no MusicBrainz ↗</a></span><button className="button small" disabled={busy||!selectedChannel} onClick={()=>void importGroup(group)}>Criar roteiro</button></div>)}</>}
+      {results.map((group)=><div className="row" key={group.id}><span className="row-icon"><Radio size={17}/></span><span className="row-main"><strong>{group.title}</strong><small>{group.artist} · {group.primary_type||"Tipo não informado"} · primeira data: {group.first_release_date||"não informada"}</small><a href={group.source_url} target="_blank" rel="noopener noreferrer">Abrir registro no MusicBrainz ↗</a></span><button className="button small" disabled={busy||!selectedChannel} onClick={()=>void importGroup(group)}>Criar roteiro</button><button className="button small" disabled={busy||!selectedChannel||!scheduledAt} onClick={()=>void scheduleGroup(group)}>Agendar rascunho</button></div>)}</>}
     {!musicChannels.length?<p className="small-note">Crie um canal Música para importar metadados. <button className="button small" disabled={busy} onClick={()=>void onRun(async()=>{await api.createChannel({name:"Pulso Musical",slug:"pulso-musical",niche:"Música",default_engine:"music"});})}>Criar canal Música</button></p>:<Field label="Canal para os roteiros"><select value={selectedChannel} onChange={(event)=>setChannelId(event.target.value)}>{musicChannels.map((channel)=><option key={channel.id} value={channel.id}>{channel.name}</option>)}</select></Field>}
-  </div></div><div className="atelier-note">O MusicBrainz fornece metadados, não músicas ou capas licenciadas. A importação cria alegações para revisão humana e não publica.</div></>;
+  </div></div><div className="atelier-note">O MusicBrainz fornece metadados, não músicas ou capas licenciadas. A importação cria alegações para revisão humana e não publica.</div><div className="panel"><div className="panel-head"><div><h3>Autopilot local · rascunhos musicais</h3><p>O worker do desktop consulta o registro na hora marcada e cria um projeto pendente de revisão. Não renderiza nem publica sozinho.</p></div></div><div className="panel-body">{scheduleError&&<Alert text={scheduleError}/>} {schedules.length?schedules.map((item)=><div className="row" key={item.id}><span className="row-icon"><Radio size={17}/></span><span className="row-main"><strong>{new Date(item.scheduled_at).toLocaleString("pt-BR")}</strong><small>Registro {item.release_group_id.slice(0,8)} · tentativa {item.attempt}/{item.max_attempts} · {item.status==="PENDING"?"Aguardando horário e worker local":item.status==="RUNNING"?"Consultando MusicBrainz":item.status==="SUCCEEDED"?"Rascunho criado":item.status==="CANCELLED"?"Cancelado":"Falhou"}</small>{item.error&&<small>{item.error}</small>}</span>{item.project_id&&<button className="button small" onClick={()=>onProject(item.project_id!)}>Abrir projeto</button>}{["PENDING","RUNNING"].includes(item.status)&&<button className="button small" disabled={busy} onClick={()=>void changeSchedule(item.id,"cancel")}>Cancelar</button>}{item.status==="FAILED"&&item.attempt<item.max_attempts&&<button className="button small" disabled={busy} onClick={()=>void changeSchedule(item.id,"retry")}>Tentar novamente</button>}</div>):<p className="small-note">Nenhum rascunho agendado. Pesquise um registro acima para agendar.</p>}</div></div></>;
 }
 
 function GeoRadar({channels,busy,onProject,onRun}:{channels:Channel[];busy:boolean;onProject:(id:string)=>void;onRun:(action:()=>Promise<unknown>)=>Promise<void>}) {

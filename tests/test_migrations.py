@@ -50,7 +50,7 @@ def test_legacy_database_upgrade_and_downgrade(tmp_path: Path) -> None:
     )
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == (
-            "0010_geo_claim_source_dates",
+            "0011_music_draft_schedule",
         )
         columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)")}
         assert {"lease_owner", "lease_expires_at", "heartbeat_at"} <= columns
@@ -105,11 +105,12 @@ def test_fresh_database_starts_at_current_schema(tmp_path: Path) -> None:
     )
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == (
-            "0010_geo_claim_source_dates",
+            "0011_music_draft_schedule",
         )
         columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)")}
         assert {"lease_owner", "lease_expires_at", "heartbeat_at"} <= columns
         assert connection.execute("SELECT COUNT(*) FROM narrative_3d").fetchone() == (0,)
+        assert connection.execute("SELECT COUNT(*) FROM music_draft_schedules").fetchone() == (0,)
 
 
 def test_geo_source_date_migration_preserves_existing_claims(tmp_path: Path) -> None:
