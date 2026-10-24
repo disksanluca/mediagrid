@@ -598,3 +598,14 @@ isolada salvou dois cartões pela UI até a revisão 3. Contrato, hashes, comand
 quadros inspecionados e limites editoriais estão em
 [CHARACTER-2D.md](CHARACTER-2D.md). Ainda falta a prova do instalador neste
 incremento. Não houve migração, serviço pago ou alteração do PC do usuário.
+
+## Incremento Humor 2D — dupla no mesmo quadro
+
+Em branch separada sobre o segundo rig, o contrato EDL v2 aceita Migo e Luma
+na mesma cena, com fala, pose, expressão, cor e marcas de boca independentes.
+Editor, prévia e render usam os dados persistidos; o smoke instalado inclui
+uma dupla e uma tomada alternada. As provas técnicas 9:16 e 16:9 geraram
+MP4 H.264/AAC de 31 s, com quadros da dupla inspecionados. Contrato, hashes,
+limites e comandos estão em [CHARACTER-2D.md](CHARACTER-2D.md). A CI Windows
+da dupla e a revisão editorial/auditiva continuam pendentes. Sem migração,
+serviço pago, VPS, postagem ou instalação no PC do usuário.

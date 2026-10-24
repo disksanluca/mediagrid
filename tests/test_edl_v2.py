@@ -327,6 +327,36 @@ def test_character_dialogue_cues_are_validated_and_reach_preview(client: TestCli
                              "color": "#80d5ed", "character_id": "luma_v1",
                              "expression": "skeptical", "pose": "point"})
     timeline["edl"]["tracks"][-1]["items"].append(second)
+    paired = deepcopy(character)
+    paired["id"] = "character-pair"
+    paired["start_ms"] = 9000
+    paired["params"].update({
+        "text": "Migo inicia a conversa.",
+        "partner_character_id": "luma_v1",
+        "partner_text": "Luma responde no mesmo quadro.",
+        "partner_color": "#80d5ed",
+        "partner_expression": "skeptical",
+        "partner_pose": "point",
+        "partner_mouth_cues": [
+            {"start_ms": 0, "end_ms": 400, "viseme": "closed"},
+            {"start_ms": 900, "end_ms": 1400, "viseme": "open"},
+        ],
+    })
+    timeline["edl"]["tracks"][-1]["items"].append(paired)
+    repeated_rig = deepcopy(timeline["edl"])
+    repeated_rig["tracks"][-1]["items"][2]["params"]["partner_character_id"] = "migo_v1"
+    with pytest.raises(ValidationError, match="two distinct rigs"):
+        EDLV2.model_validate(repeated_rig)
+    incomplete_pair = deepcopy(timeline["edl"])
+    del incomplete_pair["tracks"][-1]["items"][2]["params"]["partner_text"]
+    with pytest.raises(ValidationError, match="complete, short dialogue"):
+        EDLV2.model_validate(incomplete_pair)
+    invalid_partner_cue = deepcopy(timeline["edl"])
+    invalid_partner_cue["tracks"][-1]["items"][2]["params"][
+        "partner_mouth_cues"
+    ][1]["start_ms"] = 300
+    with pytest.raises(ValidationError, match="Mouth cues must be ordered"):
+        EDLV2.model_validate(invalid_partner_cue)
     saved = client.put(url, json={
         "expected_revision": timeline["revision"],
         "expected_legacy_sha256": timeline["legacy_sha256"],
@@ -334,10 +364,13 @@ def test_character_dialogue_cues_are_validated_and_reach_preview(client: TestCli
     })
     assert saved.status_code == 200, saved.text
     overlays = client.get(f"/api/v1/projects/{project_id}/preview").json()["props"]["overlays"]
-    assert [item["character_id"] for item in overlays] == ["migo_v1", "luma_v1"]
+    assert [item["character_id"] for item in overlays] == ["migo_v1", "luma_v1", "migo_v1"]
     assert overlays[0]["mouth_cues"][1]["viseme"] == "round"
     assert overlays[0]["pose"] == "shrug"
     assert overlays[1]["pose"] == "point"
+    assert overlays[2]["partner_character_id"] == "luma_v1"
+    assert overlays[2]["partner_text"] == "Luma responde no mesmo quadro."
+    assert overlays[2]["partner_mouth_cues"][1]["viseme"] == "open"
 
 
 def test_v2_revision_api_preserves_legacy_render_and_rejects_stale_edit(

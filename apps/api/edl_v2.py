@@ -120,12 +120,28 @@ class CharacterDialogueSpec(OverlaySpec):
     expression: Literal["neutral", "happy", "skeptical", "surprised"]
     pose: Literal["idle", "point", "shrug"]
     mouth_cues: list[MouthCue] = Field(min_length=1, max_length=64)
+    partner_character_id: Literal["migo_v1", "luma_v1"] | None = None
+    partner_text: str | None = Field(default=None, max_length=80)
+    partner_color: str | None = Field(default=None, pattern=r"^#[0-9a-fA-F]{6}$")
+    partner_expression: Literal["neutral", "happy", "skeptical", "surprised"] | None = None
+    partner_pose: Literal["idle", "point", "shrug"] | None = None
+    partner_mouth_cues: list[MouthCue] | None = Field(default=None, min_length=1, max_length=64)
 
     @model_validator(mode="after")
     def safe_character(self) -> "CharacterDialogueSpec":
         if any(abs(frame.x - 0.5) > 0.01 or abs(frame.y - 0.5) > 0.01
                or not 0.75 <= frame.scale <= 1.05 for frame in self.keyframes):
             raise ValueError("Character must remain centered inside the safe area")
+        partner_fields = (self.partner_text, self.partner_color, self.partner_expression,
+                          self.partner_pose, self.partner_mouth_cues)
+        if self.partner_character_id is None:
+            if any(value is not None for value in partner_fields):
+                raise ValueError("Partner fields require a partner character")
+        elif (self.partner_character_id == self.character_id
+              or any(value is None for value in partner_fields)
+              or not self.partner_text or not self.partner_text.strip()
+              or len(self.text) > 80):
+            raise ValueError("A pair needs two distinct rigs and complete, short dialogue")
         return self
 
 
@@ -153,12 +169,12 @@ def validate_overlay(
     if item.preset == "character_dialogue_v1":
         if item.duration_ms < 1500:
             raise ValueError("Character dialogue needs at least 1.5 seconds")
-        cues = spec.mouth_cues
-        if any(cue.end_ms - cue.start_ms < 50 or cue.end_ms > item.duration_ms
-               for cue in cues) or any(
-            left.end_ms > right.start_ms for left, right in zip(cues, cues[1:], strict=False)
-        ):
-            raise ValueError("Mouth cues must be ordered, non-overlapping and within the scene")
+        for cues in (spec.mouth_cues, spec.partner_mouth_cues or []):
+            if any(cue.end_ms - cue.start_ms < 50 or cue.end_ms > item.duration_ms
+                   for cue in cues) or any(
+                left.end_ms > right.start_ms for left, right in zip(cues, cues[1:], strict=False)
+            ):
+                raise ValueError("Mouth cues must be ordered, non-overlapping and within the scene")
     times = [frame.at_ms for frame in spec.keyframes]
     if (
         times[0] != 0 or times[-1] > item.duration_ms

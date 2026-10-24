@@ -1,15 +1,17 @@
 # Diálogo 2D original — Migo e Luma
 
 O Editor permite criar cartões `character_dialogue_v1` em momentos distintos
-da timeline e escolher Migo ou Luma em cada um. Os dois rigs SVG são originais
+da timeline, escolher Migo ou Luma em cada um e mostrar os dois no mesmo quadro.
+Os dois rigs SVG são originais
 e renderizados pela mesma composição Remotion usada pelo Player e pelo MP4.
 Texto, cor, expressão, pose, início e marcas de boca são salvos na revisão EDL
 v2. Trocar um personagem ou editar uma marca invalida o vídeo anterior e a
 aprovação editorial. O contrato aceita somente `migo_v1` e `luma_v1` e recusa
 marcas fora da duração, sobrepostas ou menores que 50 ms.
 
-Para montar uma conversa, posicione um cartão para cada fala e edite as marcas
-de boca ouvindo a faixa WAV. O MediaGrid mantém uma faixa de narração por
+Para montar uma conversa, posicione cartões alternados ou ative a dupla em um
+cartão. Edite as marcas de boca de cada personagem ouvindo a faixa WAV.
+O MediaGrid mantém uma faixa de narração por
 projeto. Se os personagens precisam de vozes diferentes, grave e importe o
 diálogo completo como WAV com direitos confirmados. A troca de personagem
 não cria uma segunda voz e as marcas não são deduzidas de fonemas.
@@ -39,9 +41,9 @@ RENDER terminaram `SUCCEEDED`; FFprobe confirmou H.264/AAC, 1920×1080 e
 Quadros em 2,0 e 6,5 s mostram os dois rigs e balões legíveis sem corte nas
 bordas. Isto ainda é prova visual técnica, não uma cena de humor aprovada.
 
-O smoke do instalador Windows usa dois cartões reais no EDL, confere a prévia
-e renderiza MP4. O áudio desse teste é um tom sintético identificado no log.
-O resultado do novo smoke será registrado após o CI desta branch.
+O smoke do instalador Windows usa dois cartões reais no EDL, incluindo uma
+dupla, confere a prévia e renderiza MP4. O áudio desse teste é um tom sintético
+identificado no log. O resultado da dupla será registrado após a CI da branch.
 
 No build web local de produção com API/SQLite isolados, o Editor criou um
 cartão pela interface, trocou Migo por Luma e salvou a revisão 1→2; a prévia
@@ -56,3 +58,33 @@ Não houve migração SQL nem variável nova em `.env.example`. A entrega usa AP
 VPS, postagem ou instalação no PC do usuário. A qualidade de timing cômico,
 atuação, vozes distintas e continuidade ainda precisa de mídia/roteiro
 editorial e revisão humana.
+
+## Dupla no mesmo quadro — prova técnica incremental
+
+O contrato EDL v2 guarda fala, cor, expressão, pose e marcas de boca de cada
+rig. Exige Migo e Luma distintos, texto curto e marcas válidas dentro do
+cartão. O Editor permite adicionar/remover o segundo rig e editar suas marcas
+independentemente. A prévia e o worker usam a mesma composição Remotion. A
+revisão salva invalida aprovação e MP4 anteriores, como nas edições EDL v2.
+
+Em `data/rea-proof/20261024T001756Z`, o cartão da dupla em 10–14 s foi
+renderizado em MP4 de 31 s, H.264/AAC, 1080×1920. SHA-256:
+`fee1a323358009aba09608ee2351c8412a6fe7b4810df3fe8bdb58b5c5f0a780`.
+Em `data/rea-proof/20261024T001845Z`, a versão 1920×1080 gerou MP4
+H.264/AAC de 31 s, SHA-256
+`b938014ca0955aecbc68ad75c82ce5c9ebf089a0dbd671733962670b97cc9331`.
+Frames aos 11 s foram inspecionados nas duas proporções: rigs e balões são
+distintos, legíveis e não foram cortados. VOICE e RENDER terminaram
+`SUCCEEDED` em ambos. Os vídeos continuam sem revisão editorial, atuação ou
+sincronia automática; a voz SAPI técnica lê o roteiro geral, não as falas de
+Migo e Luma. Para vozes reais diferentes, importe WAV com gravação própria
+ou licença e revise a mixagem. Os arquivos de prova são locais e ignorados
+pelo Git. Não houve migração SQL nem variável nova em `.env.example`.
+
+No build Next local e API/SQLite isolados em `data/ui-second-character-proof`,
+o Editor ativou Migo como segundo rig de um cartão Luma existente. Uma fala
+foi editada, uma segunda marca de boca foi adicionada e a revisão 3→4 foi
+salva pela interface. A prévia Remotion da revisão 4 exibiu os dois rigs,
+balões e rótulos em 1265×712; o vídeo ainda não foi renderizado nesse projeto
+de UI. Este teste não equivale à prova do instalador Windows nem ao aceite
+criativo humano.

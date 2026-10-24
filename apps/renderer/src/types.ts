@@ -49,6 +49,12 @@ export interface RenderOverlay {
   expression?: "neutral" | "happy" | "skeptical" | "surprised";
   pose?: "idle" | "point" | "shrug";
   mouth_cues?: Array<{start_ms:number;end_ms:number;viseme:"closed"|"open"|"round"|"smile"}>;
+  partner_character_id?: "migo_v1" | "luma_v1" | null;
+  partner_text?: string | null;
+  partner_color?: string | null;
+  partner_expression?: "neutral" | "happy" | "skeptical" | "surprised" | null;
+  partner_pose?: "idle" | "point" | "shrug" | null;
+  partner_mouth_cues?: Array<{start_ms:number;end_ms:number;viseme:"closed"|"open"|"round"|"smile"}> | null;
   keyframes: Array<{
     at_ms: number;
     x: number;
