@@ -7,6 +7,7 @@ from sqlalchemy import (
     JSON,
     BigInteger,
     Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     Float,
@@ -132,6 +133,88 @@ class ProjectRevision(Base):
     revision: Mapped[int] = mapped_column(Integer)
     edl: Mapped[dict[str, Any]] = mapped_column(JSON)
     sha256: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class CreativeDNARevision(Base):
+    __tablename__ = "creative_dna_revisions"
+    __table_args__ = (
+        UniqueConstraint("channel_id", "revision", name="uq_creative_dna_revision"),
+        CheckConstraint("revision >= 1", name="ck_creative_dna_revisions_revision_positive"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    channel_id: Mapped[str] = mapped_column(ForeignKey("channels.id"), index=True)
+    revision: Mapped[int] = mapped_column(Integer)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    sha256: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class CreativeBriefRevision(Base):
+    __tablename__ = "creative_briefs"
+    __table_args__ = (
+        UniqueConstraint("project_id", "revision", name="uq_creative_brief_revision"),
+        CheckConstraint("revision >= 1", name="ck_creative_briefs_revision_positive"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), index=True)
+    revision: Mapped[int] = mapped_column(Integer)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    sha256: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class CreativeDirectionSet(Base):
+    __tablename__ = "creative_direction_sets"
+    __table_args__ = (
+        UniqueConstraint("project_id", "revision", name="uq_creative_directions_revision"),
+        CheckConstraint("revision >= 1", name="ck_creative_directions_revision_positive"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), index=True)
+    revision: Mapped[int] = mapped_column(Integer)
+    brief_sha256: Mapped[str] = mapped_column(String(64))
+    dna_sha256: Mapped[str] = mapped_column(String(64))
+    origin: Mapped[str] = mapped_column(String(40), default="deterministic_reference")
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    sha256: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class CreativeStoryboardRevision(Base):
+    __tablename__ = "creative_storyboard_revisions"
+    __table_args__ = (
+        UniqueConstraint("project_id", "revision", name="uq_creative_storyboard_revision"),
+        CheckConstraint("revision >= 1", name="ck_creative_storyboard_revision_positive"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), index=True)
+    direction_set_id: Mapped[str] = mapped_column(ForeignKey("creative_direction_sets.id"))
+    revision: Mapped[int] = mapped_column(Integer)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    sha256: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class CreativeReview(Base):
+    __tablename__ = "creative_reviews"
+    __table_args__ = (
+        UniqueConstraint("project_id", "revision", name="uq_creative_review_revision"),
+        CheckConstraint("revision >= 1", name="ck_creative_review_revision_positive"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), index=True)
+    revision: Mapped[int] = mapped_column(Integer)
+    storyboard_revision: Mapped[int] = mapped_column(Integer)
+    decision: Mapped[str] = mapped_column(String(16))
+    actor: Mapped[str] = mapped_column(String(120))
+    notes: Mapped[str] = mapped_column(Text, default="")
+    snapshot_sha256: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 

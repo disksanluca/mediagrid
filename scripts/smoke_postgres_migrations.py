@@ -62,7 +62,7 @@ def main() -> None:
     command.upgrade(_config(), "head")
     with engine.connect() as connection:
         assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-            "0011_music_draft_schedule"
+            "0012_creative_direction"
         )
         assert {"lease_owner", "lease_expires_at", "heartbeat_at"} <= {
             column["name"] for column in inspect(connection).get_columns("jobs")
@@ -74,6 +74,10 @@ def main() -> None:
         assert claim_columns["published_at"]["nullable"]
         assert claim_columns["source_checked_at"]["nullable"]
         assert "music_draft_schedules" in inspect(connection).get_table_names()
+        assert {"creative_dna_revisions", "creative_briefs", "creative_direction_sets",
+                "creative_storyboard_revisions", "creative_reviews"} <= (
+            set(inspect(connection).get_table_names())
+        )
 
     with SessionLocal() as first, SessionLocal() as second:
         project = first.get(Project, project_id)
@@ -99,7 +103,7 @@ def main() -> None:
         assert claimed.status == JobStatus.SUCCEEDED.value
         assert claimed.lease_owner is None
 
-    print("PostgreSQL 16: legacy data, Alembic 0001→0010, SKIP LOCKED and lease passed")
+    print("PostgreSQL 16: legacy data, Alembic 0001→0012, SKIP LOCKED and lease passed")
 
 
 if __name__ == "__main__":

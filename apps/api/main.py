@@ -13,6 +13,7 @@ from .routes import (
     assets,
     channels,
     clips,
+    creative,
     football,
     geo,
     jobs,
@@ -106,6 +107,7 @@ async def require_login(request: Request, call_next):
 for router in (
     auth.router,
     channels.router,
+    creative.router,
     projects.router,
     politics.router,
     geo.router,
