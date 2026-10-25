@@ -50,7 +50,7 @@ def test_legacy_database_upgrade_and_downgrade(tmp_path: Path) -> None:
     )
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == (
-            "0011_music_draft_schedule",
+            "0012_creative_direction",
         )
         columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)")}
         assert {"lease_owner", "lease_expires_at", "heartbeat_at"} <= columns
@@ -105,7 +105,7 @@ def test_fresh_database_starts_at_current_schema(tmp_path: Path) -> None:
     )
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == (
-            "0011_music_draft_schedule",
+            "0012_creative_direction",
         )
         columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)")}
         assert {"lease_owner", "lease_expires_at", "heartbeat_at"} <= columns
