@@ -7,18 +7,26 @@ import struct
 from functools import lru_cache
 from pathlib import Path
 
+FONTS = {
+    "Barlow Condensed": "sports-font",
+    "Space Grotesk": "space-font",
+    "IBM Plex Sans": "plex-font",
+}
 
-def font_source() -> Path:
+
+def font_source(family="Barlow Condensed") -> Path:
     from apps.api.config import get_settings
 
     root = (
         get_settings().mediagrid_renderer_root
         or Path(__file__).resolve().parents[3] / "apps/renderer"
     )
-    return root / "src/sports-font.ts"
+    if family not in FONTS:
+        raise ValueError("FONT_UNSUPPORTED: use a bundled font from capabilities")
+    return root / "src" / (FONTS[family] + ".ts")
 
 
-@lru_cache(maxsize=2)
+@lru_cache(maxsize=6)
 def metrics(source: str):
     match = re.search(r"data:font/ttf;base64,([A-Za-z0-9+/=]+)", source)
     if not match:
@@ -64,13 +72,20 @@ def metrics(source: str):
     return glyphs, hashlib.sha256(data).hexdigest()
 
 
-def layout_text(text: str, size: float, width: float, max_lines: int) -> tuple[str, dict]:
-    glyphs, digest = metrics(font_source().read_text(encoding="utf-8"))
+def layout_text(
+    text: str,
+    size: float,
+    width: float,
+    max_lines: int,
+    family="Barlow Condensed",
+    letter_spacing=0,
+) -> tuple[str, dict]:
+    glyphs, digest = metrics(font_source(family).read_text(encoding="utf-8"))
 
     def measure(value):
         if any(ord(c) not in glyphs for c in value):
             raise ValueError("UNSUPPORTED_GLYPH: bundled font cannot display this text")
-        return sum(glyphs[ord(c)] for c in value) * size
+        return sum(glyphs[ord(c)] for c in value) * size + len(value) * letter_spacing
 
     lines = []
     for paragraph in text.split("\n"):

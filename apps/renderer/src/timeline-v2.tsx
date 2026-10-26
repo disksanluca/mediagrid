@@ -6,6 +6,7 @@ import {CharacterDialogue} from "./character-dialogue";
 import {SportsCinematic, SportsFont} from "./sports-cinematic";
 import {SportsRefinement} from "./sports-refinement";
 import {MotionSceneRenderer} from "./motion-scene";
+import {MotionFonts} from "./motion-fonts";
 
 function KineticTitle({item}: {item: RenderOverlay}) {
   const frame = useCurrentFrame();
@@ -145,7 +146,9 @@ export function MediaGridTimelineV2(input: Partial<RenderProps>) {
   const props: RenderProps = {title:"MediaGrid",format:"vertical",accent:"#dcf769",scenes:[],overlays:[],sounds:[],video_layers:[],...input};
   const {fps} = useVideoConfig();
   return <AbsoluteFill>
-    {props.overlays?.some((item) => item.preset === "sports_cinematic_v1" || item.preset === "motion_scene_v1") && <SportsFont/>}
+    {props.overlays?.some((item) => item.preset === "sports_cinematic_v1") && <SportsFont/>}
+    {props.overlays?.some((item) => item.preset === "motion_scene_v1") && <MotionFonts
+      families={props.overlays.flatMap(item=>item.preset==="motion_scene_v1"?item.motion.fonts:[])}/>}
     <MediaGridVideo {...props}/>
     {[...(props.video_layers ?? [])].sort((a,b)=>a.z_index-b.z_index).map((item)=><Sequence
       key={item.id}

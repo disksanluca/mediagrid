@@ -35,7 +35,7 @@ def png(path: Path, width=640, height=640):
     )
 
 
-def score(path: Path, label: str, duration: float):
+def score(path: Path, label: str, duration: float, version="1.1.0"):
     rate = 48000
     output = array.array("h")
     peaks, energy = 0, 0
@@ -65,6 +65,11 @@ def score(path: Path, label: str, duration: float):
             sample = (
                 0.13 * pad + 0.06 * math.sin(2 * math.pi * 220 * t) + 0.10 * impact + 0.015 * noise
             )
+        if version == "1.2.0":
+            sample = directed_sample(t, label, duration)
+            if label == "sports":
+                # Calibrated headroom after the original score's -27.43 LUFS proof.
+                sample *= 1.6
         envelope = min(1, t / 0.01, (duration - t) / 0.35)
         sample *= max(0, envelope)
         pan = 0.12 * math.sin(2 * math.pi * t / 5)
@@ -85,13 +90,72 @@ def score(path: Path, label: str, duration: float):
         "cues_seconds": boundaries,
         "origin": "Original deterministic MediaGrid synthesis",
         "license": "CC0-1.0 (original procedural proof material)",
+        "score_version": version,
     }
 
 
-def create_media(folder: Path, label: str, duration: float, ffmpeg="ffmpeg"):
+def directed_sample(t, label, duration):
+    """Three original, analytical scores: no model, samples, RNG state or remote media."""
+    tau = math.tau
+    if label == "sports":
+        beat = t % 0.5
+        kick = math.sin(tau * (48 * beat + 3 * (1 - math.exp(-32 * beat))))
+        kick *= math.exp(-22 * beat)
+        # Snare made from inharmonic sinusoids rather than broadband noise.
+        snare_t = (t + 0.5) % 1
+        snare = sum(math.sin(tau * f * t) for f in (713, 1187, 2143)) / 3
+        snare *= math.exp(-28 * snare_t)
+        bass = math.sin(tau * [55, 55, 65.406, 73.416][int(t * 2) % 4] * t)
+        bass *= math.exp(-6 * beat)
+        hits = sum(
+            math.sin(tau * (38 * (t - b) + 2 * (1 - math.exp(-18 * (t - b)))))
+            * math.exp(-9 * (t - b))
+            * (1.25 if b == 9 else 1)
+            for b in (0, 2, 5, 9)
+            if 0 <= t - b < 1
+        )
+        rise = sum(
+            math.sin(tau * (420 * t + 650 * (t - b + 0.3) ** 2))
+            * math.sin(math.pi * (t - b + 0.3) / 0.3) ** 2
+            for b in (2, 5, 9)
+            if 0 < b - t < 0.3
+        )
+        release = min(1, max(0, (duration - t) / 0.7))
+        return (0.25 * kick + 0.13 * snare + 0.12 * bass + 0.28 * hits + 0.07 * rise) * release
+    if label == "music":
+        # Original Cmaj7 -> Am7 voicing, quarter-note arpeggio and resolved final chord.
+        chord = (130.813, 164.814, 195.998, 246.942) if t < 4 else (110, 130.813, 164.814, 195.998)
+        pulse_t = t % 0.625
+        note = chord[int(t / 0.625) % 4] * 2
+        bell = (math.sin(tau * note * t) + 0.22 * math.sin(tau * note * 2.01 * t)) * math.exp(
+            -4 * pulse_t
+        )
+        pad = sum(math.sin(tau * f * t + 0.12 * math.sin(t * 0.7)) for f in chord) / 4
+        final = sum(math.sin(tau * f * t) for f in (130.813, 195.998, 261.626)) / 3
+        final *= math.exp(-1.8 * max(0, t - 8.75)) if t >= 8.75 else 0
+        return (0.17 * pad + 0.23 * bell + 0.16 * final) * min(1, (duration - t) / 0.8)
+    # Geo: slow harmonic bed, three location bells, filtered wind-like interference.
+    bed = (
+        math.sin(tau * 98 * t) + 0.5 * math.sin(tau * 146.832 * t) + 0.3 * math.sin(tau * 196 * t)
+    ) / 1.8
+    breath = (
+        (0.55 + 0.45 * math.sin(t * 0.7))
+        * (math.sin(tau * 293.665 * t) + math.sin(tau * 294.1 * t))
+        / 2
+    )
+    bell = sum(
+        (math.sin(tau * freq * (t - b)) + 0.25 * math.sin(tau * freq * 2.01 * (t - b)))
+        * math.exp(-2.5 * (t - b))
+        for b, freq in ((0, 392), (5, 493.883), (10, 587.33))
+        if 0 <= t - b < 3
+    )
+    return (0.19 * bed + 0.055 * breath + 0.21 * bell) * min(1, (duration - t) / 1.1)
+
+
+def create_media(folder: Path, label: str, duration: float, ffmpeg="ffmpeg", version="1.1.0"):
     folder.mkdir(parents=True, exist_ok=True)
     soundtrack = folder / "score.wav"
-    provenance = score(soundtrack, label, duration)
+    provenance = score(soundtrack, label, duration, version)
     files = {"score": (soundtrack, "audio/wav")}
     if label == "music":
         cover = folder / "orbita-original.png"
@@ -106,7 +170,7 @@ def create_media(folder: Path, label: str, duration: float, ffmpeg="ffmpeg"):
                 "-i",
                 str(soundtrack),
                 "-filter_complex",
-                "[0:a]showwaves=s=1080x160:mode=cline:rate=30:colors=0x98EADA[v]",
+                "[0:a]aformat=channel_layouts=mono,showwaves=s=1080x160:mode=cline:rate=30:colors=0x98EADA[v]",
                 "-map",
                 "[v]",
                 "-an",

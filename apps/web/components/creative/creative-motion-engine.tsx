@@ -59,6 +59,7 @@ export function CreativeMotionEngine({projectId,revision,review,assets,dirty}:{
   projectId:string;revision:number;review:CreativeReview|null;assets:Asset[];dirty:boolean;
 }){
   const [recipes,setRecipes]=useState<MotionRecipeInfo[]>([]);
+  const [fonts,setFonts]=useState<string[]>([]);
   const [selected,setSelected]=useState("");
   const [bindings,setBindings]=useState<Record<string,string>>({});
   const [textScale,setTextScale]=useState(1);
@@ -77,7 +78,7 @@ export function CreativeMotionEngine({projectId,revision,review,assets,dirty}:{
   const refresh=async()=>setJobs((await api.jobs()).filter(j=>j.project_id===projectId&&j.job_type==="CREATIVE_MOTION"));
   useEffect(()=>{
     let active=true;setJobs([]);setCompare([]);setPreview(null);
-    void api.motionRecipes().then(v=>{if(active)setRecipes(v.recipes.filter(r=>r.status==="SUPPORTED"));}).catch(e=>{if(active)setError(String(e));});
+    void api.motionRecipes().then(v=>{if(active){setRecipes(v.recipes.filter(r=>r.status==="SUPPORTED"));setFonts(v.fonts);}}).catch(e=>{if(active)setError(String(e));});
     void api.jobs().then(v=>{if(active)setJobs(v.filter(j=>j.project_id===projectId&&j.job_type==="CREATIVE_MOTION"));}).catch(e=>{if(active)setError(String(e));});
     return()=>{active=false;};
   },[projectId]);
@@ -142,7 +143,7 @@ export function CreativeMotionEngine({projectId,revision,review,assets,dirty}:{
       {recipe.shots.length} planos na ordem do storyboard · tempos de referência:
       {" "+recipe.shots.map(s=>s.reference_duration_ms/1000+" s").join(" / ")}.
       Durações vêm dos planos aprovados; os assets precisam constar no brief e nos planos que os usam.
-      Fonte suportada no DNA: Barlow Condensed.</p>}
+      Fontes disponíveis no DNA: {fonts.join(", ")}.</p>}
     <div className="creative-actions">
       <button disabled={!ready||busy} onClick={()=>run(false)}>Preparar prévia real</button>
       <button className="creative-primary" disabled={!ready||busy} onClick={()=>run(true)}>

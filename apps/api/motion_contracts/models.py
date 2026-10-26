@@ -8,8 +8,9 @@ from .canonical import canonical_bytes
 
 Identifier = Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$")]
 Digest = Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
-Version = Annotated[str, Field(pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$",
-                               max_length=30)]
+Version = Annotated[
+    str, Field(pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$", max_length=30)
+]
 Number = Annotated[float, Field(ge=-8192, le=8192)]
 Unit = Annotated[float, Field(ge=0, le=1)]
 ScaleNumber = Annotated[float, Field(ge=0.05, le=8)]
@@ -23,21 +24,29 @@ def valid_position(value):
     return value
 
 
-Position = Annotated[list[Number], Field(min_length=3, max_length=3),
-                     AfterValidator(valid_position)]
+Position = Annotated[
+    list[Number], Field(min_length=3, max_length=3), AfterValidator(valid_position)
+]
 Scale = Annotated[list[ScaleNumber], Field(min_length=2, max_length=2)]
 Point = Annotated[list[Number], Field(min_length=2, max_length=2)]
 Interval = Annotated[list[Millis], Field(min_length=2, max_length=2)]
 
 
 class Contract(BaseModel):
-    model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False,
-                              validate_default=True, frozen=True, revalidate_instances="always")
+    model_config = ConfigDict(
+        extra="forbid",
+        strict=True,
+        allow_inf_nan=False,
+        validate_default=True,
+        frozen=True,
+        revalidate_instances="always",
+    )
 
 
 class ShotText(Contract):
     kind: Literal["shot_field"]
     field: Literal["on_screen_text"]
+    line_index: int | None = Field(default=None, ge=0, le=5, exclude_if=lambda v: v is None)
 
 
 class ClaimText(Contract):
@@ -160,6 +169,7 @@ class TextParams(Contract):
     max_lines: int = Field(default=6, ge=1, le=6)
     align: Literal["left", "center", "right"] = "left"
     method: Literal["fade_slide"] = "fade_slide"
+    letter_spacing: float = Field(default=0, ge=-4, le=24, exclude_if=lambda v: v == 0)
 
 
 class TextNode(NodeBase):
@@ -187,18 +197,46 @@ class PathGeometry(Contract):
 Geometry = Annotated[BoxGeometry | PathGeometry, Field(discriminator="kind")]
 
 
+class GradientStop(Contract):
+    offset: Unit
+    color: PaletteBinding
+    opacity: Unit = 1
+
+
+class Gradient(Contract):
+    kind: Literal["linear", "radial"]
+    start: list[Unit] = Field(default_factory=lambda: [0, 0], min_length=2, max_length=2)
+    end: list[Unit] = Field(default_factory=lambda: [1, 1], min_length=2, max_length=2)
+    radius: float = Field(default=0.7, ge=0.1, le=2)
+    stops: list[GradientStop] = Field(min_length=2, max_length=8)
+
+    @model_validator(mode="after")
+    def ordered(self):
+        if any(a.offset >= b.offset for a, b in zip(self.stops, self.stops[1:], strict=False)):
+            raise ValueError("Gradient stops must be strictly ordered")
+        return self
+
+
 class ShapeParams(Contract):
     geometry: Geometry
     fill: PaletteBinding | None = None
     stroke: PaletteBinding | None = None
     stroke_width: float = Field(default=1, ge=0.1, le=64)
     draw_progress: Unit = 1
+    fill_gradient: Gradient | None = Field(default=None, exclude_if=lambda v: v is None)
+    stroke_gradient: Gradient | None = Field(default=None, exclude_if=lambda v: v is None)
+    glow: float = Field(default=0, ge=0, le=16, exclude_if=lambda v: v == 0)
 
     @model_validator(mode="after")
     def visible_style(self):
-        if self.fill is None and self.stroke is None:
+        if (
+            self.fill is None
+            and self.stroke is None
+            and not self.fill_gradient
+            and not self.stroke_gradient
+        ):
             raise ValueError("Shape needs a fill or stroke")
-        if self.geometry.kind == "polyline" and self.stroke is None:
+        if self.geometry.kind == "polyline" and self.stroke is None and not self.stroke_gradient:
             raise ValueError("Polyline needs a stroke")
         return self
 
@@ -261,7 +299,7 @@ class VideoNode(NodeBase):
 
 
 class ParticleParams(Contract):
-    seed: int = Field(ge=0, le=2**31-1)
+    seed: int = Field(ge=0, le=2**31 - 1)
     count: int = Field(ge=1, le=64)
     velocity: Point
     radius: float = Field(ge=1, le=32)
@@ -287,8 +325,15 @@ class LightSweepNode(NodeBase):
 
 
 Node = Annotated[
-    GroupNode | TextNode | ShapeNode | MaskNode | PathFollowerNode | ImageNode
-    | VideoNode | ParticleNode | LightSweepNode,
+    GroupNode
+    | TextNode
+    | ShapeNode
+    | MaskNode
+    | PathFollowerNode
+    | ImageNode
+    | VideoNode
+    | ParticleNode
+    | LightSweepNode,
     Field(discriminator="type"),
 ]
 
@@ -297,9 +342,9 @@ class Camera(Contract):
     position: Position = Field(default_factory=lambda: [0, 0, 0])
     rotate_z: Angle = 0
     focal_length: float = Field(default=1200, ge=800, le=2400)
-    animations: list[Annotated[PositionAnimation | AngleAnimation,
-                               Field(discriminator="property")]] = Field(
-                                   default_factory=list, max_length=2)
+    animations: list[
+        Annotated[PositionAnimation | AngleAnimation, Field(discriminator="property")]
+    ] = Field(default_factory=list, max_length=2)
 
 
 class SafeArea(Contract):
@@ -340,6 +385,7 @@ class MotionScene(Contract):
     @model_validator(mode="after")
     def graph(self):
         from .validation import validate_graph
+
         validate_graph(self)
         canonical_bytes(self)
         return self
@@ -374,7 +420,7 @@ class RecipeRef(Contract):
 class MediaBinding(Contract):
     asset_id: Identifier
     sha256: Digest
-    byte_size: int = Field(gt=0, le=128*1024*1024)
+    byte_size: int = Field(gt=0, le=128 * 1024 * 1024)
 
 
 class ImageBinding(MediaBinding):
@@ -413,12 +459,14 @@ class MotionComposition(Contract):
     expected: Expected
     recipe: RecipeRef
     asset_bindings: dict[Identifier, AssetBinding] = Field(
-        default_factory=dict, max_length=32, json_schema_extra={"additionalProperties": False})
+        default_factory=dict, max_length=32, json_schema_extra={"additionalProperties": False}
+    )
     scenes: list[SceneBinding] = Field(min_length=1, max_length=12)
 
     @model_validator(mode="after")
     def envelope(self):
         from .validation import validate_envelope
+
         validate_envelope(self)
         canonical_bytes(self)
         return self
@@ -438,12 +486,14 @@ class MotionRecipe(Contract):
     sha256: Digest
     canvas: MotionCanvas
     asset_slots: dict[Identifier, Literal["image", "audio", "video"]] = Field(
-        default_factory=dict, max_length=32, json_schema_extra={"additionalProperties": False})
+        default_factory=dict, max_length=32, json_schema_extra={"additionalProperties": False}
+    )
     scenes: list[RecipeScene] = Field(min_length=1, max_length=12)
 
     @model_validator(mode="after")
     def recipe(self):
         from .validation import validate_recipe
+
         validate_recipe(self)
         canonical_bytes(self)
         return self

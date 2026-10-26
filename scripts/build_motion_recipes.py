@@ -571,16 +571,19 @@ def build(label):
 
 
 def main():
+    from scripts.motion_recipes_v12 import build_v12
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     index = json.loads((REGISTRY_ROOT / "index.json").read_text(encoding="utf-8"))
-    refs = [r for r in index["recipes"] if r["version"] != "1.1.0"]
+    refs = [r for r in index["recipes"] if r["version"] not in {"1.1.0", "1.2.0"}]
     outputs = {}
-    for label in PRODUCTIONS:
-        recipe = build(label)
-        refs.append(recipe.model_dump(include={"id", "version", "sha256"}))
-        outputs[f"{recipe.id}.{recipe.version}.json"] = recipe.model_dump(mode="json")
+    for builder in (build, build_v12):
+        for label in PRODUCTIONS:
+            recipe = builder(label)
+            refs.append(recipe.model_dump(include={"id", "version", "sha256"}))
+            outputs[f"{recipe.id}.{recipe.version}.json"] = recipe.model_dump(mode="json")
     outputs["index.json"] = {"schema_version": "motion_registry_v1", "recipes": refs}
     for filename, value in outputs.items():
         text = json.dumps(value, ensure_ascii=False, indent=2) + "\n"

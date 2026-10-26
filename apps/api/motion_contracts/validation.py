@@ -45,8 +45,9 @@ def animation_times(animation, cues):
 
 def z_range(transform):
     values = [transform.position[2]]
-    values.extend(k.value[2] for a in transform.animations
-                  if a.property == "position" for k in a.keyframes)
+    values.extend(
+        k.value[2] for a in transform.animations if a.property == "position" for k in a.keyframes
+    )
     return min(values), max(values)
 
 
@@ -57,11 +58,12 @@ def complexity(scene):
         if isinstance(geometry, PathGeometry):
             vertices += len(geometry.points)
     return {
-        "nodes": len(scene.nodes) + sum(n.params.count for n in scene.nodes
-                                       if n.type == "particle"),
+        "nodes": len(scene.nodes)
+        + sum(n.params.count for n in scene.nodes if n.type == "particle"),
         "vertices": vertices,
-        "keyframes": sum(len(a.keyframes) for n in [*scene.nodes, scene.camera]
-                         for a in n.animations),
+        "keyframes": sum(
+            len(a.keyframes) for n in [*scene.nodes, scene.camera] for a in n.animations
+        ),
         "cues": len(scene.cues),
     }
 
@@ -85,6 +87,8 @@ def parents(node, nodes):
 
 
 def validate_graph(scene: MotionScene):
+    if sum(n.type == "shape" and n.params.glow > 0 for n in scene.nodes) > 8:
+        raise ValueError("At most 8 bounded shape glows per scene")
     unique([n.id for n in scene.nodes], "node ID")
     unique([c.id for c in scene.cues], "cue ID")
     nodes = {n.id: n for n in scene.nodes}
@@ -98,8 +102,10 @@ def validate_graph(scene: MotionScene):
                 raise ValueError("Camera near-plane crossing or unsafe depth range")
         if node.type == "mask":
             target = nodes.get(node.params.target_id)
-            if target is None or target.type != "group" or (
-                target.parent_id != node.parent_id or target.space != node.space
+            if (
+                target is None
+                or target.type != "group"
+                or (target.parent_id != node.parent_id or target.space != node.space)
             ):
                 raise ValueError("Mask target must be a sibling group in the same space")
             if target.id in masks:
@@ -107,9 +113,14 @@ def validate_graph(scene: MotionScene):
             masks[target.id] = node.id
         if node.type == "path_follower":
             path = nodes.get(node.params.path_ref)
-            if path is None or path.type != "shape" or (
-                not isinstance(path.params.geometry, PathGeometry)
-                or path.parent_id != node.parent_id or path.space != node.space
+            if (
+                path is None
+                or path.type != "shape"
+                or (
+                    not isinstance(path.params.geometry, PathGeometry)
+                    or path.parent_id != node.parent_id
+                    or path.space != node.space
+                )
             ):
                 raise ValueError("Follower needs a sibling shape path in the same space")
         allowed = {"position", "scale", "rotate_z", "opacity"}
@@ -131,9 +142,10 @@ def validate_graph(scene: MotionScene):
     for animation in scene.camera.animations:
         animation_times(animation, cues)
     budget = complexity(scene)
-    if budget["nodes"] > 128 or sum(
-        n.params.count for n in scene.nodes if n.type == "particle"
-    ) > 64:
+    if (
+        budget["nodes"] > 128
+        or sum(n.params.count for n in scene.nodes if n.type == "particle") > 64
+    ):
         raise ValueError("Expanded nodes/particles exceed scene budget")
 
 
@@ -168,32 +180,32 @@ def validate_scene_bounds(scene, duration_ms, canvas, start_ms=0, *, quantize=Tr
     nodes = {n.id: n for n in scene.nodes}
     media = {"image": [], "video": [], "light_sweep": [], "audio": []}
     for cue in scene.cues:
-        if cue.at_ms >= duration_ms or at(start_ms+cue.at_ms) >= at(
-            start_ms+duration_ms
-        ):
+        if cue.at_ms >= duration_ms or at(start_ms + cue.at_ms) >= at(start_ms + duration_ms):
             raise ValueError("Cue outside shot frames")
         if cue.sound:
             end = cue.at_ms + cue.sound.duration_ms
             if end > duration_ms:
                 raise ValueError("Sound cue exceeds shot")
-            if at(start_ms+end) <= at(start_ms+cue.at_ms):
+            if at(start_ms + end) <= at(start_ms + cue.at_ms):
                 raise ValueError("Sound cue collapses to zero frames")
-            media["audio"].append((at(start_ms+cue.at_ms), at(start_ms+end)))
+            media["audio"].append((at(start_ms + cue.at_ms), at(start_ms + end)))
     for node in [*scene.nodes, scene.camera]:
-        interval = active_interval(node, nodes, duration_ms) if node is not scene.camera else (
-            0, duration_ms
+        interval = (
+            active_interval(node, nodes, duration_ms)
+            if node is not scene.camera
+            else (0, duration_ms)
         )
-        if at(start_ms+interval[0]) >= at(start_ms+interval[1]):
+        if at(start_ms + interval[0]) >= at(start_ms + interval[1]):
             raise ValueError("Active interval collapses to zero frames")
         for animation in node.animations:
             times = animation_times(animation, cues)
             if times[0] < interval[0] or times[-1] > interval[1]:
                 raise ValueError("Keyframes outside active interval")
-            frames = [at(start_ms+t) for t in times]
+            frames = [at(start_ms + t) for t in times]
             if any(b <= a for a, b in zip(frames, frames[1:], strict=False)):
                 raise ValueError("Keyframes collapse to the same absolute frame")
         if getattr(node, "type", None) in media:
-            media[node.type].append(tuple(at(start_ms+t) for t in interval))
+            media[node.type].append(tuple(at(start_ms + t) for t in interval))
     for kind, limit in (("image", 4), ("video", 2), ("light_sweep", 2), ("audio", 8)):
         if peak_overlap(media[kind]) > limit:
             raise ValueError(f"Concurrent {kind} limit exceeded")
@@ -234,9 +246,11 @@ def total_budget(graphs):
 def validate_envelope(composition: MotionComposition):
     unique([s.shot_id for s in composition.scenes], "shot binding")
     total_budget([s.graph for s in composition.scenes])
-    validate_slots([s.graph for s in composition.scenes],
-                   {k: v.kind for k, v in composition.asset_bindings.items()})
-    if sum(a.byte_size for a in composition.asset_bindings.values()) > 256*1024*1024:
+    validate_slots(
+        [s.graph for s in composition.scenes],
+        {k: v.kind for k, v in composition.asset_bindings.items()},
+    )
+    if sum(a.byte_size for a in composition.asset_bindings.values()) > 256 * 1024 * 1024:
         raise ValueError("Asset byte budget exceeds 256 MiB")
     identities = {}
     for asset in composition.asset_bindings.values():
@@ -245,8 +259,12 @@ def validate_envelope(composition: MotionComposition):
         identities[asset.asset_id] = asset
     # The actual per-shot duration comes from EDL at binding; this is an outer bound.
     for scene in composition.scenes:
-        validate_scene_bounds(scene.graph, composition.expected.duration_ms,
-                              composition.expected.canvas, quantize=False)
+        validate_scene_bounds(
+            scene.graph,
+            composition.expected.duration_ms,
+            composition.expected.canvas,
+            quantize=False,
+        )
 
 
 def validate_recipe(recipe: MotionRecipe):
@@ -264,8 +282,12 @@ def validate_recipe(recipe: MotionRecipe):
 
 def bindings_in(value):
     if isinstance(value, Contract):
-        if getattr(value, "kind", "") in {"dna_font", "dna_palette", "shot_field",
-                                         "approved_claim_field"}:
+        if getattr(value, "kind", "") in {
+            "dna_font",
+            "dna_palette",
+            "shot_field",
+            "approved_claim_field",
+        }:
             yield value
         else:
             for field in type(value).model_fields:
@@ -275,23 +297,43 @@ def bindings_in(value):
             yield from bindings_in(child)
 
 
+def shot_text(binding, text):
+    if binding.line_index is None:
+        return text
+    lines = text.splitlines()
+    if binding.line_index >= len(lines) or not lines[binding.line_index].strip():
+        raise ValueError("Requested line is absent from approved shot text")
+    return lines[binding.line_index]
+
+
 def validate_binding(
-    composition: MotionComposition, *, edl: EDLV2, storyboard: CreativeStoryboard,
-    dna: CreativeDNA, project_id: str, storyboard_revision: int, snapshot_sha256: str,
+    composition: MotionComposition,
+    *,
+    edl: EDLV2,
+    storyboard: CreativeStoryboard,
+    dna: CreativeDNA,
+    project_id: str,
+    storyboard_revision: int,
+    snapshot_sha256: str,
     available_assets: Mapping[str, AssetBinding],
-    approved_claims: Mapping[str, Mapping[str, str]], recipe: MotionRecipe,
+    approved_claims: Mapping[str, Mapping[str, str]],
+    recipe: MotionRecipe,
 ) -> dict:
     """Read-only consistency check. Caller must obtain trusted state/rights; not approval."""
     composition = MotionComposition.model_validate(composition.model_dump(mode="json"))
     from .registry import verify_recipe_binding
+
     verify_recipe_binding(composition, recipe)
     expected = composition.expected
     if (composition.project_id, expected.storyboard_revision, expected.snapshot_sha256) != (
-        project_id, storyboard_revision, snapshot_sha256
+        project_id,
+        storyboard_revision,
+        snapshot_sha256,
     ):
         raise ValueError("Stale project/revision/snapshot binding")
     if edl.canvas.model_dump() != expected.canvas.model_dump() or (
-        edl.duration_ms != expected.duration_ms or storyboard.duration_ms != edl.duration_ms
+        edl.duration_ms != expected.duration_ms
+        or storyboard.duration_ms != edl.duration_ms
         or storyboard.fps != 30
     ):
         raise ValueError("Canvas/FPS/duration differs from approved EDL/storyboard")
@@ -320,18 +362,22 @@ def validate_binding(
             if binding.kind == "dna_palette" and binding.index >= len(dna.palette):
                 raise ValueError("Palette binding outside Creative DNA")
             if binding.kind == "approved_claim_field" and (
-                binding.claim_id not in shot.claim_ids
-                or binding.claim_id not in approved_claims
+                binding.claim_id not in shot.claim_ids or binding.claim_id not in approved_claims
             ):
                 raise ValueError("Claim binding is not approved for this shot")
         for node in scene.graph.nodes:
             if node.type == "text":
                 binding = node.params.text
-                text = shot.on_screen_text if binding.kind == "shot_field" else (
-                    approved_claims[binding.claim_id].get(binding.field)
+                text = (
+                    shot_text(binding, shot.on_screen_text)
+                    if binding.kind == "shot_field"
+                    else (approved_claims[binding.claim_id].get(binding.field))
                 )
-                if not isinstance(text, str) or not text.strip() or len(text) > 240 or (
-                    len(text.splitlines()) > node.params.max_lines
+                if (
+                    not isinstance(text, str)
+                    or not text.strip()
+                    or len(text) > 240
+                    or (len(text.splitlines()) > node.params.max_lines)
                 ):
                     raise ValueError("Resolved text missing or exceeds contract limits")
             if node.type in {"image", "video"}:
@@ -340,7 +386,7 @@ def validate_binding(
                     raise ValueError("Visual asset is not in the approved shot")
                 if node.type == "video":
                     a, b = active_interval(node, nodes, shot.duration_ms)
-                    if node.params.source_in_ms + b-a > asset.duration_ms:
+                    if node.params.source_in_ms + b - a > asset.duration_ms:
                         raise ValueError("Video source trim exceeds asset duration")
         for cue in scene.graph.cues:
             if cue.sound:
@@ -349,17 +395,27 @@ def validate_binding(
                     raise ValueError("Audio asset is not in the approved shot")
                 if cue.sound.source_in_ms + cue.sound.duration_ms > asset.duration_ms:
                     raise ValueError("Sound trim exceeds source asset duration")
-        reports.append({
-            "shot_id": shot.id,
-            "start_frame": frame_at(shot.start_ms),
-            "end_frame": frame_at(shot.start_ms+shot.duration_ms),
-            "cues": [{
-                "id": c.id, "absolute_frame": frame_at(shot.start_ms+c.at_ms),
-                # Integer thirds of a millisecond avoids unverifiable float rounding.
-                "rounding_error_ms_times_3": (
-                    frame_at(shot.start_ms+c.at_ms)*100 - (shot.start_ms+c.at_ms)*3
-                ),
-            } for c in scene.graph.cues],
-        })
-    return {"status": "CONTRACT_VALID", "render_supported": False, "shots": reports,
-            "complexity": total_budget([s.graph for s in composition.scenes])}
+        reports.append(
+            {
+                "shot_id": shot.id,
+                "start_frame": frame_at(shot.start_ms),
+                "end_frame": frame_at(shot.start_ms + shot.duration_ms),
+                "cues": [
+                    {
+                        "id": c.id,
+                        "absolute_frame": frame_at(shot.start_ms + c.at_ms),
+                        # Integer thirds of a millisecond avoids unverifiable float rounding.
+                        "rounding_error_ms_times_3": (
+                            frame_at(shot.start_ms + c.at_ms) * 100 - (shot.start_ms + c.at_ms) * 3
+                        ),
+                    }
+                    for c in scene.graph.cues
+                ],
+            }
+        )
+    return {
+        "status": "CONTRACT_VALID",
+        "render_supported": False,
+        "shots": reports,
+        "complexity": total_budget([s.graph for s in composition.scenes]),
+    }

@@ -21,8 +21,10 @@ def write(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def seed_project(client, label, files):
-    p = PRODUCTIONS[label]
+def seed_project(client, label, files, recipe_version="1.1.0"):
+    from scripts.motion_recipes_v12 import PRODUCTIONS_V12
+
+    p = (PRODUCTIONS_V12 if recipe_version == "1.2.0" else PRODUCTIONS)[label]
     channel = checked(
         client.post(
             "/api/v1/channels",
@@ -68,8 +70,8 @@ def seed_project(client, label, files):
                 "expected_revision": 0,
                 "content": {
                     "palette": p["palette"],
-                    "font_display": "Barlow Condensed",
-                    "font_body": "Barlow Condensed",
+                    "font_display": p.get("fonts", ["Barlow Condensed"] * 2)[0],
+                    "font_body": p.get("fonts", ["Barlow Condensed"] * 2)[1],
                     "tone": "Original synthetic audiovisual study",
                     "energy": "balanced",
                 },
@@ -158,7 +160,7 @@ def seed_project(client, label, files):
     recipe = next(
         r
         for r in checked(client.get("/api/v1/creative/motion/recipes"))["recipes"]
-        if r["id"] == p["id"] and r["version"] == "1.1.0"
+        if r["id"] == p["id"] and r["version"] == recipe_version
     )
     request = {
         "expected_storyboard_revision": 1,
@@ -175,6 +177,7 @@ def main():
     parser.add_argument("--run", required=True)
     parser.add_argument("--only", choices=list(PRODUCTIONS))
     parser.add_argument("--concurrency", type=int, choices=(1, 2), default=2)
+    parser.add_argument("--recipe-version", choices=("1.1.0", "1.2.0"), default="1.2.0")
     parser.add_argument("--approve-synthetic-storyboards", action="store_true")
     args = parser.parse_args()
     if not args.approve_synthetic_storyboards:
@@ -213,8 +216,9 @@ def main():
                 label,
                 sum(PRODUCTIONS[label]["durations"]) / 1000,
                 get_settings().mediagrid_ffmpeg_path or "ffmpeg",
+                version=args.recipe_version,
             )
-            project, root, request = seed_project(client, label, files)
+            project, root, request = seed_project(client, label, files, args.recipe_version)
             preview = checked(client.post(root + "/motion/engine/preview", json=request))
             write(output / "preview.json", preview)
             with SessionLocal() as db:

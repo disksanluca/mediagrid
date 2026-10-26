@@ -14,7 +14,9 @@ class MotionSceneSpec(Contract):
     schema_version: Literal["motion_scene_render_v1"]
     graph: MotionScene
     palette: list[Color] = Field(min_length=2, max_length=8)
-    fonts: list[Literal["Barlow Condensed"]] = Field(min_length=2, max_length=2)
+    fonts: list[Literal["Barlow Condensed", "Space Grotesk", "IBM Plex Sans"]] = Field(
+        min_length=2, max_length=2
+    )
     texts: dict[Identifier, Text] = Field(
         max_length=128, json_schema_extra={"additionalProperties": False}
     )

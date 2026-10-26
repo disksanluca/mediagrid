@@ -1,8 +1,9 @@
-# Motion contracts — M4.A
+# Motion contracts — M4.A–D
 
-Fundação de dados, sem interpretador, UI, worker ou render de receitas.
-O preset motion_scene_v1 **continua rejeitado** pela EDL/runtime de produção.
-Os arquivos aqui não são vídeos e não aprovam conteúdo.
+Contratos compartilhados pelo compilador Creative Director e interpretador Remotion.
+O preset motion_scene_v1 é aceito somente na EDL derivada e validada pelo compilador;
+a edição livre da EDL continua bloqueada. JSONs e fixtures não aprovam conteúdo.
+Provas reais, API, UI e limites: [entrega M4](../../docs/M4_COMPLETE_MOTION_ENGINE.md).
 
 ## Fonte de verdade
 
@@ -11,8 +12,8 @@ Os arquivos aqui não são vídeos e não aprovam conteúdo.
   com CreativeStoryboard, CreativeDNA e EDLV2 existentes.
 - canonical.py: limite de entrada JSON e mg-canonical-json-v1.
 - registry.py: receitas locais versionadas, SHA e igualdade do grafo expandido.
-- generated/: quatro JSON Schemas (Draft 2020-12), tipos TS e fixtures TS gerados.
-- recipes/: índice e três documentos JSON. Nenhum código/import/script em receitas.
+- generated/: JSON Schemas (Draft 2020-12), tipos TS e fixtures TS gerados.
+- recipes/: índice e versões 1.0 (referência), 1.1 e 1.2 (suportadas). Nenhum script em receitas.
 - fixtures/{sports,music,geo}/: composition, storyboard, DNA, EDL v2 e contexto de teste.
 
 O nome de cada schema gerado corresponde à classe Python:
@@ -45,11 +46,12 @@ nos artefatos gerados. O teste de geração detecta divergência.
 2. Resolver a receita por load_recipe(id, version), a partir do índice local.
 3. Chamar validate_binding com EDL, storyboard, DNA, revisão/snapshot e metadados
    de assets/claims **obtidos de estado confiável pelo servidor**.
-4. Receber CONTRACT_VALID e render_supported=false. Não enfileirar render neste marco.
+4. Receber CONTRACT_VALID e render_supported=false: o validador puro não autoriza render.
+   A API M4.C aplica aprovação/direitos/hash físico e compila MotionSceneSpec para o worker.
 
-Não há endpoint novo. Essas funções puras não autenticam usuário, não consultam
-CreativeReview, não atestam licença nem leem bytes de mídia. O adapter futuro M4.C
-precisará autenticar, validar aprovação/direitos/hash físico e fornecer o contexto.
+Essas funções puras não autenticam usuário, não consultam CreativeReview, não atestam
+licença nem leem bytes de mídia. O adapter implementado em apps/api/creative/engine.py
+autentica pelas rotas existentes, valida aprovação/direitos/hash físico e fornece o contexto.
 Passar asserções do cliente como contexto confiável seria erro de integração.
 
 O relatório retorna bordas em frames e arredondamento dos cues, sem criar timeline.
@@ -125,5 +127,9 @@ a testes. Os hashes de “assets” são hashes de strings identificadoras de fi
 não de WAV/PNG/MP4 existentes. Não autorizam download/render/publicação nem atestam
 direitos. Hashes das receitas, por outro lado, são verificações reais dos documentos.
 
-Sem migração ou variáveis novas; sem busca web/VLM. O Autonomous Visual Reference
-Scout permanece apenas no roadmap do ADR. M4.B depende de autorização humana.
+O pacote de contratos não depende de banco. A integração M4.C utiliza a migração
+0013_motion_artifact_review, documentada no relatório M4; nenhuma nova variável.
+M4.D acrescenta gradientes fechados (2–8 stops), glow limitado, tracking e seleção
+de uma linha exata do texto aprovado. Barlow, Space Grotesk e IBM Plex Sans são
+incorporadas com OFL. Defaults novos omitidos preservam hashes de receitas anteriores.
+O Autonomous Visual Reference Scout permanece apenas no roadmap do ADR.

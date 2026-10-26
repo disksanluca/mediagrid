@@ -1,0 +1,24 @@
+[
+  {
+    "family": "Space Grotesk",
+    "style": "Regular",
+    "weight": 400,
+    "source": "https://raw.githubusercontent.com/floriankarsten/space-grotesk/03507d024a01282884232081fc6011c09ff4e849/fonts/ttf/static/SpaceGrotesk-Regular.ttf",
+    "source_commit": "03507d024a01282884232081fc6011c09ff4e849",
+    "sha256": "5ede28c4425f3fe4830c8f4754b39e9a87a93d0c3baa5e0a9924532aaa8a98bd",
+    "bytes": 114428,
+    "license": "OFL-1.1",
+    "license_source": "https://raw.githubusercontent.com/floriankarsten/space-grotesk/03507d024a01282884232081fc6011c09ff4e849/OFL.txt"
+  },
+  {
+    "family": "IBM Plex Sans",
+    "style": "Regular",
+    "weight": 400,
+    "source": "https://raw.githubusercontent.com/IBM/plex/71f558992315a12ca1f06a2215d57962a1992162/packages/plex-sans/fonts/complete/ttf/IBMPlexSans-Regular.ttf",
+    "source_commit": "71f558992315a12ca1f06a2215d57962a1992162",
+    "sha256": "975dcda37d80f038dcd143c22e33ca2d97a0cc5a929aace1c749153b0fe1afa5",
+    "bytes": 200500,
+    "license": "OFL-1.1",
+    "license_source": "https://raw.githubusercontent.com/IBM/plex/71f558992315a12ca1f06a2215d57962a1992162/LICENSE.txt"
+  }
+]

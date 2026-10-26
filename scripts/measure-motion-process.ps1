@@ -7,6 +7,7 @@ $ErrorActionPreference = "Stop"
 $peakBytes = 0L
 $samples = 0
 $cpu = @{}
+$cpuInitial = @{}
 $observed = [System.Collections.Generic.HashSet[int]]::new()
 $timer = [System.Diagnostics.Stopwatch]::StartNew()
 while (-not (Test-Path -LiteralPath $StopPath)) {
@@ -26,6 +27,9 @@ while (-not (Test-Path -LiteralPath $StopPath)) {
     $process = Get-Process -Id $processId -ErrorAction SilentlyContinue
     if ($process) {
       $bytes += $process.WorkingSet64
+      if (-not $cpuInitial.ContainsKey($processId)) {
+        $cpuInitial[$processId] = $process.TotalProcessorTime.TotalSeconds
+      }
       $cpu[$processId] = $process.TotalProcessorTime.TotalSeconds
       [void]$observed.Add($processId)
     }
@@ -34,13 +38,17 @@ while (-not (Test-Path -LiteralPath $StopPath)) {
   $samples++
   Start-Sleep -Milliseconds 500
 }
+$cpuDelta = 0.0
+foreach ($processId in $cpu.Keys) { $cpuDelta += $cpu[$processId] - $cpuInitial[$processId] }
 @{
   measurement="sampled Windows process-tree working sets; shared pages may be counted twice"
   interval_ms=500
   samples=$samples
   peak_working_set_mib=[Math]::Round($peakBytes/1MB,2)
   observed_processes=$observed.Count
-  observed_cpu_seconds=[Math]::Round(($cpu.Values | Measure-Object -Sum).Sum,3)
+  observed_cpu_seconds=[Math]::Round($cpuDelta,3)
+  equivalent_one_core_percent=[Math]::Round(100*$cpuDelta/$timer.Elapsed.TotalSeconds,2)
+  logical_cores=[Environment]::ProcessorCount
   measured_seconds=[Math]::Round($timer.Elapsed.TotalSeconds,3)
-  caveat="Sampling can miss short-lived children and brief peaks; CPU includes Python setup."
+  caveat="CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes."
 } | ConvertTo-Json | Set-Content -LiteralPath $OutputPath -Encoding utf8

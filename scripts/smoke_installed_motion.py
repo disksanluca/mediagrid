@@ -24,9 +24,9 @@ def main():
         raise SystemExit("This installed-app smoke is restricted to the disposable CI runner")
     folder = Path(os.environ["RUNNER_TEMP"]) / "m4-installed-proof"
     folder.mkdir(exist_ok=False)
-    files = create_media(folder, "sports", 12, args.ffmpeg)
+    files = create_media(folder, "sports", 12, args.ffmpeg, version="1.2.0")
     with httpx.Client(base_url=f"http://127.0.0.1:{args.port}", timeout=60) as client:
-        _, root, request = seed_project(client, "sports", files)
+        _, root, request = seed_project(client, "sports", files, "1.2.0")
         request["quality"] = "preview"
         preview = checked(client.post(root + "/motion/engine/preview", json=request))
         job = checked(client.post(root + "/motion/engine/render", json=request))

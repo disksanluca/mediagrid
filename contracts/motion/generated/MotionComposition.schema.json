@@ -444,6 +444,90 @@
       "title": "FontBinding",
       "type": "object"
     },
+    "Gradient": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "End",
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "linear",
+            "radial"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "radius": {
+          "default": 0.7,
+          "maximum": 2,
+          "minimum": 0.1,
+          "title": "Radius",
+          "type": "number"
+        },
+        "start": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Start",
+          "type": "array"
+        },
+        "stops": {
+          "items": {
+            "$ref": "#/$defs/GradientStop"
+          },
+          "maxItems": 8,
+          "minItems": 2,
+          "title": "Stops",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "stops"
+      ],
+      "title": "Gradient",
+      "type": "object"
+    },
+    "GradientStop": {
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "$ref": "#/$defs/PaletteBinding"
+        },
+        "offset": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Offset",
+          "type": "number"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        }
+      },
+      "required": [
+        "offset",
+        "color"
+      ],
+      "title": "GradientStop",
+      "type": "object"
+    },
     "GroupNode": {
       "additionalProperties": false,
       "properties": {
@@ -2123,6 +2207,17 @@
           ],
           "default": null
         },
+        "fill_gradient": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Gradient"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "geometry": {
           "discriminator": {
             "mapping": {
@@ -2143,10 +2238,28 @@
           ],
           "title": "Geometry"
         },
+        "glow": {
+          "default": 0,
+          "maximum": 16,
+          "minimum": 0,
+          "title": "Glow",
+          "type": "number"
+        },
         "stroke": {
           "anyOf": [
             {
               "$ref": "#/$defs/PaletteBinding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "stroke_gradient": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Gradient"
             },
             {
               "type": "null"
@@ -2180,6 +2293,20 @@
           "const": "shot_field",
           "title": "Kind",
           "type": "string"
+        },
+        "line_index": {
+          "anyOf": [
+            {
+              "maximum": 5,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Line Index"
         }
       },
       "required": [
@@ -2450,6 +2577,13 @@
         },
         "font": {
           "$ref": "#/$defs/FontBinding"
+        },
+        "letter_spacing": {
+          "default": 0,
+          "maximum": 24,
+          "minimum": -4,
+          "title": "Letter Spacing",
+          "type": "number"
         },
         "line_height": {
           "default": 1,

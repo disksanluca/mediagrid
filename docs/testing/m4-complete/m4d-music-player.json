@@ -1,0 +1,134 @@
+{
+  "label": "music",
+  "composition": "MediaGridTimelineV2",
+  "player": "@remotion/player",
+  "scale": 0.5,
+  "fresh_browser_to_ready_seconds": 1.6717998999999981,
+  "preview": {
+    "wall_ms": 10002,
+    "frame_events": 299,
+    "unique_frames_per_second": 29.894021195760846,
+    "process_tree": {
+      "samples": 18,
+      "observed_cpu_seconds": 4.656,
+      "observed_processes": 7,
+      "logical_cores": 20,
+      "interval_ms": 500,
+      "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
+      "measured_seconds": 11.461,
+      "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
+      "equivalent_one_core_percent": 40.63,
+      "peak_working_set_mib": 497.63
+    }
+  },
+  "ordered_frames": [
+    30,
+    60,
+    119,
+    150,
+    210,
+    299
+  ],
+  "seek_checks": [
+    {
+      "frame": 299,
+      "identical_png": true,
+      "identical_svg": true,
+      "max_channel_delta": 0,
+      "mean_channel_delta": 0,
+      "changed_channel_fraction": 0,
+      "passed": true
+    },
+    {
+      "frame": 210,
+      "identical_png": true,
+      "identical_svg": true,
+      "max_channel_delta": 0,
+      "mean_channel_delta": 0,
+      "changed_channel_fraction": 0,
+      "passed": true
+    },
+    {
+      "frame": 150,
+      "identical_png": true,
+      "identical_svg": true,
+      "max_channel_delta": 0,
+      "mean_channel_delta": 0,
+      "changed_channel_fraction": 0,
+      "passed": true
+    },
+    {
+      "frame": 119,
+      "identical_png": true,
+      "identical_svg": true,
+      "max_channel_delta": 0,
+      "mean_channel_delta": 0,
+      "changed_channel_fraction": 0,
+      "passed": true
+    },
+    {
+      "frame": 60,
+      "identical_png": true,
+      "identical_svg": true,
+      "max_channel_delta": 0,
+      "mean_channel_delta": 0,
+      "changed_channel_fraction": 0,
+      "passed": true
+    },
+    {
+      "frame": 30,
+      "identical_png": true,
+      "identical_svg": true,
+      "max_channel_delta": 0,
+      "mean_channel_delta": 0,
+      "changed_channel_fraction": 0,
+      "passed": true
+    }
+  ],
+  "overflow": [],
+  "parity": [
+    {
+      "frame": 30,
+      "ssim": 0.983487,
+      "passed": true
+    },
+    {
+      "frame": 60,
+      "ssim": 0.984948,
+      "passed": true
+    },
+    {
+      "frame": 119,
+      "ssim": 0.981974,
+      "passed": true
+    },
+    {
+      "frame": 150,
+      "ssim": 0.981709,
+      "passed": true
+    },
+    {
+      "frame": 210,
+      "ssim": 0.981745,
+      "passed": true
+    },
+    {
+      "frame": 299,
+      "ssim": 0.982721,
+      "passed": true
+    }
+  ],
+  "thresholds": {
+    "ssim": 0.96,
+    "preview_fps": 24,
+    "seek_max_8bit_channel_delta": 2,
+    "seek_mean_channel_delta": 0.2
+  },
+  "caveats": [
+    "Fresh headless browser; OS/filesystem/bundler caches may be warm.",
+    "SSIM compares browser PNG with H264/BT709 decoded and Lanczos-scaled PNG; compression and video decoding may differ.",
+    "Seeking requires identical SVG state. Chromium gradient dithering can vary by <=2/255; mean channel error must be <=0.2/255.",
+    "Typography bounds checked every frame at opacity >0.98; intentional reveal masks are excluded from overflow definition.",
+    "Measured headless Chromium; not an artistic approval or a benchmark of all user GPUs."
+  ]
+}

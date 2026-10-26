@@ -65,7 +65,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  motionRecipes: () => request<{recipes:import("./motion-types").MotionRecipeInfo[]}>("/creative/motion/recipes"),
+  motionRecipes: () => request<{recipes:import("./motion-types").MotionRecipeInfo[];fonts:string[]}>("/creative/motion/recipes"),
   motionEnginePreview: (id:string,payload:import("./motion-types").MotionEngineRequest) =>
     request<import("./types").CreativeMotionPreview>(`/projects/${id}/creative/motion/engine/preview`,{method:"POST",body:JSON.stringify(payload)}),
   motionEngineRender: (id:string,payload:import("./motion-types").MotionEngineRequest) =>

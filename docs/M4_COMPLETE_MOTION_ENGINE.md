@@ -1,20 +1,21 @@
-# M4 — Motion Composition Engine v1
+# M4 — Motion Composition Engine v1: entrega consolidada B/C/D
 
-## Entrega e base
+Data: 26/10/2026. Branch única: `codex/m4-complete-motion-engine`.
+[PR draft #48](https://github.com/disksanluca/mediagrid/pull/48), baseado no PR #47
+(`2b96b896807c8aa33fcc64053a17e11ba0114dd3`). O HEAD remoto conferido no início
+desta revisão foi `e47a549633fcbb64f89e936e84db6b04ebeb0b0b`; a cadeia foi preservada.
 
-Branch: `codex/m4-complete-motion-engine`. Base M4.A: PR #47,
-`2b96b896807c8aa33fcc64053a17e11ba0114dd3`, descendente do PR #46.
-M3/M3.1/M3.2 e seus quatro MP4s anteriores foram preservados por hash:
+**Entrega atual: receitas 1.2.0, três MP4s originais e reais, pelo mesmo compilador,
+interpretador, EDL v2 e worker. Avaliação artística humana pendente.**
+As provas atuais estão em `data/m4-complete-proof/m4d-final-02/`.
+Versões 1.0/1.1, provas anteriores e M3/M3.1/M3.2 permanecem preservados.
+Os quatro hashes anteriores foram novamente conferidos:
 [preservação](testing/m4-complete/preservation.json).
 
-**Entrega integrada:** três receitas diferentes, compilador, interpretador React,
-Player, worker existente, revisão de artefatos e três vídeos reais.
-Os storyboards sintéticos receberam aprovação explícita de fixture; os MP4s
-continuam **REQUEST_REVIEW / avaliação artística humana pendente**.
-
-Não houve merge, instalação no PC, escrita no SQLite instalado, VPS, publicação,
-API paga ou implementação do Reference Scout. Os vídeos e bancos descartáveis
-ficam em `data/m4-complete-proof/final-pathfix/`, ignorados pelo Git.
+Nenhum merge, instalação no PC principal, acesso ao SQLite instalado, VPS,
+publicação, serviço pago ou implementação do Scout. Banco, projetos e assets
+desta prova são descartáveis. A aprovação dos storyboards identifica explicitamente
+fixtures sintéticas; cada MP4 permanece em REQUEST_REVIEW.
 
 ## Arquitetura
 
@@ -65,7 +66,7 @@ continua consultável em estado STALE; decisões novas/download exigem validade 
 - Não são aceitos código JS, CSS, shaders, URLs ou caminhos arbitrários em receitas.
   A edição livre de EDL rejeita `motion_scene_v1`; esse preset é derivado somente
   pelo fluxo aprovado.
-- Fonte inicial: Barlow Condensed Bold incorporada, OFL-1.1. Medição de avanços
+- Fontes incorporadas: Barlow Condensed Bold, Space Grotesk Regular e IBM Plex Sans Regular, OFL-1.1. Medição de avanços
   da TTF, wrapping, limite de linhas e rejeição de glifos ausentes/overflow.
   Sem fallback silencioso.
 - 409 para revisão/snapshot obsoleto; 422 para contrato/binding inválido.
@@ -81,34 +82,20 @@ Um único componente React interpreta todas as receitas:
 |---|---|
 | Grupos | Hierarquia, transformação/opacity herdadas, ordem e intervalos |
 | Texto | TTF incorporada, linhas medidas, alinhamento, animações e máscaras |
-| Shapes | Retângulo, elipse, polígono, polyline; fill/stroke/draw_progress |
+| Shapes | Retângulo, elipse, polígono, polyline; fill/stroke/draw_progress/gradientes |
 | Transformação | XYZ, escala XY, rotação Z e opacity |
 | Câmera | Perspectiva 2.5D, posição/rotação/focal e parallax |
 | Keyframes | Frames absolutos; linear, hold, cubic e Bezier; referências a cues |
 | Máscara | Clip SVG de grupo irmão, geometria e abertura animável |
 | Trajetória | Comprimento de polyline, marcador e transformação herdada |
 | Imagem/vídeo | Biblioteca; Img/OffthreadVideo, contain/cover, trim, vídeo mudo |
-| Efeitos | Partículas determinísticas por seed; light sweep limitado |
+| Efeitos | Partículas por seed; light sweep e glow limitados |
 | Áudio | sound_v1 existente, source trim, gain, fades e cues sincronizados |
 
 É 2.5D, sem malhas/volumes/physics/PBR/depth buffer. Grupos exigem anchor [0,0].
 `fade_slide` identifica a família tipográfica; movimentos são keyframes explícitos.
 Transições são dados, sem componentes React exclusivos para cada vídeo.
 
-## Receitas v1.1.0
-
-| Receita | Estrutura | Produção |
-|---|---|---|
-| sports.depth-impact | Campo em profundidade, bola vetorial, máscaras tipográficas, faixas próximas, trajetória e clímax circular | 4 shots: 2/3/4/3 s; 1080×1920 |
-| music.orbital-sleeve | Capa PNG original, órbitas/seguidores, rotação, tipografia e waveform em vídeo do próprio score | 2 shots: 4/6 s; 1080×1080 |
-| geo.route-explainer | Mapa ficcional vetorial, grade, rio, rota progressiva, marcador, câmera contínua e texto sintético | 3 shots: 5/5/5 s; 1920×1080 |
-
-Receitas 1.0.0 permanecem CONTRACT_REFERENCE; 1.1.0 são SUPPORTED.
-O índice e hashes são versionados. Os JSONs não são apresentados como vídeos.
-
-![Sports — frames extraídos do MP4](testing/m4-complete/sports-frames.png)
-![Music — frames extraídos do MP4](testing/m4-complete/music-frames.png)
-![Geo — frames extraídos do MP4](testing/m4-complete/geo-frames.png)
 
 ## API e UI
 
@@ -136,7 +123,7 @@ Aprovar um artefato nunca ativa publicação.
 
 ## Migração e restauração
 
-Head observado antes: 0012_creative_direction. Novo único head:
+Head antes da integração M4.C: 0012_creative_direction. Head vigente, sem nova migração no polimento M4.D:
 **0013_motion_artifact_review**.
 
 A tabela motion_artifact_reviews guarda projeto/job, revisão da decisão,
@@ -151,188 +138,254 @@ O backup existente agora inclui **creative-renders**.
 PostgreSQL 16: smoke ampliado para migrações/lease e dump/restore de revisão.
 SQLite instalado do usuário não foi aberto ou alterado.
 
+## Receitas 1.2.0 e generalização
+
+| Prova | Estrutura e direção | Tipografia / áudio |
+|---|---|---|
+| Sports · 12 s · 1080×1920 | 4 shots (2/3/4/3 s), campo em perspectiva, bola com painéis/gradientes/sombra, faixas próximas, máscaras, trajetória e clímax | Barlow Condensed Bold; percussão, antecipações e impactos em 0/2/5/9 s |
+| Music · 10 s · 1080×1080 | 2 shots (4/6 s), capa PNG original, três órbitas com trechos dianteiros/traseiros, gradientes, revelação e waveform original | Space Grotesk Regular; acorde/arpejo original, mudança em 4 s e resolução final |
+| Geo · 15 s · 1920×1080 | 3 shots (5/5/5 s), 80 triângulos de relevo ficcional, rio, rota contínua, marcadores e câmera acompanhando o percurso | IBM Plex Sans Regular; ambiente harmônico e sinais de localização em 0/5/10 s |
+
+O JSON contém a composição específica. `MotionSceneRenderer`, `motion-evaluate`,
+`MediaGridTimelineV2`, compilador e fila são compartilhados. Não há componentes
+SportsVideo/MusicVideo/GeoVideo. `motion_recipes_v12.py` apenas produz dados JSON;
+não renderiza nem funciona como outra timeline.
+
+Extensões fechadas: gradientes linear/radial, 2–8 stops ordenados da paleta DNA,
+glow 0–16 px com até oito nodes por cena, tracking -4..24 px e `line_index`
+0..5 para selecionar uma linha exata do texto aprovado. Nenhum texto factual é
+reescrito. Defaults novos são omitidos na serialização, preservando hashes antigos.
+Os tipos TS e JSON Schemas continuam derivados do Pydantic.
+
+![Sports — frames do MP4 atual](testing/m4-complete/m4d-sports-frames.png)
+![Music — frames do MP4 atual](testing/m4-complete/m4d-music-frames.png)
+![Geo — frames do MP4 atual](testing/m4-complete/m4d-geo-frames.png)
+
+## Fontes, assets e direitos
+
+Scores, capa, waveform, geometria da bola e mapa são materiais procedurais originais,
+registrados na biblioteca como OWNED/CC0-1.0, com SHA, MIME, dimensões/duração
+e direitos comerciais verificados. Vale Aurora e Norte Luminar são ficcionais.
+As imagens de referência do pedido não foram incorporadas aos filmes.
+
+Fontes locais OFL-1.1, sem download durante render:
+Barlow Condensed Bold existente; Space Grotesk Regular e IBM Plex Sans Regular.
+[Manifesto com commits, SHA e origens](../apps/renderer/src/motion-font-provenance.json).
+Space Grotesk foi fixada no commit `03507d024a01282884232081fc6011c09ff4e849`;
+IBM Plex no `71f558992315a12ca1f06a2215d57962a1992162`.
+Fontes e licenças acompanham o runtime desktop. Não houve atualização de dependências.
+
+Fontes oficiais verificadas:
+[Space Grotesk](https://github.com/floriankarsten/space-grotesk),
+[IBM Plex](https://github.com/IBM/plex),
+[Remotion renderMedia / colorSpace](https://www.remotion.dev/docs/renderer/render-media).
+O utilitário `vendor_motion_fonts.py` é de autoria explícita; não é chamado pelo aplicativo.
+
 ## Validação executada
 
-| Comando/teste | Resultado local |
+| Comando / gate | Resultado |
 |---|---|
-| `.venv/Scripts/python.exe -m pytest -q --tb=short` | 258 passed, 1 skipped; 137,61 s |
-| Regressão final Motion Engine/M3/M3.1 após projeção de job | 39 passed; 34,79 s |
-| `.venv/Scripts/ruff.exe check .` | PASS |
+| `.venv/Scripts/python.exe -m pytest -q tests` | 274 passed, 1 skipped, 156,32 s |
+| `.venv/Scripts/python.exe -m ruff check .` | PASS |
 | `python scripts/generate_motion_contracts.py --check` | PASS |
 | `python scripts/build_motion_recipes.py --check` | PASS |
-| `tsc --noEmit -p apps/web`, `apps/renderer`, `contracts/motion` | PASS |
-| `vitest run --root apps/web` | 8 passed |
-| `next build apps/web` | PASS, build otimizado/TypeScript/páginas estáticas |
-| `proof_motion_engine.py --run final-pathfix --concurrency 2 --approve-synthetic-storyboards` | 3 renders reais SUCCEEDED, projetos originais intactos |
-| `qa_motion_engine.py` nas três pastas | 1110 frames + PCM decodificados; PASS |
-| `repeat_motion_engine.py .../final/sports` | Mesmo plano; áudio idêntico; vídeo dentro da tolerância |
+| `node node_modules/typescript/lib/tsc.js --noEmit -p apps/web/tsconfig.json` | PASS |
+| Mesmo typecheck em apps/renderer e contracts/motion | PASS |
+| `node node_modules/vitest/vitest.mjs run --root apps/web` | 11 passed |
+| `node node_modules/next/dist/bin/next build apps/web` | PASS |
+| `proof_motion_engine.py --run m4d-final-02 --concurrency 2 --approve-synthetic-storyboards` | 3 jobs reais SUCCEEDED; projetos/EDL/aprovação originais preservados |
+| `qa_motion_engine.py` nas três pastas | Decode integral de 1110 frames + áudio; FFprobe, cor, loudness, sync e blackdetect |
+| `repeat_motion_engine.py .../m4d-final-02/sports` | Mesmo plano, concorrência 1; comparação com concorrência 2 |
+| `node scripts/qa_motion_player.mjs data/m4-complete-proof/m4d-final-02` | Player real, seek reverso, screenshots, SSIM, safe areas e benchmark |
 
-O skip é do teste existente dependente do runtime Blender 4.5 LTS não configurado. Não foi convertido em
-sucesso. Fixtures unitárias de revisão usam bytes sintéticos declarados e testam
-gates/hashes; as provas audiovisuais usam Remotion e FFmpeg reais.
+O skip é o runtime Blender 4.5 LTS opcional não configurado; não é necessário a M4.
+`npm` não estava no PATH local; os entrypoints Node instalados foram executados
+diretamente. Uma tentativa de usar o antigo caminho `handoff/reference/python/tests`
+constatou que essa pasta não existe neste checkout; nenhum teste inexistente é contado.
 
-Cobertura nova: concorrência de enqueue e decisão, hash físico/receita/runtime,
-direitos, revisões obsoletas, idempotência, restart, isolamento de projeto/auth,
-texto/glifos, retiming, máscara SVG, seek fora de ordem, easing, parallax e trajetórias.
-Testes existentes de contratos e M3/M3.1/M3.2 preservados.
+Cobertura: API, concorrência, restart, invalidação de revisão/hashes, EDL legada,
+migração/restore isolados, direitos, fontes, texto, gradientes inválidos/limites,
+receitas antigas, geometria, câmera, easing e seeks. Mocks de artefato existem apenas
+em testes unitários de gates; os MP4s desta entrega usam render real.
 
-CI da base M4.A foi conferida verde: Windows 40276428775, PostgreSQL 40276428747,
-contratos 40276428898. Isso não substitui os checks da nova branch: consultar o
-único PR desta entrega para o resultado Windows/PostgreSQL do HEAD atual.
-Smoke Windows ampliado para render M4 real no serviço empacotado e backup do
-artefato, somente no runner descartável. Nenhum instalador rodou no PC do usuário.
+### CI Windows e PostgreSQL
 
-## Evidência técnica, performance e limites
+O HEAD inicial e47a549 tinha checks verdes: Windows 40287667811, PostgreSQL
+40287667796 e contratos 40287667788. Esses resultados históricos não certificam
+o código alterado. Os checks do novo HEAD e seus resultados estão vinculados ao
+[PR #48](https://github.com/disksanluca/mediagrid/pull/48/checks), também registrados
+na entrega final. O smoke instalado no runner agora usa Sports 1.2.0, serviço e
+worker empacotados, MP4 H.264/AAC real e revisão pendente. O smoke PostgreSQL 16
+verifica migrações, lease e dump/restore. Nada disso instala o app no PC principal.
 
-H.264/yuv420p, AAC estéreo 48 kHz, 30 FPS, resolução integral:
-Sports 12 s/360 frames; Music 10 s/300; Geo 15 s/450.
-FFprobe e decode completo passaram. Tolerância: 1 frame para duração de vídeo;
-60 ms para áudio/container por padding AAC.
+## Critérios técnicos e limitações de medição
 
-QA: blackdetect (98% dos pixels abaixo de 2%, mínimo 30 ms), decode integral,
-peak/RMS, correlação com score original e pranchas. Zero intervalos pretos,
-sem clipping digital. Alinhamento dos trechos comparados: 0 a -0,333 ms;
-correlação mínima 0,996. Métricas não substituem avaliação artística/auditiva humana.
+- H.264/yuv420p, AAC estéreo 48 kHz, 30 FPS. Tolerância: um frame de vídeo;
+  60 ms de áudio/container por padding AAC.
+- BT.709 em primárias, transferência e matriz; range limitado `tv`.
+  O M4 usa PNG intermediário e `--color-space=bt709`. O default dos renders M3
+  permanece preservado.
+- Loudness medido com FFmpeg loudnorm (análise, saída descartada):
+  faixa de prova -24..-12 LUFS e true peak ≤-1 dBTP. Não é masterização universal
+  para todas as plataformas. Peak/RMS são calculados no estéreo; sync usa mono.
+- Blackdetect: 98% dos pixels abaixo de 2%, intervalo mínimo 30 ms.
+  Texto: métricas TTF no compilador e bounds reais do navegador em todos os frames
+  com opacidade >0,98. Revelações por máscara são intencionais.
+- Sync: correlação de janelas com o WAV autoral após cada cue, busca ±10 ms em
+  passos de 1/48000 s; não mede musicalidade nem intenção sonora.
+- Paridade Player/export: frames de leitura, meio e fim de cada shot a 50%;
+  SSIM ≥0,96 contra PNG extraído do MP4, incluindo diferenças H.264/BT.709/escala.
+  Não é uma afirmação de identidade de pixels em todos os frames.
+- Seek fora de ordem: mesmo SVG; tolerância de rasterização Chromium de máximo
+  2/255 e erro médio ≤0,2/255 por canal. O relatório registra também hashes PNG
+  e fração de canais alterados. Captura aguarda estabilidade do compositor.
+- Repetição de render: PSNR mínimo ≥50 dB e PCM idêntico. MP4 não precisa ter
+  o mesmo SHA entre concorrências; o hash sempre identifica o arquivo concreto.
 
-Windows, i7-13650HX, 31,7 GiB RAM; Node 24.19.0, Python 3.12.10,
-Remotion/Player 4.0.532, React 19.3.0, Next 16.3.8. Nenhuma nova dependência
-ou atualização automática de pacote.
+### Problemas encontrados e corrigidos nesta rodada
 
-Working set da árvore de processos amostrado a cada 500 ms mais latência CIM.
-Páginas compartilhadas podem contar duas vezes; picos curtos podem não aparecer.
-Não mede VRAM nem define hardware mínimo. Outros aplicativos/testes estavam abertos.
-Tempos e picos por produção: [evidence.json](testing/m4-complete/evidence.json).
+Music tinha sobreposição orbital e título 6 px acima da safe area; a geometria e
+a posição foram ajustadas. Sports inicialmente mediu -27,43 LUFS; o ganho do score
+original foi calibrado mantendo headroom e a hierarquia dinâmica.
+A comparação por seek detectou cache SVG obsoleto de gradientes no primeiro salto
+de Music, apesar do DOM idêntico. O interpretador agora recria somente folhas de
+material e seus defs por frame, preservando a identidade dos elementos de mídia.
+A comparação real foi repetida após a correção, e os três MP4s foram regenerados.
 
-Sports repetido com concurrency=1: 31.926 s e pico 1440.11 MiB.
-Comparação com concurrency=2: PCM idêntico, vídeo PSNR médio 61.865422 dB /
-mínimo 54.013103 dB. O SHA-256 do MP4 mudou. O teste exige PSNR ≥50 dB e PCM
-idêntico; não promete igualdade binária entre paralelismos ou ambientes.
-O plano e a composição permaneceram iguais.
+## Avaliação artística
 
-Inspeção dos frames: estruturas distintas, títulos legíveis nos frames examinados
-e materiais originais. Bola Sports estilizada, sem fotorealismo; Music com capa
-abstrata e síntese; Geo com movimento lento para leitura.
-Geo teve 4,33 s abaixo do limiar médio de movimento 0,1/255, embora rota/câmera
-evoluam. Isso não aprova nem reprova a direção artística.
+Frames foram inspecionados. Sports usa volume vetorial e hierarquia forte;
+Music usa capa abstrata e órbitas em camadas; Geo usa relevo ficcional e percurso
+progressivo. As três estruturas e fontes são diferentes.
 
-**Avaliação humana pendente:** musicalidade/timbre, densidade dos traços do mapa,
-tempo de leitura, sofisticação/continuidade das transições e adequação ao canal.
-O agente não realizou escuta humana nem declara equivalência ao V2 Broadcast Final.
-Não é uma declaração de produto universal pronto para produção.
+Limites visuais: bola estilizada sem fotorealismo/PBR; órbitas são projeções vetoriais,
+sem oclusão 3D física; a pequena faixa de waveform tem fundo visível; o terreno Geo
+é facetado e demonstrativo, sem cartografia real. As transições e a sofisticação
+audiovisual ainda dependem do julgamento humano, inclusive comparação com M3.2.
+Não foi realizada escuta humana pelo agente. Musicalidade, timbres, ritmo e
+adequação editorial permanecem para avaliação do usuário. Movimento de pixels
+e SSIM não aprovam artisticamente os filmes.
 
-## Reprodução e acesso aos vídeos
+## Arquivos finais, hashes e QA
 
-Na raiz do repo, com runtime local já configurado:
+[Evidência completa: planos, assets, FFprobe e métricas](testing/m4-complete/m4d-evidence.json).
+
+| Vídeo | Resolução | Frames | LUFS / dBTP | SSIM mínimo Player/export |
+|---|---|---:|---:|---:|
+| sports | 1080×1920 | 360 | -23.35 / -3.59 | 0.968732 |
+| music | 1080×1080 | 300 | -21.25 / -8.15 | 0.981709 |
+| geo | 1920×1080 | 450 | -22.32 / -10.63 | 0.984659 |
+
+Zero intervalos pretos e zero overflow observado nas checagens de texto dos 1110 frames.
+Defasagem medida: -0,333 ms no primeiro cue e 0 ms nos demais; correlação mínima 0.999977.
+
+- **sports**: [abrir MP4](<C:/Users/SP0097A/Documents/Codex/2026-10-12/github-plugin-github-openai-curated-remote-2/work/mediagrid/data/m4-complete-proof/m4d-final-02/sports/sports-motion.mp4>)
+  - SHA-256: `801e27519ef8974a784546c434733e2c85101c2c27cdaa42a916efea3004e7b9`
+  - Plano: `77a6edb0b503d6038d15b89cd0d92c3d852a54d7949bbde67af85324150159e0`
+  - Receita: `718bc8a8bfcae4085a99c380dd26f7f0c314a32587f1fbf57a9cf3b3403edb4c`
+- **music**: [abrir MP4](<C:/Users/SP0097A/Documents/Codex/2026-10-12/github-plugin-github-openai-curated-remote-2/work/mediagrid/data/m4-complete-proof/m4d-final-02/music/music-motion.mp4>)
+  - SHA-256: `d377d11f7575b36e135cf8355863e19526e9db5c47232ac356254d4bee297f19`
+  - Plano: `560df17339a3b600ed8fa5f28640aab7037d68b4433c0308b428760733e2c878`
+  - Receita: `c2504f99ffbc5972f348bf2ea7e0b115153e8c2d41a410a142216818883f0caf`
+- **geo**: [abrir MP4](<C:/Users/SP0097A/Documents/Codex/2026-10-12/github-plugin-github-openai-curated-remote-2/work/mediagrid/data/m4-complete-proof/m4d-final-02/geo/geo-motion.mp4>)
+  - SHA-256: `c528c00047441b624665aa4e26eb0ebc23e10aae5cde65a85364acca183b94c9`
+  - Plano: `27e77c857c00891e0e136463a5534b64770faa720e4a5891a990276af42e09c7`
+  - Receita: `795925370900dce5f8cb5428cbad056afb648304bae906227ac776fe5e9161ac`
+
+Cada pasta contém score, mídia original, preview, plano imutável, prova do job,
+FFprobe, loudness, QA, performance, frames e player-qa. Arquivos pesados são locais/ignorados;
+um clone novo não os contém. Os scripts reproduzem as provas em novo diretório.
+
+## Performance medida e metas do ADR
+
+Windows, Intel i7-13650HX (20 processadores lógicos), 31,7 GiB RAM; RTX 4050 disponível.
+Node 24.19.0, Python 3.12.10, Remotion/Player 4.0.532, React 19.3.0,
+Next 16.3.8 e FFmpeg/FFprobe 9.0.2. Nenhuma exigência de WebGL ou GPU dedicada.
+O perfil mínimo de 4 núcleos/8 threads/16 GiB sem GPU dedicada não foi ensaiado.
+
+| Prova | Render s / duração | CPU observado s | Pico working set MiB | CLI→primeiro frame s | Preview FPS / pico MiB | Browser→Player pronto s |
+|---|---:|---:|---:|---:|---:|---:|
+| sports | 40.53 / 3.38× | 119.69 | 1838.19 | 3.27 | 29.90 / 521.51 | 0.95 |
+| music | 24.71 / 2.47× | 50.33 | 1704.18 | 3.16 | 29.89 / 497.63 | 1.67 |
+| geo | 41.73 / 2.78× | 129.08 | 1795.62 | 2.94 | 29.90 / 481.62 | 1.67 |
+
+As três provas atenderam, **neste host**, export ≤10× duração, working set ≤4 GiB
+e preview ≥24 FPS por 10 s após warm-up de 1,5 s. Preview medido em 540×960,
+540×540 e 960×540, pelo Player real, com eventos de frames (não apenas RAF).
+Amostragem Windows: 500 ms mais latência CIM; soma de working sets pode contar
+páginas compartilhadas duas vezes. CPU é delta entre primeira/última observação;
+processos muito curtos/picos podem escapar. Não mede VRAM. Outros aplicativos
+estavam abertos; renders e benchmark do Player foram executados sequencialmente.
+
+Cold start aqui significa **novo processo CLI/browser até primeiro frame**, ou
+novo browser até o Player pronto; caches de sistema/bundler podem estar quentes.
+O startup CLI inclui bundle, fontes e preparação. Não é um reboot com cache de disco vazio.
+
+Sports repetido em concurrency=1: 56.85 s; PSNR médio 57.279389 dB,
+mínimo 52.512246 dB e PCM idêntico. SHA diferente, conforme a tolerância documentada.
+
+## Executar e verificar
+
+Na raiz do repositório, usando o runtime local já preparado:
 
 ```powershell
-.venv/Scripts/python.exe scripts/proof_motion_engine.py --run nova-prova --concurrency 2 --approve-synthetic-storyboards
+.venv/Scripts/python.exe scripts/proof_motion_engine.py --run nova-prova --recipe-version 1.2.0 --concurrency 2 --approve-synthetic-storyboards
 .venv/Scripts/python.exe scripts/qa_motion_engine.py data/m4-complete-proof/nova-prova/sports data/m4-complete-proof/nova-prova/music data/m4-complete-proof/nova-prova/geo
 .venv/Scripts/python.exe scripts/repeat_motion_engine.py data/m4-complete-proof/nova-prova/sports
+node scripts/qa_motion_player.mjs data/m4-complete-proof/nova-prova
 ```
 
-O script rejeita diretório existente/externo e define DB/dados isolados antes de
-importar backend. O flag aprova somente storyboard sintético de fixture.
-Para testar manualmente, API e worker devem apontar ao mesmo banco descartável;
-abrir Creative Director → Revisão. Opções em .env.example.
+O diretório precisa ser novo e interno a data/m4-complete-proof. O script define
+DB e dados isolados antes de importar o backend. A flag aprova exclusivamente os
+storyboards sintéticos. Render e revisão do projeto real seguem seus gates normais.
+A API e o worker devem usar o mesmo banco ao testar pela interface.
+Nenhuma variável nova: .env.example mantém caminhos do runtime e concorrência;
+as fontes são locais e as opções de material pertencem aos contratos.
 
-Raiz nesta máquina:
-`C:/Users/SP0097A/Documents/Codex/2026-10-12/github-plugin-github-openai-curated-remote-2/work/mediagrid`.
+A QA do Player usa o navegador headless do Remotion e um servidor temporário
+restrito a loopback/arquivos registrados; não controla o navegador pessoal.
+Seu acesso CDP está acoplado ao Remotion 4.0.532 instalado e deve ser revalidado
+numa atualização dessa dependência.
 
-- `data/m4-complete-proof/final-pathfix/sports/sports-motion.mp4`
-- `data/m4-complete-proof/final-pathfix/music/music-motion.mp4`
-- `data/m4-complete-proof/final-pathfix/geo/geo-motion.mp4`
+A interação completa da UI já havia sido exercitada no build cc773bc:
+preview, reprodução, enfileiramento real, comparação e solicitação de revisão.
+As capturas [Player](testing/m4-complete/player-production.png) e
+[revisão](testing/m4-complete/artifact-review-production.png) são evidências históricas
+dessa sessão. Nesta revisão foram testados o Player/composição atuais, API e tipos;
+não se apresenta aquela captura como screenshot da nova execução.
 
-Abra os MP4s num player local com áudio. Cada pasta contém plano, preview, prova
-do job, score, FFprobe, QA, performance e frames. Hashes/IDs/proveniência em
-[evidence.json](testing/m4-complete/evidence.json).
-Mídias procedurais originais OWNED/CC0-1.0; fonte sob OFL incorporada.
+## Arquivos alterados e decisões
 
-## Arquivos alterados
-
-| Área | Arquivos |
+| Área | Arquivos principais |
 |---|---|
-| Compilador/revisão | apps/api/creative/engine.py, artifacts.py, motion.py; routes/creative.py |
-| Contratos/fontes | motion_contracts/render.py, requests.py, fonts.py; contracts/motion/generated |
-| EDL/gates | apps/api/edl_v2.py, routes/projects.py |
-| Banco/backup | apps/api/models.py, schemas.py, backup.py; migrations/versions/0013_motion_artifact_review.py |
-| Renderer | motion-evaluate.ts, motion-scene.tsx, timeline-v2.tsx, types.ts |
-| Creative Director | creative-motion-engine.tsx, creative-workspace.tsx, creative-motion-proof.tsx; lib/api.ts, motion-types.ts, types.ts |
-| Receitas | contracts/motion/recipes/*.1.1.0.json, index.json; build_motion_recipes.py |
-| Worker | workers/render/creative_motion.py |
-| Provas/QA | proof_motion_engine.py, motion_engine_media.py, qa_motion_engine.py, repeat_motion_engine.py, measure-motion-process.ps1 |
-| Desktop/CI | build-desktop-sidecar.ps1, smoke_installed_motion.py, smoke-desktop-windows.ps1, smoke_postgres_migrations.py, verify_postgres_restore.py, workflows/motion-contracts.yml |
-| Testes | test_motion_engine.py, test_motion_migration.py, test_motion_contracts.py, test_migrations.py, motion-engine.test.tsx |
-| Config/docs | .env.example, este relatório, docs/testing/m4-complete |
+| Compilador e revisão | apps/api/creative/engine.py, artifacts.py, motion.py; routes/creative.py |
+| Contratos | motion_contracts/models.py, validation.py, render.py, requests.py, fonts.py; contracts/motion/generated |
+| EDL e banco | edl_v2.py; routes/projects.py; models.py; schemas.py; backup.py; migrations/versions/0013_motion_artifact_review.py |
+| Interpretador | apps/renderer/src/motion-scene.tsx, motion-evaluate.ts, timeline-v2.tsx, types.ts, motion-fonts.tsx |
+| Fontes | space-font.ts, plex-font.ts, respectivos OFL.txt e motion-font-provenance.json |
+| Interface | creative-motion-engine.tsx, creative-workspace.tsx, creative-motion-proof.tsx; api.ts, motion-types.ts, types.ts |
+| Receitas | contracts/motion/recipes/*.1.1.0.json, *.1.2.0.json, index.json; build_motion_recipes.py, motion_recipes_v12.py |
+| Worker | creative_motion.py, remotion_runtime.py |
+| Provas e QA | proof_motion_engine.py, repeat_motion_engine.py, qa_motion_engine.py, qa_motion_player.mjs, motion-player-harness.tsx, motion_engine_media.py, measure-motion-process.ps1 |
+| Desktop / CI | build-desktop-sidecar.ps1, smoke_installed_motion.py, smoke-desktop-windows.ps1, smoke_postgres_migrations.py, verify_postgres_restore.py, motion-contracts.yml |
+| Testes | test_motion_engine.py, test_motion_contracts.py, test_motion_m4d.py, test_motion_migration.py, test_migrations.py, motion-engine.test.tsx |
+| Documentação | este relatório, ADR M4, contracts/motion/README.md, docs/testing/m4-complete |
 
-## Integrações e próximo passo
+A tabela cobre a entrega consolidada desde PR #47; nem todos esses arquivos foram
+alterados novamente no polimento 1.2.0. O diff do PR é a lista completa revisável.
 
-| Recurso | Estado |
+| Integração | Estado |
 |---|---|
-| Creative → Motion → Player → worker → MP4 | REAL, três provas completas |
-| Revisão de artefato/backup | REAL, persistência e concorrência testadas |
-| Remotion/FFmpeg/fontes/mídia | REAL, local e com proveniência |
-| Visual Reference Scout/VLM/moodboard automático | PAPER, apenas ADR |
-| APIs pagas/publicação/VPS | Não ativados |
+| FastAPI / SQLite / biblioteca / fila / revisão | REAL, banco descartável nesta prova |
+| Remotion / Player / FFmpeg / áudio sintetizado | REAL, três MP4s verificáveis |
+| PostgreSQL / desktop empacotado | Gates reais na CI, resultados nos checks do PR |
+| Fixtures unitárias de gates | MOCK explícito, não usado para produzir os filmes |
+| Visual Reference Scout / descoberta web / VLM | PAPER, somente roadmap no ADR |
+| Publicação / API paga / VPS / Lovable | Não ativados nesta entrega |
 
-Nenhuma chamada paga; energia/hardware não medidos. O uso comercial do runtime
-Remotion continua sujeito à licença aplicável à organização; nenhuma contratação
-foi feita. Usa-se o runtime já presente.
+Nenhuma API paga foi consumida. CPU/RAM/tempo foram medidos; consumo elétrico
+e custo de energia não foram medidos. Não há VPS obrigatório para estas provas.
+O host mínimo sem GPU dedicada ainda precisa de benchmark próprio.
 
-Scout permanece no [ADR M4](M4_MOTION_COMPOSITION_ENGINE_ADR.md): descoberta
-assíncrona, manifest versionado, proveniência/licença/cache/dedupe, análise local
-opcional, propostas originais e adoção editorial revisada. Compilador/renderizador
-não pesquisam a web e operam sobre inputs fixados.
-
-Próximo passo: avaliação humana dos três vídeos. Instalação principal, publicação
-e Scout dependem de autorização separada.
-
-Referências oficiais consultadas:
-[OffthreadVideo](https://www.remotion.dev/docs/offthreadvideo),
-[espera de render](https://www.remotion.dev/docs/delay-render),
-[Player](https://www.remotion.dev/docs/player/player).
-
-## Evidência final pela interface
-
-Capturas e interação verificadas no build anterior cc773bc, banco descartável final.
-A correção posterior afeta apenas a normalização de caminhos do manifesto; as capturas
-permanecem evidência histórica dessa sessão, não da nova base final-pathfix.
-Receita e áudio do brief selecionados; botão Renderizar MP4 produziu job real
-1edfc5d1-feb9-591a-a036-f255f318927e, 540×960, 360 frames, SUCCEEDED.
-Player reproduzido e pausado em 7 s. Dois MP4s selecionados lado a lado;
-solicitação de revisão persistida em r1. Botão Aprovar permaneceu desabilitado
-sem confirmação humana. Console do navegador: nenhum erro capturado.
-
-![Player real em produção](testing/m4-complete/player-production.png)
-![Comparação e revisão por hash](testing/m4-complete/artifact-review-production.png)
-
-## Medições dos três arquivos finais
-
-| Vídeo | Render (s) | Fluxo/worker (s) | Pico amostrado (MiB) | Nodes por shot |
-|---|---:|---:|---:|---|
-| sports | 20.9 | 22.6 | 1654.84 | [21, 20, 23, 21] |
-| music | 17.97 | 19.462 | 1520.69 | [15, 15] |
-| geo | 22.545 | 23.741 | 1648.02 | [29, 29, 29] |
-
-| Vídeo | SHA-256 do MP4 final |
-|---|---|
-| sports | `09cf151390a3f42517d5cff380e659436dba45c2dd452f06404deecc96124b93` |
-| music | `110c98f722353c4ad7d6088abc0a6cfad733424c3e5817782f11f2a8fe38bfb1` |
-| geo | `c2fab2c4c65c6c6071040637ba054c63eb38f7fa7f91fbaec82c727f50992545` |
-
-## Correção encontrada pelo teste Windows instalado
-
-A primeira execução do PR (#48, run 40284767369) compilou o serviço e o instalador,
-mas detectou erro 500 na prévia M4 instalada: PyInstaller forneceu __file__ pelo
-alias Windows 8.3, enquanto a raiz já estava resolvida para o caminho longo.
-O manifesto agora resolve o arquivo e a raiz de forma consistente antes de
-produzir chaves relativas; nenhum gate de hash foi removido.
-
-Novo teste de regressão com alias de caminho: 25 testes de test_motion_engine.py
-passaram em 23,74 s; Ruff nos dois arquivos passou. A suíte completa anterior
-permanece registrada acima; o resultado completo posterior está nos checks do PR.
-
-As três provas foram regeneradas em final-pathfix com os hashes atuais, QA completo
-e nova repetição Sports. A pasta final anterior foi preservada. Vídeos anteriores
-não são silenciosamente reaprovados: a mudança do hash de runtime os torna
-obsoletos para novas decisões/download pelo fluxo vigente.
-A validação Windows corrigida deve ser consultada no PR antes de instalar.
+**Próximo passo: avaliação artística humana dos três vídeos.** Não avançar
+automaticamente ao Scout, publicação, instalação principal ou novas integrações.

@@ -21,7 +21,7 @@ from ..models import (
     KnowledgeClaim,
 )
 from ..motion_contracts.canonical import contract_sha256
-from ..motion_contracts.fonts import font_source, layout_text
+from ..motion_contracts.fonts import FONTS, font_source, layout_text
 from ..motion_contracts.models import (
     AssetBinding,
     MotionComposition,
@@ -30,7 +30,7 @@ from ..motion_contracts.models import (
 from ..motion_contracts.registry import REGISTRY_ROOT, load_recipe, recipe_digest
 from ..motion_contracts.render import MotionSceneSpec
 from ..motion_contracts.requests import EngineParameters, EngineRequest
-from ..motion_contracts.validation import slots_used, validate_binding
+from ..motion_contracts.validation import shot_text, slots_used, validate_binding
 from ..scene_media import scene_asset, sound_asset
 from .contracts import CreativeDNA, CreativeStoryboard
 from .hashing import content_sha256
@@ -43,7 +43,7 @@ def recipes_read() -> dict:
     recipes = [load_recipe(r["id"], r["version"]) for r in index["recipes"]]
     return {
         "schema_version": "motion_capabilities_v1",
-        "fonts": ["Barlow Condensed"],
+        "fonts": list(FONTS),
         "fps": 30,
         "parameters": EngineParameters.model_json_schema(),
         "recipes": [
@@ -53,7 +53,7 @@ def recipes_read() -> dict:
                     {"slot": s.shot_slot, "reference_duration_ms": s.required_duration_ms}
                     for s in r.scenes
                 ],
-                "status": "SUPPORTED" if r.version == "1.1.0" else "CONTRACT_REFERENCE",
+                "status": "SUPPORTED" if r.version in {"1.1.0", "1.2.0"} else "CONTRACT_REFERENCE",
             }
             for r in recipes
         ],
@@ -213,10 +213,10 @@ def derive_engine(db: Session, project_id: str, request: EngineRequest) -> dict:
     identity = CreativeDNA.model_validate(dna.payload)
     try:
         template = load_recipe(request.recipe.id, request.recipe.version)
-        if template.version != "1.1.0" or template.sha256 != request.recipe.sha256:
+        if template.version not in {"1.1.0", "1.2.0"} or template.sha256 != request.recipe.sha256:
             raise ValueError("RECIPE_NOT_SUPPORTED or recipe hash changed")
-        if (identity.font_display, identity.font_body) != ("Barlow Condensed",) * 2:
-            raise ValueError("FONT_UNSUPPORTED: use the bundled Barlow Condensed in DNA")
+        if any(f not in FONTS for f in (identity.font_display, identity.font_body)):
+            raise ValueError("FONT_UNSUPPORTED: use bundled fonts from capabilities in DNA")
         recipe = instantiate(template, storyboard.shots, request.parameters)
         if set(request.asset_bindings) != set(recipe.asset_slots):
             raise ValueError("Asset bindings must match the recipe slots exactly")
@@ -291,12 +291,17 @@ def derive_engine(db: Session, project_id: str, request: EngineRequest) -> dict:
                     continue
                 binding = node.params.text
                 text = (
-                    shot.on_screen_text
+                    shot_text(binding, shot.on_screen_text)
                     if binding.kind == "shot_field"
                     else claims[binding.claim_id][binding.field]
                 )
                 texts[node.id], measurements[f"{shot.id}/{node.id}"] = layout_text(
-                    text, node.params.size, node.params.max_width, node.params.max_lines
+                    text,
+                    node.params.size,
+                    node.params.max_width,
+                    node.params.max_lines,
+                    [identity.font_display, identity.font_body][node.params.font.index],
+                    node.params.letter_spacing,
                 )
             used = {slot for slot, _ in slots_used(scene.graph)}
             spec = MotionSceneSpec(
@@ -360,6 +365,15 @@ def derive_engine(db: Session, project_id: str, request: EngineRequest) -> dict:
         for p in sorted([*(module_root / "motion_contracts").glob("*.py"), module_file])
     }
     runtime["font_license_sha256"] = sha256_file(font_source().with_name("sports-font-OFL.txt"))
+    runtime["fonts"] = {
+        family: {
+            "source_sha256": sha256_file(font_source(family)),
+            "license_sha256": sha256_file(
+                font_source(family).with_name(FONTS[family] + "-OFL.txt")
+            ),
+        }
+        for family in sorted({identity.font_display, identity.font_body})
+    }
     runtime["worker_files"] = {
         name: sha256_file(module_root.parents[1] / "workers" / "render" / name)
         for name in ("creative_motion.py", "remotion_runtime.py")
@@ -407,6 +421,7 @@ def derive_engine(db: Session, project_id: str, request: EngineRequest) -> dict:
         "approval_scope": "STORYBOARD_INPUT_ONLY; AUDIOVISUAL_REVIEW_PENDING",
         "render": {
             "composition": "MediaGridTimelineV2",
+            "color_space": "bt709",
             "codec": "h264",
             "audio_codec": "aac",
             "fps": 30,

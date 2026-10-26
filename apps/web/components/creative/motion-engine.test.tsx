@@ -2,10 +2,14 @@ import {describe,it,expect,vi} from "vitest";
 import {renderToStaticMarkup} from "react-dom/server";
 import {createElement} from "react";
 import sports from "../../../../contracts/motion/recipes/sports.depth-impact.1.1.0.json";
+import sports12 from "../../../../contracts/motion/recipes/sports.depth-impact.1.2.0.json";
+import music12 from "../../../../contracts/motion/recipes/music.orbital-sleeve.1.2.0.json";
+import geo12 from "../../../../contracts/motion/recipes/geo.route-explainer.1.2.0.json";
 import type {MotionSceneSpec} from "../../../../contracts/motion/generated/motion-contracts";
 import {animated,ease,frameAt,along,project,identity,particle} from "../../../renderer/src/motion-evaluate";
 const playback=vi.hoisted(()=>({frame:30}));
 vi.mock("remotion",()=>({
+  staticFile:(file:string)=>file,
   useCurrentFrame:()=>playback.frame,
   useVideoConfig:()=>({width:1080,height:1920,fps:30}),
   AbsoluteFill:({children}: {children:unknown})=>children,
@@ -15,6 +19,26 @@ import {MotionSceneRenderer} from "../../../renderer/src/motion-scene";
 const graph=sports.scenes[0].graph as MotionSceneSpec["graph"];
 
 describe("Shared motion evaluator",()=>{
+  it.each([
+    ["sports",sports12,"Barlow Condensed"],
+    ["music",music12,"Space Grotesk"],
+    ["geo",geo12,"IBM Plex Sans"],
+  ] as const)("renders %s materials with the shared interpreter and no accumulated seek state",(_label,recipe,font)=>{
+    const graph=recipe.scenes[0].graph as unknown as MotionSceneSpec["graph"];
+    const texts=Object.fromEntries(graph.nodes.filter(n=>n.type==="text").map(n=>[n.id,"APPROVED"]));
+    const item={id:"recipe-proof",start_ms:0,duration_ms:recipe.scenes[0].required_duration_ms,z_index:10,
+      motion:{schema_version:"motion_scene_render_v1" as const,graph,
+        palette:["#071217","#FFF4DA","#F4BE4E","#25423C","#78918A","#B76D28","#63BAC6"],
+        fonts:[font,font] as MotionSceneSpec["fonts"],texts,assets:{},
+        media_files:{cover:"cover.png",waveform:"wave.mp4",score:"score.wav"}}};
+    const render=()=>renderToStaticMarkup(createElement(MotionSceneRenderer,{item}));
+    playback.frame=30;const original=render();
+    expect(original).toContain("Gradient");
+    expect(original).toContain('data-motion-text');
+    expect(original).not.toContain("NaN");
+    playback.frame=75;expect(render()).not.toEqual(original);
+    playback.frame=30;expect(render()).toEqual(original);
+  });
   it("uses absolute quantization and holds endpoints",()=>{
     expect(frameAt(1001)+frameAt(10999)).toBe(360);
     const node={animations:[{property:"opacity" as const,keyframes:[

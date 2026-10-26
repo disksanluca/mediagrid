@@ -1,6 +1,7 @@
 import {Fragment, type ReactNode} from "react";
 import {AbsoluteFill, Img, OffthreadVideo, Sequence, useCurrentFrame, useVideoConfig} from "remotion";
-import type {MotionSceneSpec, ShapeNode} from "../../../contracts/motion/generated/motion-contracts";
+import type {MotionSceneSpec, ShapeNode, Gradient} from "../../../contracts/motion/generated/motion-contracts";
+import {motionFonts} from "./motion-fonts";
 import {animated, along, frameAt, identity, multiply, particle, point, project, transform, type Matrix, type Node} from "./motion-evaluate";
 type Geometry=ShapeNode["params"]["geometry"];
 import {mediaSource} from "./media-source";
@@ -26,6 +27,13 @@ export function MotionSceneRenderer({item}:{item:MotionOverlay}) {
   const spec=item.motion,scene=spec.graph;
   const nodes=new Map(scene.nodes.map(n=>[n.id,n]));
   const palette=(index:number)=>{const color=spec.palette[index];if(!color)throw new Error("Missing DNA color");return color;};
+  const paint=(g:Gradient|undefined|null,id:string)=>{
+    if(!g)return null;
+    const stops=g.stops.map((s,i)=><stop key={i} offset={s.offset} stopColor={palette(s.color.index)} stopOpacity={s.opacity}/>);
+    return g.kind==="linear"?<linearGradient id={id} x1={g.start?.[0]??0} y1={g.start?.[1]??0}
+      x2={g.end?.[0]??1} y2={g.end?.[1]??1}>{stops}</linearGradient>
+      :<radialGradient id={id} cx={g.start?.[0]??0} cy={g.start?.[1]??0} r={g.radius??.7}>{stops}</radialGradient>;
+  };
   const sample=(n:Node,property:string,base:number)=>animated(n,property,base,frame,scene,item.start_ms);
   type State={matrix:Matrix;z:number;opacity:number;active:[number,number];order:number[];masks:Node[]};
   const states=new Map<string,State>();
@@ -58,18 +66,25 @@ export function MotionSceneRenderer({item}:{item:MotionOverlay}) {
     if(n.type==="text"){
       const p=n.params,text=spec.texts[n.id];
       size=[p.max_width,p.size*(p.line_height??1)*(text?.split("\n").length??1)];
-      content=<text fill={palette(p.fill.index)} fontFamily="MG Barlow" fontWeight={700}
-        fontSize={p.size} style={{fontKerning:"none",fontVariantLigatures:"none"}}
+      const font=motionFonts[spec.fonts[p.font.index]];
+      content=<text data-motion-text={n.id} fill={palette(p.fill.index)} fontFamily={font.family} fontWeight={font.weight}
+        fontSize={p.size} letterSpacing={p.letter_spacing??0} style={{fontKerning:"none",fontVariantLigatures:"none"}}
         textAnchor={p.align==="center"?"middle":p.align==="right"?"end":"start"}>
         {text.split("\n").map((line,i)=><tspan key={i} x={p.align==="center"?p.max_width/2:p.align==="right"?p.max_width:0}
           y={p.size*.84+i*p.size*(p.line_height??1)}>{line}</tspan>)}
       </text>;
     }else if(n.type==="shape"){
       const p=n.params,progress=sample(n,"draw_progress",p.draw_progress??1);size=bounds(p.geometry);
-      content=geometry(p.geometry,{fill:p.fill?palette(p.fill.index):"none",fillOpacity:progress,
-        stroke:p.stroke?palette(p.stroke.index):"none",strokeWidth:p.stroke_width??1,
+      const id=`paint-${item.id}-${n.id}`;
+      const attributes={fill:p.fill_gradient?`url(#${id}-fill)`:p.fill?palette(p.fill.index):"none",fillOpacity:progress,
+        stroke:p.stroke_gradient?`url(#${id}-stroke)`:p.stroke?palette(p.stroke.index):"none",strokeWidth:p.stroke_width??1,
         strokeLinejoin:"round",strokeLinecap:"round",pathLength:1,
-        strokeDasharray:1,strokeDashoffset:1-progress});
+        strokeDasharray:1,strokeDashoffset:1-progress};
+      content=<><defs>{paint(p.fill_gradient,id+"-fill")}{paint(p.stroke_gradient,id+"-stroke")}
+        {!!p.glow&&<filter id={id+"-glow"} x="-25%" y="-25%" width="150%" height="150%">
+          <feGaussianBlur stdDeviation={p.glow}/></filter>}
+      </defs>{!!p.glow&&geometry(p.geometry,{...attributes,filter:`url(#${id}-glow)`,opacity:.65})}
+      {geometry(p.geometry,attributes)}</>;
     }else if(n.type==="path_follower"){
       const path=nodes.get(n.params.path_ref);
       if(!path||path.type!=="shape"||!("points" in path.params.geometry))throw new Error("Invalid path");
@@ -112,9 +127,12 @@ export function MotionSceneRenderer({item}:{item:MotionOverlay}) {
     }
     const anchor=n.anchor??[0,0];
     matrix=multiply(matrix,[1,0,0,1,-anchor[0]*size[0],-anchor[1]*size[1]]);
-    let result=<g transform={matrixString(projected(n,matrix))} opacity={s.opacity}>{content}</g>;
+    let result=<g data-motion-node={n.id} transform={matrixString(projected(n,matrix))} opacity={s.opacity}>{content}</g>;
     for(const mask of s.masks)result=<g clipPath={`url(#clip-${item.id}-${mask.id})`}>{result}</g>;
-    return <Fragment key={n.id}>{result}</Fragment>;
+    // SVG paint servers can retain stale geometry after the initial seek in Chromium.
+    // Recreate only material leaves, including their defs; media elements keep identity.
+    const material=n.type==="shape"&&(n.params.fill_gradient||n.params.stroke_gradient);
+    return <Fragment key={material?`${n.id}-${frame}`:n.id}>{result}</Fragment>;
   };
   return <AbsoluteFill style={{zIndex:item.z_index,pointerEvents:"none"}}>
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{overflow:"hidden"}}>
