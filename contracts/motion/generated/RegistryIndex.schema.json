@@ -1,0 +1,57 @@
+{
+  "$comment": "Generated from Pydantic. Graph/temporal/binding/hash semantics require Python validators.",
+  "$defs": {
+    "RecipeRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 30,
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "sha256"
+      ],
+      "title": "RecipeRef",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "recipes": {
+      "items": {
+        "$ref": "#/$defs/RecipeRef"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Recipes",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "motion_registry_v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "recipes"
+  ],
+  "title": "RegistryIndex",
+  "type": "object"
+}

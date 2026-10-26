@@ -1,0 +1,24 @@
+{
+  "schema_version": "storyboard_v1",
+  "direction_id": "fixture-music-direction",
+  "duration_ms": 10000,
+  "fps": 30,
+  "shots": [
+    {
+      "id": "main",
+      "start_ms": 0,
+      "duration_ms": 10000,
+      "beat": "Contract fixture only",
+      "on_screen_text": "PULSO ORIGINAL",
+      "visual_description": "Synthetic structural fixture; not a produced video.",
+      "camera_intent": "Static",
+      "motion_intent": "Static",
+      "audio_cue": "",
+      "asset_ids": [
+        "fixture-music-score",
+        "fixture-music-cover"
+      ],
+      "claim_ids": []
+    }
+  ]
+}

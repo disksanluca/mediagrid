@@ -1,0 +1,32 @@
+name: Motion contract foundation
+
+on:
+  pull_request:
+    paths:
+      - "apps/api/motion_contracts/**"
+      - "contracts/motion/**"
+      - "scripts/generate_motion_contracts.py"
+      - "tests/test_motion_contracts.py"
+      - ".github/workflows/motion-contracts.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: astral-sh/setup-uv@v6
+      - run: uv python install 3.12
+      - run: uv sync --frozen
+      - run: npm ci
+      - run: uv run python scripts/generate_motion_contracts.py --check
+      - run: uv run pytest -q tests/test_motion_contracts.py
+      - run: uv run ruff check apps/api/motion_contracts scripts/generate_motion_contracts.py tests/test_motion_contracts.py
+      - run: node node_modules/typescript/bin/tsc --noEmit -p contracts/motion/tsconfig.json

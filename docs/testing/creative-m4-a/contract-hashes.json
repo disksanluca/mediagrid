@@ -1,0 +1,26 @@
+[
+  {
+    "fixture": "sports",
+    "recipe_id": "sports.depth-impact",
+    "recipe_version": "1.0.0",
+    "recipe_sha256": "9b4a5dd40111743d9561e2b92bfb77ecee777c61444fed1f035a64cfc381b061",
+    "composition_sha256": "036a591a2099ad600cb57ea0507e9747c96a7ef5bdeedc3493431e4a878240db",
+    "rendered": false
+  },
+  {
+    "fixture": "music",
+    "recipe_id": "music.orbital-sleeve",
+    "recipe_version": "1.0.0",
+    "recipe_sha256": "c36e17f249d0fb343ec6f79b2f8ee1b29190aac6824a9f50f373572dcad47d2f",
+    "composition_sha256": "d916829c847cc36acbe5996d527ae8ba15c36e293854c02d5606bc93eef4e507",
+    "rendered": false
+  },
+  {
+    "fixture": "geo",
+    "recipe_id": "geo.route-explainer",
+    "recipe_version": "1.0.0",
+    "recipe_sha256": "9d0f1d3dcf0556b9b89a6a8b47a617a4e85b1e926e2e874839161e6905a2859d",
+    "composition_sha256": "87dc33f3c5b02f0ba61f928335c50c476f4dc4426cf3560e3b4c6a8efc4873e8",
+    "rendered": false
+  }
+]

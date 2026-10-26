@@ -1,0 +1,15 @@
+{
+  "schema_version": "creative_dna_v1",
+  "palette": [
+    "#10242B",
+    "#F4F0E6",
+    "#DBF560"
+  ],
+  "font_display": "Barlow Condensed",
+  "font_body": "Barlow Condensed",
+  "tone": "Original fictional study",
+  "energy": "balanced",
+  "must_have": [],
+  "avoid": [],
+  "max_words_per_card": 10
+}

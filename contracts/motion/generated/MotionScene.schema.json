@@ -1,0 +1,2581 @@
+{
+  "$comment": "Generated from Pydantic. Graph/temporal/binding/hash semantics require Python validators.",
+  "$defs": {
+    "AbsoluteTime": {
+      "additionalProperties": false,
+      "properties": {
+        "at_ms": {
+          "maximum": 30000,
+          "minimum": 0,
+          "title": "At Ms",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "ms",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "at_ms"
+      ],
+      "title": "AbsoluteTime",
+      "type": "object"
+    },
+    "AngleAnimation": {
+      "additionalProperties": false,
+      "properties": {
+        "keyframes": {
+          "items": {
+            "$ref": "#/$defs/AngleFrame"
+          },
+          "maxItems": 32,
+          "minItems": 2,
+          "title": "Keyframes",
+          "type": "array"
+        },
+        "property": {
+          "const": "rotate_z",
+          "title": "Property",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "keyframes"
+      ],
+      "title": "AngleAnimation",
+      "type": "object"
+    },
+    "AngleFrame": {
+      "additionalProperties": false,
+      "properties": {
+        "easing": {
+          "anyOf": [
+            {
+              "enum": [
+                "linear",
+                "hold",
+                "cubic_in_out",
+                "cubic_out"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/Bezier"
+            }
+          ],
+          "default": "linear",
+          "title": "Easing"
+        },
+        "time": {
+          "discriminator": {
+            "mapping": {
+              "cue": "#/$defs/CueTime",
+              "ms": "#/$defs/AbsoluteTime"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AbsoluteTime"
+            },
+            {
+              "$ref": "#/$defs/CueTime"
+            }
+          ],
+          "title": "Time"
+        },
+        "value": {
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "time",
+        "value"
+      ],
+      "title": "AngleFrame",
+      "type": "object"
+    },
+    "Bezier": {
+      "additionalProperties": false,
+      "properties": {
+        "controls": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Controls",
+          "type": "array"
+        },
+        "kind": {
+          "const": "cubic_bezier",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "controls"
+      ],
+      "title": "Bezier",
+      "type": "object"
+    },
+    "BoxGeometry": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "exclusiveMinimum": 0,
+          "maximum": 8192,
+          "title": "Height",
+          "type": "number"
+        },
+        "kind": {
+          "enum": [
+            "rect",
+            "ellipse"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "maximum": 8192,
+          "title": "Width",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "width",
+        "height"
+      ],
+      "title": "BoxGeometry",
+      "type": "object"
+    },
+    "Camera": {
+      "additionalProperties": false,
+      "properties": {
+        "animations": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "position": "#/$defs/PositionAnimation",
+                "rotate_z": "#/$defs/AngleAnimation"
+              },
+              "propertyName": "property"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/PositionAnimation"
+              },
+              {
+                "$ref": "#/$defs/AngleAnimation"
+              }
+            ]
+          },
+          "maxItems": 2,
+          "title": "Animations",
+          "type": "array"
+        },
+        "focal_length": {
+          "default": 1200,
+          "maximum": 2400,
+          "minimum": 800,
+          "title": "Focal Length",
+          "type": "number"
+        },
+        "position": {
+          "items": {
+            "maximum": 8192,
+            "minimum": -8192,
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Position",
+          "type": "array"
+        },
+        "rotate_z": {
+          "default": 0,
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Rotate Z",
+          "type": "number"
+        }
+      },
+      "title": "Camera",
+      "type": "object"
+    },
+    "ClaimText": {
+      "additionalProperties": false,
+      "properties": {
+        "claim_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Claim Id",
+          "type": "string"
+        },
+        "field": {
+          "enum": [
+            "text",
+            "source_label"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "kind": {
+          "const": "approved_claim_field",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "claim_id",
+        "field"
+      ],
+      "title": "ClaimText",
+      "type": "object"
+    },
+    "Cue": {
+      "additionalProperties": false,
+      "properties": {
+        "at_ms": {
+          "maximum": 30000,
+          "minimum": 0,
+          "title": "At Ms",
+          "type": "integer"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "sound": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SoundCue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "at_ms"
+      ],
+      "title": "Cue",
+      "type": "object"
+    },
+    "CueTime": {
+      "additionalProperties": false,
+      "properties": {
+        "cue_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Cue Ref",
+          "type": "string"
+        },
+        "kind": {
+          "const": "cue",
+          "title": "Kind",
+          "type": "string"
+        },
+        "offset_ms": {
+          "default": 0,
+          "maximum": 30000,
+          "minimum": -30000,
+          "title": "Offset Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "cue_ref"
+      ],
+      "title": "CueTime",
+      "type": "object"
+    },
+    "FollowerParams": {
+      "additionalProperties": false,
+      "properties": {
+        "fill": {
+          "$ref": "#/$defs/PaletteBinding"
+        },
+        "marker": {
+          "$ref": "#/$defs/BoxGeometry"
+        },
+        "path_ref": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Path Ref",
+          "type": "string"
+        },
+        "progress": {
+          "default": 0,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Progress",
+          "type": "number"
+        }
+      },
+      "required": [
+        "path_ref",
+        "marker",
+        "fill"
+      ],
+      "title": "FollowerParams",
+      "type": "object"
+    },
+    "FontBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "dna_font",
+          "default": "dna_font",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "index"
+      ],
+      "title": "FontBinding",
+      "type": "object"
+    },
+    "GroupNode": {
+      "additionalProperties": false,
+      "properties": {
+        "active_ms": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 30000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active Ms"
+        },
+        "anchor": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Anchor",
+          "type": "array"
+        },
+        "animations": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "draw_progress": "#/$defs/UnitAnimation",
+                "opacity": "#/$defs/UnitAnimation",
+                "position": "#/$defs/PositionAnimation",
+                "progress": "#/$defs/UnitAnimation",
+                "rotate_z": "#/$defs/AngleAnimation",
+                "scale": "#/$defs/ScaleAnimation"
+              },
+              "propertyName": "property"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/PositionAnimation"
+              },
+              {
+                "$ref": "#/$defs/ScaleAnimation"
+              },
+              {
+                "$ref": "#/$defs/UnitAnimation"
+              },
+              {
+                "$ref": "#/$defs/AngleAnimation"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "title": "Animations",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "position": {
+          "items": {
+            "maximum": 8192,
+            "minimum": -8192,
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Position",
+          "type": "array"
+        },
+        "rotate_z": {
+          "default": 0,
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Rotate Z",
+          "type": "number"
+        },
+        "scale": {
+          "items": {
+            "maximum": 8,
+            "minimum": 0.05,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Scale",
+          "type": "array"
+        },
+        "space": {
+          "default": "world",
+          "enum": [
+            "world",
+            "screen"
+          ],
+          "title": "Space",
+          "type": "string"
+        },
+        "type": {
+          "const": "group",
+          "title": "Type",
+          "type": "string"
+        },
+        "z_index": {
+          "default": 0,
+          "maximum": 512,
+          "minimum": -512,
+          "title": "Z Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "title": "GroupNode",
+      "type": "object"
+    },
+    "ImageNode": {
+      "additionalProperties": false,
+      "properties": {
+        "active_ms": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 30000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active Ms"
+        },
+        "anchor": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Anchor",
+          "type": "array"
+        },
+        "animations": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "draw_progress": "#/$defs/UnitAnimation",
+                "opacity": "#/$defs/UnitAnimation",
+                "position": "#/$defs/PositionAnimation",
+                "progress": "#/$defs/UnitAnimation",
+                "rotate_z": "#/$defs/AngleAnimation",
+                "scale": "#/$defs/ScaleAnimation"
+              },
+              "propertyName": "property"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/PositionAnimation"
+              },
+              {
+                "$ref": "#/$defs/ScaleAnimation"
+              },
+              {
+                "$ref": "#/$defs/UnitAnimation"
+              },
+              {
+                "$ref": "#/$defs/AngleAnimation"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "title": "Animations",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "params": {
+          "$ref": "#/$defs/ImageParams"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "position": {
+          "items": {
+            "maximum": 8192,
+            "minimum": -8192,
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Position",
+          "type": "array"
+        },
+        "rotate_z": {
+          "default": 0,
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Rotate Z",
+          "type": "number"
+        },
+        "scale": {
+          "items": {
+            "maximum": 8,
+            "minimum": 0.05,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Scale",
+          "type": "array"
+        },
+        "space": {
+          "default": "world",
+          "enum": [
+            "world",
+            "screen"
+          ],
+          "title": "Space",
+          "type": "string"
+        },
+        "type": {
+          "const": "image",
+          "title": "Type",
+          "type": "string"
+        },
+        "z_index": {
+          "default": 0,
+          "maximum": 512,
+          "minimum": -512,
+          "title": "Z Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "params"
+      ],
+      "title": "ImageNode",
+      "type": "object"
+    },
+    "ImageParams": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_binding": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Asset Binding",
+          "type": "string"
+        },
+        "fit": {
+          "default": "contain",
+          "enum": [
+            "contain",
+            "cover"
+          ],
+          "title": "Fit",
+          "type": "string"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "maximum": 4096,
+          "title": "Height",
+          "type": "number"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "maximum": 4096,
+          "title": "Width",
+          "type": "number"
+        }
+      },
+      "required": [
+        "asset_binding",
+        "width",
+        "height"
+      ],
+      "title": "ImageParams",
+      "type": "object"
+    },
+    "LightSweepNode": {
+      "additionalProperties": false,
+      "properties": {
+        "active_ms": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 30000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active Ms"
+        },
+        "anchor": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Anchor",
+          "type": "array"
+        },
+        "animations": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "draw_progress": "#/$defs/UnitAnimation",
+                "opacity": "#/$defs/UnitAnimation",
+                "position": "#/$defs/PositionAnimation",
+                "progress": "#/$defs/UnitAnimation",
+                "rotate_z": "#/$defs/AngleAnimation",
+                "scale": "#/$defs/ScaleAnimation"
+              },
+              "propertyName": "property"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/PositionAnimation"
+              },
+              {
+                "$ref": "#/$defs/ScaleAnimation"
+              },
+              {
+                "$ref": "#/$defs/UnitAnimation"
+              },
+              {
+                "$ref": "#/$defs/AngleAnimation"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "title": "Animations",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "params": {
+          "$ref": "#/$defs/SweepParams"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "position": {
+          "items": {
+            "maximum": 8192,
+            "minimum": -8192,
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Position",
+          "type": "array"
+        },
+        "rotate_z": {
+          "default": 0,
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Rotate Z",
+          "type": "number"
+        },
+        "scale": {
+          "items": {
+            "maximum": 8,
+            "minimum": 0.05,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Scale",
+          "type": "array"
+        },
+        "space": {
+          "default": "world",
+          "enum": [
+            "world",
+            "screen"
+          ],
+          "title": "Space",
+          "type": "string"
+        },
+        "type": {
+          "const": "light_sweep",
+          "title": "Type",
+          "type": "string"
+        },
+        "z_index": {
+          "default": 0,
+          "maximum": 512,
+          "minimum": -512,
+          "title": "Z Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "params"
+      ],
+      "title": "LightSweepNode",
+      "type": "object"
+    },
+    "MaskNode": {
+      "additionalProperties": false,
+      "properties": {
+        "active_ms": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 30000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active Ms"
+        },
+        "anchor": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Anchor",
+          "type": "array"
+        },
+        "animations": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "draw_progress": "#/$defs/UnitAnimation",
+                "opacity": "#/$defs/UnitAnimation",
+                "position": "#/$defs/PositionAnimation",
+                "progress": "#/$defs/UnitAnimation",
+                "rotate_z": "#/$defs/AngleAnimation",
+                "scale": "#/$defs/ScaleAnimation"
+              },
+              "propertyName": "property"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/PositionAnimation"
+              },
+              {
+                "$ref": "#/$defs/ScaleAnimation"
+              },
+              {
+                "$ref": "#/$defs/UnitAnimation"
+              },
+              {
+                "$ref": "#/$defs/AngleAnimation"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "title": "Animations",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "params": {
+          "$ref": "#/$defs/MaskParams"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "position": {
+          "items": {
+            "maximum": 8192,
+            "minimum": -8192,
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Position",
+          "type": "array"
+        },
+        "rotate_z": {
+          "default": 0,
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Rotate Z",
+          "type": "number"
+        },
+        "scale": {
+          "items": {
+            "maximum": 8,
+            "minimum": 0.05,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Scale",
+          "type": "array"
+        },
+        "space": {
+          "default": "world",
+          "enum": [
+            "world",
+            "screen"
+          ],
+          "title": "Space",
+          "type": "string"
+        },
+        "type": {
+          "const": "mask",
+          "title": "Type",
+          "type": "string"
+        },
+        "z_index": {
+          "default": 0,
+          "maximum": 512,
+          "minimum": -512,
+          "title": "Z Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "params"
+      ],
+      "title": "MaskNode",
+      "type": "object"
+    },
+    "MaskParams": {
+      "additionalProperties": false,
+      "properties": {
+        "geometry": {
+          "discriminator": {
+            "mapping": {
+              "ellipse": "#/$defs/BoxGeometry",
+              "polygon": "#/$defs/PathGeometry",
+              "polyline": "#/$defs/PathGeometry",
+              "rect": "#/$defs/BoxGeometry"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/BoxGeometry"
+            },
+            {
+              "$ref": "#/$defs/PathGeometry"
+            }
+          ],
+          "title": "Geometry"
+        },
+        "progress": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Progress",
+          "type": "number"
+        },
+        "target_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target_id",
+        "geometry"
+      ],
+      "title": "MaskParams",
+      "type": "object"
+    },
+    "PaletteBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "maximum": 7,
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "dna_palette",
+          "default": "dna_palette",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "index"
+      ],
+      "title": "PaletteBinding",
+      "type": "object"
+    },
+    "ParticleNode": {
+      "additionalProperties": false,
+      "properties": {
+        "active_ms": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 30000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active Ms"
+        },
+        "anchor": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Anchor",
+          "type": "array"
+        },
+        "animations": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "draw_progress": "#/$defs/UnitAnimation",
+                "opacity": "#/$defs/UnitAnimation",
+                "position": "#/$defs/PositionAnimation",
+                "progress": "#/$defs/UnitAnimation",
+                "rotate_z": "#/$defs/AngleAnimation",
+                "scale": "#/$defs/ScaleAnimation"
+              },
+              "propertyName": "property"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/PositionAnimation"
+              },
+              {
+                "$ref": "#/$defs/ScaleAnimation"
+              },
+              {
+                "$ref": "#/$defs/UnitAnimation"
+              },
+              {
+                "$ref": "#/$defs/AngleAnimation"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "title": "Animations",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "params": {
+          "$ref": "#/$defs/ParticleParams"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "position": {
+          "items": {
+            "maximum": 8192,
+            "minimum": -8192,
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Position",
+          "type": "array"
+        },
+        "rotate_z": {
+          "default": 0,
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Rotate Z",
+          "type": "number"
+        },
+        "scale": {
+          "items": {
+            "maximum": 8,
+            "minimum": 0.05,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Scale",
+          "type": "array"
+        },
+        "space": {
+          "default": "world",
+          "enum": [
+            "world",
+            "screen"
+          ],
+          "title": "Space",
+          "type": "string"
+        },
+        "type": {
+          "const": "particle",
+          "title": "Type",
+          "type": "string"
+        },
+        "z_index": {
+          "default": 0,
+          "maximum": 512,
+          "minimum": -512,
+          "title": "Z Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "params"
+      ],
+      "title": "ParticleNode",
+      "type": "object"
+    },
+    "ParticleParams": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "fill": {
+          "$ref": "#/$defs/PaletteBinding"
+        },
+        "radius": {
+          "maximum": 32,
+          "minimum": 1,
+          "title": "Radius",
+          "type": "number"
+        },
+        "seed": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "velocity": {
+          "items": {
+            "maximum": 8192,
+            "minimum": -8192,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Velocity",
+          "type": "array"
+        }
+      },
+      "required": [
+        "seed",
+        "count",
+        "velocity",
+        "radius",
+        "fill"
+      ],
+      "title": "ParticleParams",
+      "type": "object"
+    },
+    "PathFollowerNode": {
+      "additionalProperties": false,
+      "properties": {
+        "active_ms": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 30000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active Ms"
+        },
+        "anchor": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Anchor",
+          "type": "array"
+        },
+        "animations": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "draw_progress": "#/$defs/UnitAnimation",
+                "opacity": "#/$defs/UnitAnimation",
+                "position": "#/$defs/PositionAnimation",
+                "progress": "#/$defs/UnitAnimation",
+                "rotate_z": "#/$defs/AngleAnimation",
+                "scale": "#/$defs/ScaleAnimation"
+              },
+              "propertyName": "property"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/PositionAnimation"
+              },
+              {
+                "$ref": "#/$defs/ScaleAnimation"
+              },
+              {
+                "$ref": "#/$defs/UnitAnimation"
+              },
+              {
+                "$ref": "#/$defs/AngleAnimation"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "title": "Animations",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "params": {
+          "$ref": "#/$defs/FollowerParams"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "position": {
+          "items": {
+            "maximum": 8192,
+            "minimum": -8192,
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Position",
+          "type": "array"
+        },
+        "rotate_z": {
+          "default": 0,
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Rotate Z",
+          "type": "number"
+        },
+        "scale": {
+          "items": {
+            "maximum": 8,
+            "minimum": 0.05,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Scale",
+          "type": "array"
+        },
+        "space": {
+          "default": "world",
+          "enum": [
+            "world",
+            "screen"
+          ],
+          "title": "Space",
+          "type": "string"
+        },
+        "type": {
+          "const": "path_follower",
+          "title": "Type",
+          "type": "string"
+        },
+        "z_index": {
+          "default": 0,
+          "maximum": 512,
+          "minimum": -512,
+          "title": "Z Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "params"
+      ],
+      "title": "PathFollowerNode",
+      "type": "object"
+    },
+    "PathGeometry": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "polygon",
+            "polyline"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "items": {
+              "maximum": 8192,
+              "minimum": -8192,
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "maxItems": 512,
+          "minItems": 2,
+          "title": "Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "points"
+      ],
+      "title": "PathGeometry",
+      "type": "object"
+    },
+    "PositionAnimation": {
+      "additionalProperties": false,
+      "properties": {
+        "keyframes": {
+          "items": {
+            "$ref": "#/$defs/PositionFrame"
+          },
+          "maxItems": 32,
+          "minItems": 2,
+          "title": "Keyframes",
+          "type": "array"
+        },
+        "property": {
+          "const": "position",
+          "title": "Property",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "keyframes"
+      ],
+      "title": "PositionAnimation",
+      "type": "object"
+    },
+    "PositionFrame": {
+      "additionalProperties": false,
+      "properties": {
+        "easing": {
+          "anyOf": [
+            {
+              "enum": [
+                "linear",
+                "hold",
+                "cubic_in_out",
+                "cubic_out"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/Bezier"
+            }
+          ],
+          "default": "linear",
+          "title": "Easing"
+        },
+        "time": {
+          "discriminator": {
+            "mapping": {
+              "cue": "#/$defs/CueTime",
+              "ms": "#/$defs/AbsoluteTime"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AbsoluteTime"
+            },
+            {
+              "$ref": "#/$defs/CueTime"
+            }
+          ],
+          "title": "Time"
+        },
+        "value": {
+          "items": {
+            "maximum": 8192,
+            "minimum": -8192,
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Value",
+          "type": "array"
+        }
+      },
+      "required": [
+        "time",
+        "value"
+      ],
+      "title": "PositionFrame",
+      "type": "object"
+    },
+    "SafeArea": {
+      "additionalProperties": false,
+      "properties": {
+        "bottom": {
+          "default": 180,
+          "maximum": 960,
+          "minimum": 0,
+          "title": "Bottom",
+          "type": "integer"
+        },
+        "left": {
+          "default": 72,
+          "maximum": 960,
+          "minimum": 0,
+          "title": "Left",
+          "type": "integer"
+        },
+        "right": {
+          "default": 72,
+          "maximum": 960,
+          "minimum": 0,
+          "title": "Right",
+          "type": "integer"
+        },
+        "top": {
+          "default": 120,
+          "maximum": 960,
+          "minimum": 0,
+          "title": "Top",
+          "type": "integer"
+        }
+      },
+      "title": "SafeArea",
+      "type": "object"
+    },
+    "ScaleAnimation": {
+      "additionalProperties": false,
+      "properties": {
+        "keyframes": {
+          "items": {
+            "$ref": "#/$defs/ScaleFrame"
+          },
+          "maxItems": 32,
+          "minItems": 2,
+          "title": "Keyframes",
+          "type": "array"
+        },
+        "property": {
+          "const": "scale",
+          "title": "Property",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "keyframes"
+      ],
+      "title": "ScaleAnimation",
+      "type": "object"
+    },
+    "ScaleFrame": {
+      "additionalProperties": false,
+      "properties": {
+        "easing": {
+          "anyOf": [
+            {
+              "enum": [
+                "linear",
+                "hold",
+                "cubic_in_out",
+                "cubic_out"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/Bezier"
+            }
+          ],
+          "default": "linear",
+          "title": "Easing"
+        },
+        "time": {
+          "discriminator": {
+            "mapping": {
+              "cue": "#/$defs/CueTime",
+              "ms": "#/$defs/AbsoluteTime"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AbsoluteTime"
+            },
+            {
+              "$ref": "#/$defs/CueTime"
+            }
+          ],
+          "title": "Time"
+        },
+        "value": {
+          "items": {
+            "maximum": 8,
+            "minimum": 0.05,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Value",
+          "type": "array"
+        }
+      },
+      "required": [
+        "time",
+        "value"
+      ],
+      "title": "ScaleFrame",
+      "type": "object"
+    },
+    "ShapeNode": {
+      "additionalProperties": false,
+      "properties": {
+        "active_ms": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 30000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active Ms"
+        },
+        "anchor": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Anchor",
+          "type": "array"
+        },
+        "animations": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "draw_progress": "#/$defs/UnitAnimation",
+                "opacity": "#/$defs/UnitAnimation",
+                "position": "#/$defs/PositionAnimation",
+                "progress": "#/$defs/UnitAnimation",
+                "rotate_z": "#/$defs/AngleAnimation",
+                "scale": "#/$defs/ScaleAnimation"
+              },
+              "propertyName": "property"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/PositionAnimation"
+              },
+              {
+                "$ref": "#/$defs/ScaleAnimation"
+              },
+              {
+                "$ref": "#/$defs/UnitAnimation"
+              },
+              {
+                "$ref": "#/$defs/AngleAnimation"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "title": "Animations",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "params": {
+          "$ref": "#/$defs/ShapeParams"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "position": {
+          "items": {
+            "maximum": 8192,
+            "minimum": -8192,
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Position",
+          "type": "array"
+        },
+        "rotate_z": {
+          "default": 0,
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Rotate Z",
+          "type": "number"
+        },
+        "scale": {
+          "items": {
+            "maximum": 8,
+            "minimum": 0.05,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Scale",
+          "type": "array"
+        },
+        "space": {
+          "default": "world",
+          "enum": [
+            "world",
+            "screen"
+          ],
+          "title": "Space",
+          "type": "string"
+        },
+        "type": {
+          "const": "shape",
+          "title": "Type",
+          "type": "string"
+        },
+        "z_index": {
+          "default": 0,
+          "maximum": 512,
+          "minimum": -512,
+          "title": "Z Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "params"
+      ],
+      "title": "ShapeNode",
+      "type": "object"
+    },
+    "ShapeParams": {
+      "additionalProperties": false,
+      "properties": {
+        "draw_progress": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Draw Progress",
+          "type": "number"
+        },
+        "fill": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PaletteBinding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "geometry": {
+          "discriminator": {
+            "mapping": {
+              "ellipse": "#/$defs/BoxGeometry",
+              "polygon": "#/$defs/PathGeometry",
+              "polyline": "#/$defs/PathGeometry",
+              "rect": "#/$defs/BoxGeometry"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/BoxGeometry"
+            },
+            {
+              "$ref": "#/$defs/PathGeometry"
+            }
+          ],
+          "title": "Geometry"
+        },
+        "stroke": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PaletteBinding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "stroke_width": {
+          "default": 1,
+          "maximum": 64,
+          "minimum": 0.1,
+          "title": "Stroke Width",
+          "type": "number"
+        }
+      },
+      "required": [
+        "geometry"
+      ],
+      "title": "ShapeParams",
+      "type": "object"
+    },
+    "ShotText": {
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "const": "on_screen_text",
+          "title": "Field",
+          "type": "string"
+        },
+        "kind": {
+          "const": "shot_field",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "field"
+      ],
+      "title": "ShotText",
+      "type": "object"
+    },
+    "SoundCue": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_binding": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Asset Binding",
+          "type": "string"
+        },
+        "duration_ms": {
+          "exclusiveMinimum": 0,
+          "maximum": 30000,
+          "title": "Duration Ms",
+          "type": "integer"
+        },
+        "fade_in_ms": {
+          "default": 0,
+          "maximum": 30000,
+          "minimum": 0,
+          "title": "Fade In Ms",
+          "type": "integer"
+        },
+        "fade_out_ms": {
+          "default": 0,
+          "maximum": 30000,
+          "minimum": 0,
+          "title": "Fade Out Ms",
+          "type": "integer"
+        },
+        "gain": {
+          "default": 1,
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Gain",
+          "type": "number"
+        },
+        "source_in_ms": {
+          "default": 0,
+          "maximum": 600000,
+          "minimum": 0,
+          "title": "Source In Ms",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "asset_binding",
+        "duration_ms"
+      ],
+      "title": "SoundCue",
+      "type": "object"
+    },
+    "SweepParams": {
+      "additionalProperties": false,
+      "properties": {
+        "angle": {
+          "default": 0,
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Angle",
+          "type": "number"
+        },
+        "blur": {
+          "default": 0,
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Blur",
+          "type": "number"
+        },
+        "fill": {
+          "$ref": "#/$defs/PaletteBinding"
+        },
+        "intensity": {
+          "default": 0.5,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Intensity",
+          "type": "number"
+        },
+        "width": {
+          "maximum": 2048,
+          "minimum": 1,
+          "title": "Width",
+          "type": "number"
+        }
+      },
+      "required": [
+        "width",
+        "fill"
+      ],
+      "title": "SweepParams",
+      "type": "object"
+    },
+    "TextNode": {
+      "additionalProperties": false,
+      "properties": {
+        "active_ms": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 30000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active Ms"
+        },
+        "anchor": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Anchor",
+          "type": "array"
+        },
+        "animations": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "draw_progress": "#/$defs/UnitAnimation",
+                "opacity": "#/$defs/UnitAnimation",
+                "position": "#/$defs/PositionAnimation",
+                "progress": "#/$defs/UnitAnimation",
+                "rotate_z": "#/$defs/AngleAnimation",
+                "scale": "#/$defs/ScaleAnimation"
+              },
+              "propertyName": "property"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/PositionAnimation"
+              },
+              {
+                "$ref": "#/$defs/ScaleAnimation"
+              },
+              {
+                "$ref": "#/$defs/UnitAnimation"
+              },
+              {
+                "$ref": "#/$defs/AngleAnimation"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "title": "Animations",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "params": {
+          "$ref": "#/$defs/TextParams"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "position": {
+          "items": {
+            "maximum": 8192,
+            "minimum": -8192,
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Position",
+          "type": "array"
+        },
+        "rotate_z": {
+          "default": 0,
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Rotate Z",
+          "type": "number"
+        },
+        "scale": {
+          "items": {
+            "maximum": 8,
+            "minimum": 0.05,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Scale",
+          "type": "array"
+        },
+        "space": {
+          "default": "world",
+          "enum": [
+            "world",
+            "screen"
+          ],
+          "title": "Space",
+          "type": "string"
+        },
+        "type": {
+          "const": "text",
+          "title": "Type",
+          "type": "string"
+        },
+        "z_index": {
+          "default": 0,
+          "maximum": 512,
+          "minimum": -512,
+          "title": "Z Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "params"
+      ],
+      "title": "TextNode",
+      "type": "object"
+    },
+    "TextParams": {
+      "additionalProperties": false,
+      "properties": {
+        "align": {
+          "default": "left",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "title": "Align",
+          "type": "string"
+        },
+        "fill": {
+          "$ref": "#/$defs/PaletteBinding"
+        },
+        "font": {
+          "$ref": "#/$defs/FontBinding"
+        },
+        "line_height": {
+          "default": 1,
+          "maximum": 2,
+          "minimum": 0.8,
+          "title": "Line Height",
+          "type": "number"
+        },
+        "max_lines": {
+          "default": 6,
+          "maximum": 6,
+          "minimum": 1,
+          "title": "Max Lines",
+          "type": "integer"
+        },
+        "max_width": {
+          "exclusiveMinimum": 0,
+          "maximum": 1920,
+          "title": "Max Width",
+          "type": "number"
+        },
+        "method": {
+          "const": "fade_slide",
+          "default": "fade_slide",
+          "title": "Method",
+          "type": "string"
+        },
+        "size": {
+          "maximum": 512,
+          "minimum": 32,
+          "title": "Size",
+          "type": "number"
+        },
+        "text": {
+          "discriminator": {
+            "mapping": {
+              "approved_claim_field": "#/$defs/ClaimText",
+              "shot_field": "#/$defs/ShotText"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ShotText"
+            },
+            {
+              "$ref": "#/$defs/ClaimText"
+            }
+          ],
+          "title": "Text"
+        }
+      },
+      "required": [
+        "text",
+        "font",
+        "fill",
+        "size",
+        "max_width"
+      ],
+      "title": "TextParams",
+      "type": "object"
+    },
+    "UnitAnimation": {
+      "additionalProperties": false,
+      "properties": {
+        "keyframes": {
+          "items": {
+            "$ref": "#/$defs/UnitFrame"
+          },
+          "maxItems": 32,
+          "minItems": 2,
+          "title": "Keyframes",
+          "type": "array"
+        },
+        "property": {
+          "enum": [
+            "opacity",
+            "progress",
+            "draw_progress"
+          ],
+          "title": "Property",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "keyframes"
+      ],
+      "title": "UnitAnimation",
+      "type": "object"
+    },
+    "UnitFrame": {
+      "additionalProperties": false,
+      "properties": {
+        "easing": {
+          "anyOf": [
+            {
+              "enum": [
+                "linear",
+                "hold",
+                "cubic_in_out",
+                "cubic_out"
+              ],
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/Bezier"
+            }
+          ],
+          "default": "linear",
+          "title": "Easing"
+        },
+        "time": {
+          "discriminator": {
+            "mapping": {
+              "cue": "#/$defs/CueTime",
+              "ms": "#/$defs/AbsoluteTime"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/AbsoluteTime"
+            },
+            {
+              "$ref": "#/$defs/CueTime"
+            }
+          ],
+          "title": "Time"
+        },
+        "value": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "time",
+        "value"
+      ],
+      "title": "UnitFrame",
+      "type": "object"
+    },
+    "VideoNode": {
+      "additionalProperties": false,
+      "properties": {
+        "active_ms": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 30000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Active Ms"
+        },
+        "anchor": {
+          "items": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Anchor",
+          "type": "array"
+        },
+        "animations": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "draw_progress": "#/$defs/UnitAnimation",
+                "opacity": "#/$defs/UnitAnimation",
+                "position": "#/$defs/PositionAnimation",
+                "progress": "#/$defs/UnitAnimation",
+                "rotate_z": "#/$defs/AngleAnimation",
+                "scale": "#/$defs/ScaleAnimation"
+              },
+              "propertyName": "property"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/PositionAnimation"
+              },
+              {
+                "$ref": "#/$defs/ScaleAnimation"
+              },
+              {
+                "$ref": "#/$defs/UnitAnimation"
+              },
+              {
+                "$ref": "#/$defs/AngleAnimation"
+              }
+            ]
+          },
+          "maxItems": 8,
+          "title": "Animations",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "opacity": {
+          "default": 1,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Opacity",
+          "type": "number"
+        },
+        "params": {
+          "$ref": "#/$defs/VideoParams"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "position": {
+          "items": {
+            "maximum": 8192,
+            "minimum": -8192,
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Position",
+          "type": "array"
+        },
+        "rotate_z": {
+          "default": 0,
+          "maximum": 360,
+          "minimum": -360,
+          "title": "Rotate Z",
+          "type": "number"
+        },
+        "scale": {
+          "items": {
+            "maximum": 8,
+            "minimum": 0.05,
+            "type": "number"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Scale",
+          "type": "array"
+        },
+        "space": {
+          "default": "world",
+          "enum": [
+            "world",
+            "screen"
+          ],
+          "title": "Space",
+          "type": "string"
+        },
+        "type": {
+          "const": "video",
+          "title": "Type",
+          "type": "string"
+        },
+        "z_index": {
+          "default": 0,
+          "maximum": 512,
+          "minimum": -512,
+          "title": "Z Index",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "params"
+      ],
+      "title": "VideoNode",
+      "type": "object"
+    },
+    "VideoParams": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_binding": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Asset Binding",
+          "type": "string"
+        },
+        "fit": {
+          "default": "contain",
+          "enum": [
+            "contain",
+            "cover"
+          ],
+          "title": "Fit",
+          "type": "string"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "maximum": 4096,
+          "title": "Height",
+          "type": "number"
+        },
+        "muted": {
+          "const": true,
+          "default": true,
+          "title": "Muted",
+          "type": "boolean"
+        },
+        "source_in_ms": {
+          "default": 0,
+          "maximum": 600000,
+          "minimum": 0,
+          "title": "Source In Ms",
+          "type": "integer"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "maximum": 4096,
+          "title": "Width",
+          "type": "number"
+        }
+      },
+      "required": [
+        "asset_binding",
+        "width",
+        "height"
+      ],
+      "title": "VideoParams",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "camera": {
+      "$ref": "#/$defs/Camera"
+    },
+    "cues": {
+      "items": {
+        "$ref": "#/$defs/Cue"
+      },
+      "maxItems": 64,
+      "title": "Cues",
+      "type": "array"
+    },
+    "nodes": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "group": "#/$defs/GroupNode",
+            "image": "#/$defs/ImageNode",
+            "light_sweep": "#/$defs/LightSweepNode",
+            "mask": "#/$defs/MaskNode",
+            "particle": "#/$defs/ParticleNode",
+            "path_follower": "#/$defs/PathFollowerNode",
+            "shape": "#/$defs/ShapeNode",
+            "text": "#/$defs/TextNode",
+            "video": "#/$defs/VideoNode"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/GroupNode"
+          },
+          {
+            "$ref": "#/$defs/TextNode"
+          },
+          {
+            "$ref": "#/$defs/ShapeNode"
+          },
+          {
+            "$ref": "#/$defs/MaskNode"
+          },
+          {
+            "$ref": "#/$defs/PathFollowerNode"
+          },
+          {
+            "$ref": "#/$defs/ImageNode"
+          },
+          {
+            "$ref": "#/$defs/VideoNode"
+          },
+          {
+            "$ref": "#/$defs/ParticleNode"
+          },
+          {
+            "$ref": "#/$defs/LightSweepNode"
+          }
+        ]
+      },
+      "maxItems": 128,
+      "minItems": 1,
+      "title": "Nodes",
+      "type": "array"
+    },
+    "safe_area": {
+      "$ref": "#/$defs/SafeArea"
+    },
+    "schema_version": {
+      "const": "motion_scene_v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "nodes"
+  ],
+  "title": "MotionScene",
+  "type": "object"
+}

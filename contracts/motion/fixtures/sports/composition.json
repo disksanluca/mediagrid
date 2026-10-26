@@ -1,0 +1,483 @@
+{
+  "schema_version": "motion_composition_v1",
+  "project_id": "fixture-sports",
+  "expected": {
+    "storyboard_revision": 1,
+    "snapshot_sha256": "9da07fdd67ba713763d7c90f27b99469a821b746687ee97cda9bbf56bc6e6531",
+    "canvas": {
+      "width": 1080,
+      "height": 1920,
+      "fps_num": 30,
+      "fps_den": 1
+    },
+    "duration_ms": 12000
+  },
+  "recipe": {
+    "id": "sports.depth-impact",
+    "version": "1.0.0",
+    "sha256": "9b4a5dd40111743d9561e2b92bfb77ecee777c61444fed1f035a64cfc381b061"
+  },
+  "asset_bindings": {
+    "score": {
+      "asset_id": "fixture-sports-score",
+      "sha256": "27f66550e5b6ee39a17db8ddef59fc98f329c141a50a4486674df120d0f38066",
+      "byte_size": 1024,
+      "kind": "audio",
+      "duration_ms": 12000,
+      "sample_rate": 48000,
+      "channels": 2
+    }
+  },
+  "scenes": [
+    {
+      "shot_id": "main",
+      "graph": {
+        "schema_version": "motion_scene_v1",
+        "safe_area": {
+          "left": 72,
+          "right": 72,
+          "top": 120,
+          "bottom": 180
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotate_z": 0.0,
+          "focal_length": 1200.0,
+          "animations": [
+            {
+              "property": "position",
+              "keyframes": [
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 0
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                },
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 4800
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    60.0,
+                    -30.0,
+                    120.0
+                  ]
+                },
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 10000
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    0.0,
+                    0.0,
+                    40.0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "nodes": [
+          {
+            "position": [
+              110.0,
+              600.0,
+              600.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.18,
+            "animations": [
+              {
+                "property": "position",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      110.0,
+                      600.0,
+                      600.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 10000
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      -80.0,
+                      500.0,
+                      600.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "back-title",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "text",
+            "params": {
+              "text": {
+                "kind": "shot_field",
+                "field": "on_screen_text"
+              },
+              "font": {
+                "kind": "dna_font",
+                "index": 0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "size": 260.0,
+              "max_width": 936.0,
+              "line_height": 1.0,
+              "max_lines": 6,
+              "align": "left",
+              "method": "fade_slide"
+            }
+          },
+          {
+            "position": [
+              90.0,
+              660.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "scale",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      0.92,
+                      0.92
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 300
+                    },
+                    "easing": "cubic_out",
+                    "value": [
+                      1.0,
+                      1.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 10500
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      1.02,
+                      1.02
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "hero",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "group"
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "title",
+            "parent_id": "hero",
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "text",
+            "params": {
+              "text": {
+                "kind": "shot_field",
+                "field": "on_screen_text"
+              },
+              "font": {
+                "kind": "dna_font",
+                "index": 0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "size": 210.0,
+              "max_width": 900.0,
+              "line_height": 1.0,
+              "max_lines": 6,
+              "align": "left",
+              "method": "fade_slide"
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "opacity",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 5000
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 5250
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.8
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 9000
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.4
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 11500
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  }
+                ]
+              }
+            ],
+            "id": "diagonal",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polygon",
+                "points": [
+                  [
+                    0.0,
+                    1400.0
+                  ],
+                  [
+                    1080.0,
+                    1100.0
+                  ],
+                  [
+                    1080.0,
+                    1200.0
+                  ],
+                  [
+                    0.0,
+                    1500.0
+                  ]
+                ]
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "progress",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 300
+                    },
+                    "easing": "cubic_out",
+                    "value": 1.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 11500
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              }
+            ],
+            "id": "cut-mask",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "mask",
+            "params": {
+              "target_id": "hero",
+              "geometry": {
+                "kind": "polygon",
+                "points": [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    1080.0,
+                    0.0
+                  ],
+                  [
+                    1080.0,
+                    1920.0
+                  ],
+                  [
+                    0.0,
+                    1920.0
+                  ]
+                ]
+              },
+              "progress": 1.0
+            }
+          }
+        ],
+        "cues": [
+          {
+            "id": "impact",
+            "at_ms": 0,
+            "sound": {
+              "asset_binding": "score",
+              "source_in_ms": 0,
+              "duration_ms": 12000,
+              "gain": 0.8,
+              "fade_in_ms": 5,
+              "fade_out_ms": 350
+            }
+          },
+          {
+            "id": "cut",
+            "at_ms": 5000,
+            "sound": null
+          },
+          {
+            "id": "resolve",
+            "at_ms": 9000,
+            "sound": null
+          }
+        ]
+      }
+    }
+  ]
+}

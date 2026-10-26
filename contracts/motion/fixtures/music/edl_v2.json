@@ -1,0 +1,80 @@
+{
+  "version": 2,
+  "revision": 1,
+  "canvas": {
+    "width": 1080,
+    "height": 1080,
+    "fps_num": 30,
+    "fps_den": 1
+  },
+  "duration_ms": 10000,
+  "tracks": [
+    {
+      "id": "picture",
+      "kind": "video",
+      "items": [
+        {
+          "id": "picture:main",
+          "start_ms": 0,
+          "duration_ms": 10000,
+          "z_index": 0,
+          "source_asset_id": null,
+          "source_in_ms": null,
+          "source_out_ms": null,
+          "speed": 1.0,
+          "preset": "scene_v1",
+          "params": {
+            "scene_id": "main",
+            "visual_type": "headline",
+            "transition": "cut",
+            "loop": false,
+            "visual_query": "",
+            "clip_start_seconds": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "narration",
+      "kind": "voice",
+      "items": [
+        {
+          "id": "voice:main",
+          "start_ms": 0,
+          "duration_ms": 10000,
+          "z_index": 0,
+          "source_asset_id": null,
+          "source_in_ms": null,
+          "source_out_ms": null,
+          "speed": 1.0,
+          "preset": null,
+          "params": {
+            "scene_id": "main",
+            "text": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "titles",
+      "kind": "graphic",
+      "items": [
+        {
+          "id": "graphic:main",
+          "start_ms": 0,
+          "duration_ms": 10000,
+          "z_index": 0,
+          "source_asset_id": null,
+          "source_in_ms": null,
+          "source_out_ms": null,
+          "speed": 1.0,
+          "preset": "scene_title_v1",
+          "params": {
+            "scene_id": "main",
+            "text": "PULSO ORIGINAL"
+          }
+        }
+      ]
+    }
+  ]
+}
