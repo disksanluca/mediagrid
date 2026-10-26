@@ -1,5 +1,15 @@
 export type Engine = "football" | "geo" | "music" | "clips" | "politics" | "trends";
 
+export interface CreativeMotionRequest {
+  expected_storyboard_revision:number; expected_snapshot_sha256:string;
+  soundtrack_asset_id:string; quality:"preview"|"final";
+}
+export interface CreativeMotionPreview {
+  plan_sha256:string;
+  props:import("../../renderer/src/types").RenderProps;
+  plan:{approved_snapshot_sha256:string;render:{fps:number;frames:number;width:number;height:number}};
+}
+
 export interface Channel {
   id: string;
   name: string;
@@ -261,7 +271,8 @@ export interface Job {
   progress: number;
   attempt: number;
   max_attempts: number;
-  result: {output?: string} | null;
+  result: {output?: string; sha256?:string; approved_snapshot_sha256?:string;
+    plan_sha256?:string; artistic_review?:string} | null;
   error: string | null;
   created_at: string;
 }

@@ -17,6 +17,7 @@ from sqlalchemy import or_, select
 from apps.api.asr_words import transcribe_words
 from apps.api.captions import group_words, probe_media, validate_timing
 from apps.api.config import get_settings
+from apps.api.creative.motion import motion_output
 from apps.api.database import SessionLocal
 from apps.api.edl_v2 import EDLV2, scene_projection
 from apps.api.ingestion import sha256_file
@@ -54,6 +55,7 @@ from workers.render.artifacts import (
 )
 from workers.render.caption_video import burn_captions, caption_output
 from workers.render.clips import analyze_asset, clip_output, render_selected_clip
+from workers.render.creative_motion import render_creative_motion
 from workers.render.football import football_output, render_football
 from workers.render.lease import start_lease_heartbeat
 from workers.render.narrative_3d import (
@@ -62,8 +64,8 @@ from workers.render.narrative_3d import (
     render_narrative,
     story_sha256,
 )
-from workers.render.power import keep_system_awake
 from workers.render.proxy import ProxyBuild, build_proxy
+from workers.render.remotion_runtime import render_remotion
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +121,7 @@ def recover_interrupted_jobs() -> None:
                 Job.job_type.in_([
                     "RENDER", "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
                     "CLIP_ANALYSIS", "CLIP_RENDER", "FOOTBALL_RENDER",
-                    "NARRATIVE_3D_RENDER",
+                    "NARRATIVE_3D_RENDER", "CREATIVE_MOTION",
                 ]),
                 Job.status == JobStatus.RUNNING.value,
                 or_(Job.lease_expires_at.is_(None), Job.lease_expires_at <= now()),
@@ -133,7 +135,7 @@ def recover_interrupted_jobs() -> None:
             if job.attempt < job.max_attempts:
                 job.status = JobStatus.QUEUED.value
                 job.progress = 0
-                if project:
+                if project and job.job_type != "CREATIVE_MOTION":
                     project.status = ProjectStatus.SCRIPTED.value
             else:
                 job.status = JobStatus.FAILED.value
@@ -274,71 +276,8 @@ def render_one() -> bool:
                     if not item["loop"] and (end - start) * 1000 + 35 < item["duration_ms"]:
                         raise ValueError("Sound item exceeds its audio source")
             props_path.write_text(json.dumps(props, ensure_ascii=False), encoding="utf-8")
-            renderer_root = (
-                settings.mediagrid_renderer_root.resolve()
-                if settings.mediagrid_renderer_root
-                else None
-            )
-            node = settings.mediagrid_node_path
-            if renderer_root and node:
-                cli = renderer_root / "node_modules" / "@remotion" / "cli" / "remotion-cli.js"
-                if not cli.is_file():
-                    # npm workspaces hoist the CLI to the repository root in development.
-                    cli = (
-                        renderer_root.parents[1]
-                        / "node_modules"
-                        / "@remotion"
-                        / "cli"
-                        / "remotion-cli.js"
-                    )
-                if not cli.is_file():
-                    raise ValueError("Remotion CLI not found in renderer runtime or workspace")
-                command = [
-                    str(node),
-                    str(cli),
-                    "render",
-                    str(renderer_root / "src" / "index.ts"),
-                    "MediaGridTimelineV2" if overlays or sounds or video_layers
-                    else "MediaGridVideo",
-                    str(staged_output_path),
-                    "--props",
-                    str(props_path),
-                ]
-                browser = (
-                    str(settings.mediagrid_browser_path)
-                    if settings.mediagrid_browser_path
-                    else next(
-                        (
-                            str(path)
-                            for path in (renderer_root / "node_modules" / ".remotion").rglob(
-                                "chrome-headless-shell.exe"
-                            )
-                        ),
-                        None,
-                    )
-                )
-            else:
-                command = [
-                    "npm",
-                    "run",
-                    "render:v2" if overlays or sounds or video_layers else "render",
-                    "--workspace",
-                    "@mediagrid/renderer",
-                    "--",
-                    str(staged_output_path),
-                    "--props",
-                    str(props_path),
-                ]
-                browser = shutil.which("chromium") or shutil.which("google-chrome")
-            if browser:
-                command.append(f"--browser-executable={browser}")
-            command.append(
-                f"--concurrency={min(settings.mediagrid_render_concurrency, os.cpu_count() or 1)}"
-            )
-            command.append("--disallow-parallel-encoding")
-            command.append(f"--public-dir={public_dir}")
-            with keep_system_awake():
-                subprocess.run(command, check=True, cwd=renderer_root if renderer_root else None)
+            render_remotion(props_path, public_dir, staged_output_path,
+                            timeline=bool(overlays or sounds or video_layers))
             if valid_voice is not None:
                 voiced = temp_dir / f"{attempt_id}-voiced.mp4"
                 ffmpeg = settings.mediagrid_ffmpeg_path or "ffmpeg"
@@ -420,7 +359,7 @@ def media_one() -> bool:
         job = claim_next_job(db, [
             "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
             "CLIP_ANALYSIS", "CLIP_RENDER", "FOOTBALL_RENDER",
-            "NARRATIVE_3D_RENDER",
+            "NARRATIVE_3D_RENDER", "CREATIVE_MOTION",
         ])
         if job is None:
             return False
@@ -554,6 +493,9 @@ def media_one() -> bool:
                     raise ValueError("Football sequence changed after queueing")
                 staged_artifact = (staged_output, football_output(sequence.id, sequence.revision))
                 job.result = render_football(db, sequence, attempt_id, staged_output)
+            elif job.job_type == "CREATIVE_MOTION":
+                staged_artifact = (staged_output, motion_output(job.id))
+                job.result = render_creative_motion(db, job, attempt_id, staged_output)
             elif job.job_type == "NARRATIVE_3D_RENDER":
                 sequence = db.get(Narrative3D, job.payload.get("sequence_id"))
                 if (sequence is None or sequence.revision != job.payload.get("revision")
