@@ -1,4 +1,4 @@
-import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, DoctorReport, FootballSequence, FootballShot, GeoMunicipality, HardwareProfile, Job, KnowledgeClaim, MusicDraftSchedule, MusicReleaseGroup, Narrative3DSequence, Narrative3DShot, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord, WikiTopPage} from "./types";
+import type {Asset, CaptionCue, Channel, ClipCandidate, ContentPlan, CreativeBrief, CreativeDNA, CreativeDecision, CreativeDirections, CreativeReview, CreativeRevision, CreativeStoryboard, CreativeStoryboardRevision, DoctorReport, FootballSequence, FootballShot, GeoMunicipality, HardwareProfile, Job, KnowledgeClaim, MusicDraftSchedule, MusicReleaseGroup, Narrative3DSequence, Narrative3DShot, OfficialProposal, PreviewResponse, Project, SetupState, SystemStatus, TimedTranscript, TimelineResponse, TranscriptWord, WikiTopPage} from "./types";
 import {desktopRuntime} from "./desktop";
 
 export interface UploadState {
@@ -18,12 +18,29 @@ export interface UploadState {
 
 let baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 
+export class ApiError extends Error {
+  constructor(readonly status:number, readonly detail:unknown) {
+    super(errorMessage(detail,status));
+    this.name="ApiError";
+  }
+}
+
 function errorMessage(detail: unknown, status: number): string {
   if (typeof detail === "string") return detail;
   if (Array.isArray(detail)) {
     const issues = detail.filter((issue): issue is {loc?: unknown;msg: string} =>
       typeof issue === "object" && issue !== null && typeof issue.msg === "string");
-    if (issues.length) return issues.map((issue) => `${Array.isArray(issue.loc) ? issue.loc.join(".") + ": " : ""}${issue.msg}`).join("; ");
+    const labels:Record<string,string>={topic:"tópico",audience:"público",objective:"objetivo",duration_ms:"duração",sources:"fontes",url:"URL",title:"título",palette:"paleta",tone:"tom",shots:"planos",beat:"beat",visual_description:"descrição visual",asset_ids:"assets",claim_ids:"alegações"};
+    const translate=(msg:string)=>msg.replace(/^Field required$/,"campo obrigatório").replace(/^String should have at least (\d+) characters$/,"mínimo de $1 caracteres").replace(/^String should have at most (\d+) characters$/,"máximo de $1 caracteres").replace(/^Input should be a valid URL.*/,"URL inválida");
+    if (issues.length) return issues.map((issue) => {
+      const path=Array.isArray(issue.loc)?issue.loc.filter((part)=>part!=="body").map((part)=>labels[String(part)]??part).join(" › "):"Campo";
+      return `${path}: ${translate(issue.msg)}`;
+    }).join("; ");
+  }
+  if (typeof detail === "object" && detail !== null) {
+    const value=detail as {code?:unknown;reasons?:unknown;current_revision?:unknown};
+    const reasons=Array.isArray(value.reasons)?value.reasons.join("; "):"";
+    return [value.code, value.current_revision !== undefined?`revisão atual ${value.current_revision}`:null, reasons].filter(Boolean).join(" · ") || `Erro ${status}`;
   }
   return `Erro ${status}`;
 }
@@ -42,7 +59,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as {detail?: unknown} | null;
-    throw new Error(errorMessage(body?.detail, response.status));
+    throw new ApiError(response.status, body?.detail);
   }
   return response.json() as Promise<T>;
 }
@@ -52,6 +69,21 @@ export const api = {
   login: (password: string) => request<{authenticated: boolean}>("/auth/login", {method: "POST", body: JSON.stringify({password})}),
   logout: () => request<{authenticated: boolean}>("/auth/logout", {method: "POST"}),
   channels: () => request<Channel[]>("/channels"),
+  creativeDNA: (channelId:string) => request<CreativeRevision<CreativeDNA>>(`/channels/${channelId}/creative-dna`),
+  saveCreativeDNA: (channelId:string, expected_revision:number, content:CreativeDNA) =>
+    request<CreativeRevision<CreativeDNA>>(`/channels/${channelId}/creative-dna`, {method:"PUT",body:JSON.stringify({expected_revision,content})}),
+  creativeBrief: (projectId:string) => request<CreativeRevision<CreativeBrief>>(`/projects/${projectId}/creative/brief`),
+  saveCreativeBrief: (projectId:string, expected_revision:number, content:CreativeBrief) =>
+    request<CreativeRevision<CreativeBrief>>(`/projects/${projectId}/creative/brief`, {method:"PUT",body:JSON.stringify({expected_revision,content})}),
+  creativeDirections: (projectId:string) => request<CreativeDirections>(`/projects/${projectId}/creative/directions`),
+  generateCreativeDirections: (projectId:string, expected_revision:number, expected_brief_revision:number, expected_dna_revision:number) =>
+    request<CreativeDirections>(`/projects/${projectId}/creative/directions`,{method:"POST",body:JSON.stringify({expected_revision,expected_brief_revision,expected_dna_revision})}),
+  creativeStoryboard: (projectId:string) => request<CreativeStoryboardRevision>(`/projects/${projectId}/creative/storyboard`),
+  saveCreativeStoryboard: (projectId:string, expected_revision:number, expected_direction_revision:number, content:CreativeStoryboard) =>
+    request<CreativeStoryboardRevision>(`/projects/${projectId}/creative/storyboard`,{method:"PUT",body:JSON.stringify({expected_revision,expected_direction_revision,content})}),
+  creativeReview: (projectId:string) => request<CreativeReview>(`/projects/${projectId}/creative/review`),
+  decideCreative: (projectId:string, body:CreativeDecision) =>
+    request<CreativeReview>(`/projects/${projectId}/creative/decision`,{method:"POST",body:JSON.stringify(body)}),
   projects: () => request<Project[]>("/projects"),
   jobs: () => request<Job[]>("/jobs"),
   job: (id:string) => request<Job>(`/jobs/${id}`),
