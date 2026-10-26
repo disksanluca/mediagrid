@@ -1,0 +1,674 @@
+{
+  "plan": {
+    "schema_version": "creative_motion_v1",
+    "project_id": "98f5fce5-a612-4684-8b73-f460a404d655",
+    "title": "Entre em jogo — estudo original",
+    "approved_snapshot_sha256": "1f93f337029126e955a9d84aca9552784fbf3e8c00ae85d6fcb432aa1b4d2242",
+    "approval": {
+      "id": "2b5ff48d-098b-4ea1-90da-a9b85b4f7dc3",
+      "revision": 1,
+      "storyboard_revision": 1,
+      "decision": "APPROVE",
+      "actor": "M3 fixture operator",
+      "notes": "Explicit synthetic fixture approval for the requested 0/2/5/9/12s sequence. No human audiovisual quality approval is asserted.",
+      "snapshot_sha256": "1f93f337029126e955a9d84aca9552784fbf3e8c00ae85d6fcb432aa1b4d2242",
+      "created_at": "2026-10-26T03:14:23.407911"
+    },
+    "storyboard": {
+      "id": "05931d4a-7a2d-4c1c-995b-303dab816906",
+      "revision": 1,
+      "sha256": "58284939a9a0526d430fc29530c0cb7d8ae5be07f76805095acafa59b61317c7",
+      "content": {
+        "schema_version": "storyboard_v1",
+        "direction_id": "timeline",
+        "duration_ms": 12000,
+        "fps": 30,
+        "shots": [
+          {
+            "id": "impact",
+            "start_ms": 0,
+            "duration_ms": 2000,
+            "beat": "Abertura impactante",
+            "on_screen_text": "ENTRE\nEM JOGO",
+            "visual_description": "Tipografia sobre órbitas e faixa diagonal",
+            "camera_intent": "Aproximação leve",
+            "motion_intent": "Máscara, escala e easing",
+            "audio_cue": "Impacto original em 0 s e pulso a 120 BPM",
+            "asset_ids": [
+              "b5f96166-edcc-4ece-a602-0fa0fa2a79a3"
+            ],
+            "claim_ids": []
+          },
+          {
+            "id": "reveal",
+            "start_ms": 2000,
+            "duration_ms": 3000,
+            "beat": "Revelação visual",
+            "on_screen_text": "SINTA\nO CAMPO",
+            "visual_description": "Bola original vetorial em órbita",
+            "camera_intent": "Aproximação e parallax",
+            "motion_intent": "Rotação contínua, revelação e drift",
+            "audio_cue": "Impacto em 2 s, arpejo original",
+            "asset_ids": [
+              "b5f96166-edcc-4ece-a602-0fa0fa2a79a3"
+            ],
+            "claim_ids": []
+          },
+          {
+            "id": "play",
+            "start_ms": 5000,
+            "duration_ms": 4000,
+            "beat": "Composição esportiva dinâmica",
+            "on_screen_text": "MUDE\nO JOGO",
+            "visual_description": "Campo conceitual com três posições e rota",
+            "camera_intent": "Rotação e zoom controlados",
+            "motion_intent": "Rota progressiva e transição diagonal",
+            "audio_cue": "Impacto em 5 s e subdivisão percussiva",
+            "asset_ids": [
+              "b5f96166-edcc-4ece-a602-0fa0fa2a79a3"
+            ],
+            "claim_ids": []
+          },
+          {
+            "id": "resolve",
+            "start_ms": 9000,
+            "duration_ms": 3000,
+            "beat": "Clímax e encerramento",
+            "on_screen_text": "É AGORA.",
+            "visual_description": "Tipografia central e círculo expansivo",
+            "camera_intent": "Estabilização com drift",
+            "motion_intent": "Expansão e assentamento",
+            "audio_cue": "Impacto em 9 s e cauda harmônica até 12 s",
+            "asset_ids": [
+              "b5f96166-edcc-4ece-a602-0fa0fa2a79a3"
+            ],
+            "claim_ids": []
+          }
+        ]
+      },
+      "created_at": "2026-10-26T03:14:23.386823"
+    },
+    "brief": {
+      "id": "a569711e-1e41-448e-adb7-9ef5a95e5723",
+      "revision": 1,
+      "sha256": "aec91525c709914c2d209e438ad64db6310d3648aa1cf29af2202ce44bbda019",
+      "content": {
+        "schema_version": "brief_v1",
+        "topic": "Manifesto esportivo ficcional em quatro planos",
+        "audience": "Público de esportes",
+        "objective": "Testar tipografia, ritmo, composição e sincronização de som",
+        "format": "vertical",
+        "duration_ms": 12000,
+        "fps": 30,
+        "language": "pt-BR",
+        "factual_mode": "FICTIONAL",
+        "sources": [],
+        "asset_ids": [
+          "b5f96166-edcc-4ece-a602-0fa0fa2a79a3"
+        ],
+        "restrictions": [],
+        "style_notes": ""
+      },
+      "created_at": "2026-10-26T03:14:23.362797"
+    },
+    "dna": {
+      "id": "1a7fbe8c-7d46-404d-9d97-8b392e42a757",
+      "revision": 1,
+      "sha256": "71a30ee6f3b9cd6ab4f25d54d5fec525692c43cc2c7ea451d8d513ce62f41cac",
+      "content": {
+        "schema_version": "creative_dna_v1",
+        "palette": [
+          "#0B1013",
+          "#F4F0E6",
+          "#D7FF3F"
+        ],
+        "font_display": "Barlow Condensed",
+        "font_body": "Barlow Condensed",
+        "tone": "Esporte ficcional, gráfico e enérgico",
+        "energy": "intense",
+        "must_have": [
+          "Tipografia legível",
+          "Áudio original sincronizado"
+        ],
+        "avoid": [
+          "Resultados reais",
+          "Marcas de clubes",
+          "Imagens de terceiros"
+        ],
+        "max_words_per_card": 10
+      },
+      "created_at": "2026-10-26T03:14:23.353289"
+    },
+    "direction": {
+      "set_id": "36d8b7eb-8cef-4e6f-b470-f36ae823c03f",
+      "revision": 1,
+      "sha256": "42f8bcba0976cb4c33aba59699634be11c1242ebe170685fbf67f6f1ef7c0ec9",
+      "selected": {
+        "id": "timeline",
+        "title": "Progressão Visual",
+        "thesis": "Organizar a narrativa em uma sequência clara de marcos e transições.",
+        "rationale": "Proposta para 'Manifesto esportivo ficcional em quatro planos', voltada a Público de esportes. Objetivo declarado: Testar tipografia, ritmo, composição e sincronização de som. Alegações dependem das fontes e da revisão humana.",
+        "emotional_arc": "Início → desenvolvimento → consequência",
+        "rhythm": "dynamic",
+        "typography": "Barlow Condensed",
+        "composition": "Eixo temporal e cartões de apoio",
+        "motion_language": "Transições lineares e marcadores discretos",
+        "palette": [
+          "#0B1013",
+          "#F4F0E6",
+          "#D7FF3F"
+        ],
+        "estimated_complexity": "MEDIUM"
+      }
+    },
+    "assets": [
+      {
+        "id": "b5f96166-edcc-4ece-a602-0fa0fa2a79a3",
+        "sha256": "3526e4ae9189acf89cfaf45a67aab91bdcdb7612513cb88f8298f61ddfb985af",
+        "role": "soundtrack",
+        "rights_status": "OWNED",
+        "license_name": "Original MediaGrid proof; no third-party samples",
+        "creator": "MediaGrid M3 procedural score",
+        "source_url": null,
+        "commercial_use": true
+      }
+    ],
+    "presets": [
+      "sports_cinematic_v1",
+      "scene_v1",
+      "scene_title_v1",
+      "sound_v1"
+    ],
+    "runtime": {
+      "files": {
+        "src/character-dialogue.tsx": "63d7ef2259fd12da31376d712d9a576aa217661a64f2468221ffddb2ddbb6efe",
+        "src/index.ts": "d5038db0efdbd50e53ec014449c692a82b78e713ef81ddf98fcb46662cd14d80",
+        "src/media-source.ts": "e9300b4975c102be5f86586bd5646259e41832928caf708b5074639dd6efa311",
+        "src/root.tsx": "562b3e72cd7ea514041e76e51e7268a490676a57a9daea46639c2fbaf0009706",
+        "src/sports-cinematic.tsx": "16601947c27709d1c3c2449974dde3e05514909ca5ef739cdb21a2988aba74a9",
+        "src/sports-font.ts": "904646e8fb014c33426ae91bde07e878367de89d27b4722e128274ee3fb8e9cd",
+        "src/timeline-v2.tsx": "5f8feda2fb2ddcab93cf4dd54b23793156394d0beb3a81f72d997701b0ecc2f5",
+        "src/types.ts": "12038c3e88c1ecd293e00b9e287ea2997f3b5898eea19f5a9e47641003a84a0a",
+        "src/video.tsx": "a0cb160396b37b8be7b6591428c12186b6b4b5a011a0d09aff107a35f79807e0"
+      },
+      "package_sha256": "4626680a1d9c9b9b9a122943a6a243d8bb4c3e88af37ef893537243c0bc5351b",
+      "bridge_sha256": "383a131e44e760897b8b2cb2ab13db6f91482dcafcc3694d683a809684b17025"
+    },
+    "edl_v2": {
+      "version": 2,
+      "revision": 1,
+      "canvas": {
+        "width": 1080,
+        "height": 1920,
+        "fps_num": 30,
+        "fps_den": 1
+      },
+      "duration_ms": 12000,
+      "tracks": [
+        {
+          "id": "picture",
+          "kind": "video",
+          "items": [
+            {
+              "id": "picture:impact",
+              "start_ms": 0,
+              "duration_ms": 2000,
+              "z_index": 0,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": "scene_v1",
+              "params": {
+                "scene_id": "impact",
+                "visual_type": "headline",
+                "transition": "cut",
+                "loop": false,
+                "visual_query": "",
+                "clip_start_seconds": 0.0
+              }
+            },
+            {
+              "id": "picture:reveal",
+              "start_ms": 2000,
+              "duration_ms": 3000,
+              "z_index": 0,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": "scene_v1",
+              "params": {
+                "scene_id": "reveal",
+                "visual_type": "headline",
+                "transition": "cut",
+                "loop": false,
+                "visual_query": "",
+                "clip_start_seconds": 0.0
+              }
+            },
+            {
+              "id": "picture:play",
+              "start_ms": 5000,
+              "duration_ms": 4000,
+              "z_index": 0,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": "scene_v1",
+              "params": {
+                "scene_id": "play",
+                "visual_type": "headline",
+                "transition": "cut",
+                "loop": false,
+                "visual_query": "",
+                "clip_start_seconds": 0.0
+              }
+            },
+            {
+              "id": "picture:resolve",
+              "start_ms": 9000,
+              "duration_ms": 3000,
+              "z_index": 0,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": "scene_v1",
+              "params": {
+                "scene_id": "resolve",
+                "visual_type": "headline",
+                "transition": "cut",
+                "loop": false,
+                "visual_query": "",
+                "clip_start_seconds": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "narration",
+          "kind": "voice",
+          "items": [
+            {
+              "id": "voice:impact",
+              "start_ms": 0,
+              "duration_ms": 2000,
+              "z_index": 0,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": null,
+              "params": {
+                "scene_id": "impact",
+                "text": ""
+              }
+            },
+            {
+              "id": "voice:reveal",
+              "start_ms": 2000,
+              "duration_ms": 3000,
+              "z_index": 0,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": null,
+              "params": {
+                "scene_id": "reveal",
+                "text": ""
+              }
+            },
+            {
+              "id": "voice:play",
+              "start_ms": 5000,
+              "duration_ms": 4000,
+              "z_index": 0,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": null,
+              "params": {
+                "scene_id": "play",
+                "text": ""
+              }
+            },
+            {
+              "id": "voice:resolve",
+              "start_ms": 9000,
+              "duration_ms": 3000,
+              "z_index": 0,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": null,
+              "params": {
+                "scene_id": "resolve",
+                "text": ""
+              }
+            }
+          ]
+        },
+        {
+          "id": "titles",
+          "kind": "graphic",
+          "items": [
+            {
+              "id": "graphic:impact",
+              "start_ms": 0,
+              "duration_ms": 2000,
+              "z_index": 0,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": "scene_title_v1",
+              "params": {
+                "scene_id": "impact",
+                "text": ""
+              }
+            },
+            {
+              "id": "graphic:reveal",
+              "start_ms": 2000,
+              "duration_ms": 3000,
+              "z_index": 0,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": "scene_title_v1",
+              "params": {
+                "scene_id": "reveal",
+                "text": ""
+              }
+            },
+            {
+              "id": "graphic:play",
+              "start_ms": 5000,
+              "duration_ms": 4000,
+              "z_index": 0,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": "scene_title_v1",
+              "params": {
+                "scene_id": "play",
+                "text": ""
+              }
+            },
+            {
+              "id": "graphic:resolve",
+              "start_ms": 9000,
+              "duration_ms": 3000,
+              "z_index": 0,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": "scene_title_v1",
+              "params": {
+                "scene_id": "resolve",
+                "text": ""
+              }
+            }
+          ]
+        },
+        {
+          "id": "sports-design",
+          "kind": "caption",
+          "items": [
+            {
+              "id": "sports-impact",
+              "start_ms": 0,
+              "duration_ms": 2000,
+              "z_index": 10,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": "sports_cinematic_v1",
+              "params": {
+                "text": "ENTRE\nEM JOGO",
+                "color": "#D7FF3F",
+                "background": "#0B1013",
+                "paper": "#F4F0E6",
+                "phase": "impact",
+                "font_display": "Barlow Condensed",
+                "label": "ESTUDO ESPORTIVO / FICÇÃO",
+                "keyframes": [
+                  {
+                    "at_ms": 0,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 0,
+                    "scale": 1.08
+                  },
+                  {
+                    "at_ms": 400,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 1,
+                    "scale": 1
+                  },
+                  {
+                    "at_ms": 1700,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 1,
+                    "scale": 1
+                  },
+                  {
+                    "at_ms": 2000,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 0.9,
+                    "scale": 1.03
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sports-reveal",
+              "start_ms": 2000,
+              "duration_ms": 3000,
+              "z_index": 10,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": "sports_cinematic_v1",
+              "params": {
+                "text": "SINTA\nO CAMPO",
+                "color": "#D7FF3F",
+                "background": "#0B1013",
+                "paper": "#F4F0E6",
+                "phase": "reveal",
+                "font_display": "Barlow Condensed",
+                "label": "ESTUDO ESPORTIVO / FICÇÃO",
+                "keyframes": [
+                  {
+                    "at_ms": 0,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 0,
+                    "scale": 1.08
+                  },
+                  {
+                    "at_ms": 400,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 1,
+                    "scale": 1
+                  },
+                  {
+                    "at_ms": 2700,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 1,
+                    "scale": 1
+                  },
+                  {
+                    "at_ms": 3000,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 0.9,
+                    "scale": 1.03
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sports-play",
+              "start_ms": 5000,
+              "duration_ms": 4000,
+              "z_index": 10,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": "sports_cinematic_v1",
+              "params": {
+                "text": "MUDE\nO JOGO",
+                "color": "#D7FF3F",
+                "background": "#0B1013",
+                "paper": "#F4F0E6",
+                "phase": "play",
+                "font_display": "Barlow Condensed",
+                "label": "ESTUDO ESPORTIVO / FICÇÃO",
+                "keyframes": [
+                  {
+                    "at_ms": 0,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 0,
+                    "scale": 1.08
+                  },
+                  {
+                    "at_ms": 400,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 1,
+                    "scale": 1
+                  },
+                  {
+                    "at_ms": 3700,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 1,
+                    "scale": 1
+                  },
+                  {
+                    "at_ms": 4000,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 0.9,
+                    "scale": 1.03
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sports-resolve",
+              "start_ms": 9000,
+              "duration_ms": 3000,
+              "z_index": 10,
+              "source_asset_id": null,
+              "source_in_ms": null,
+              "source_out_ms": null,
+              "speed": 1.0,
+              "preset": "sports_cinematic_v1",
+              "params": {
+                "text": "É AGORA.",
+                "color": "#D7FF3F",
+                "background": "#0B1013",
+                "paper": "#F4F0E6",
+                "phase": "resolve",
+                "font_display": "Barlow Condensed",
+                "label": "ESTUDO ESPORTIVO / FICÇÃO",
+                "keyframes": [
+                  {
+                    "at_ms": 0,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 0,
+                    "scale": 1.08
+                  },
+                  {
+                    "at_ms": 400,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 1,
+                    "scale": 1
+                  },
+                  {
+                    "at_ms": 2700,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 1,
+                    "scale": 1
+                  },
+                  {
+                    "at_ms": 3000,
+                    "x": 0.5,
+                    "y": 0.5,
+                    "opacity": 0.9,
+                    "scale": 1.03
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "score",
+          "kind": "music",
+          "items": [
+            {
+              "id": "original-score",
+              "start_ms": 0,
+              "duration_ms": 12000,
+              "z_index": 0,
+              "source_asset_id": "b5f96166-edcc-4ece-a602-0fa0fa2a79a3",
+              "source_in_ms": 0,
+              "source_out_ms": 12000,
+              "speed": 1.0,
+              "preset": "sound_v1",
+              "params": {
+                "gain": 0.9,
+                "fade_in_ms": 0,
+                "fade_out_ms": 220,
+                "loop": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "render": {
+      "composition": "MediaGridTimelineV2",
+      "codec": "h264",
+      "audio_codec": "aac",
+      "fps": 30,
+      "frames": 360,
+      "width": 1080,
+      "height": 1920,
+      "scale": 1,
+      "crf": 18,
+      "audio_bitrate": "192k",
+      "quality": "final"
+    },
+    "request": {
+      "expected_storyboard_revision": 1,
+      "expected_snapshot_sha256": "1f93f337029126e955a9d84aca9552784fbf3e8c00ae85d6fcb432aa1b4d2242",
+      "soundtrack_asset_id": "b5f96166-edcc-4ece-a602-0fa0fa2a79a3",
+      "quality": "final"
+    }
+  },
+  "plan_sha256": "35db5a2ffc6bdba5e0cfc5edad37ee9f02fea3bc775147770cf9a2c5838d02b2"
+}

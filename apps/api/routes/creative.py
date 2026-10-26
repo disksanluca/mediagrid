@@ -1,6 +1,7 @@
 """Authenticated MediaGrid Creative Director foundation endpoints."""
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from ..creative.contracts import (
@@ -9,6 +10,14 @@ from ..creative.contracts import (
     CreativeDirectionsWrite,
     CreativeDNAWrite,
     CreativeStoryboardWrite,
+)
+from ..creative.motion import (
+    MotionRequest,
+    derive_motion,
+    motion_output,
+    motion_props,
+    queue_motion,
+    verify_motion,
 )
 from ..creative.service import (
     channel_for,
@@ -25,12 +34,16 @@ from ..creative.service import (
     storyboard_read,
 )
 from ..database import get_db
+from ..ingestion import sha256_file
 from ..models import (
     CreativeBriefRevision,
     CreativeDirectionSet,
     CreativeDNARevision,
     CreativeStoryboardRevision,
+    Job,
+    JobStatus,
 )
+from ..schemas import JobRead
 
 router = APIRouter(tags=["creative"])
 
@@ -104,3 +117,37 @@ def read_review(project_id: str, db: Session = Depends(get_db)) -> dict:
 def write_decision(project_id: str, payload: CreativeDecisionWrite,
                    db: Session = Depends(get_db)) -> dict:
     return decide(db, project_id, payload)
+
+
+@router.post("/projects/{project_id}/creative/motion/preview")
+def motion_preview(project_id: str, payload: MotionRequest,
+                   db: Session = Depends(get_db)) -> dict:
+    derived = derive_motion(db, project_id, payload)
+    props = motion_props(derived["plan"])
+    for sound in props["sounds"]:
+        sound["media_file"] = sound["source_asset_id"]
+    return {**derived, "props": props}
+
+
+@router.post("/projects/{project_id}/creative/motion/render", response_model=JobRead,
+             status_code=202)
+def motion_render(project_id: str, payload: MotionRequest,
+                  db: Session = Depends(get_db)) -> Job:
+    return queue_motion(db, project_id, payload)
+
+
+@router.get("/projects/{project_id}/creative/motion/jobs/{job_id}/video")
+def motion_video(project_id: str, job_id: str, db: Session = Depends(get_db)):
+    job = db.get(Job, job_id)
+    if not job or job.project_id != project_id or job.job_type != "CREATIVE_MOTION":
+        raise HTTPException(404, "Creative motion job not found")
+    if job.status != JobStatus.SUCCEEDED.value or not job.result:
+        raise HTTPException(409, "Creative motion output is not ready")
+    try:
+        verify_motion(db, project_id, job.payload)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    output = motion_output(job.id)
+    if not output.is_file() or sha256_file(output) != job.result.get("sha256"):
+        raise HTTPException(409, "Creative motion artifact is missing or changed")
+    return FileResponse(output, media_type="video/mp4", filename=f"mediagrid-motion-{job.id}.mp4")

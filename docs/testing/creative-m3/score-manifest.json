@@ -1,0 +1,17 @@
+{
+  "origin": "Original procedural synthesis",
+  "seed": 3003,
+  "bpm": 120,
+  "cue_seconds": [
+    0.0,
+    2.0,
+    5.0,
+    9.0
+  ],
+  "sample_rate": 48000,
+  "samples": 576000,
+  "channels": 2,
+  "peak_dbfs": -3.643,
+  "license": "Original MediaGrid proof; no third-party samples",
+  "generator": "scripts/m3_score.py"
+}

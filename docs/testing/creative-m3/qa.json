@@ -1,0 +1,40 @@
+{
+  "video_sha256": "146246344c51e00674df6463a13a37721b5138865f7bfb55e41eeff340fe8f14",
+  "audio_source_sha256": "3526e4ae9189acf89cfaf45a67aab91bdcdb7612513cb88f8298f61ddfb985af",
+  "full_decode": "PASS",
+  "black_segments": [],
+  "black_rule": ">=98% pixels below 2% luminance for >=0.03 seconds",
+  "mono_rms_dbfs": -18.349,
+  "mono_sample_peak_dbfs": -1.614,
+  "sync_envelopes": [
+    {
+      "cue_seconds": 0,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 2,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 5,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 9,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    }
+  ],
+  "sampled_frames": 120,
+  "minimum_frame_delta_8bit": 0.24164,
+  "motion_check": "10 Hz downscaled mean absolute pixel delta; not artistic quality",
+  "human_visual_and_listening_approval": "PENDING",
+  "tolerances": {
+    "video_seconds": 0.03333333333333333,
+    "container_audio_seconds": 0.06,
+    "audio_sync_ms": 30
+  }
+}

@@ -38,7 +38,11 @@ export interface RenderProps {
 
 export interface RenderOverlay {
   id: string;
-  preset?: "kinetic_title_v1" | "motion_card_v1" | "flow_path_v1" | "character_dialogue_v1";
+  preset?: "kinetic_title_v1" | "motion_card_v1" | "flow_path_v1" | "character_dialogue_v1" | "sports_cinematic_v1";
+  phase?: "impact" | "reveal" | "play" | "resolve";
+  background?: string;
+  paper?: string;
+  font_display?: string;
   start_ms: number;
   duration_ms: number;
   z_index: number;

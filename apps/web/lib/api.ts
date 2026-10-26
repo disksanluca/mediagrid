@@ -65,6 +65,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  creativeMotionPreview: (id:string,payload:import("./types").CreativeMotionRequest) =>
+    request<import("./types").CreativeMotionPreview>(`/projects/${id}/creative/motion/preview`,{method:"POST",body:JSON.stringify(payload)}),
+  creativeMotionRender: (id:string,payload:import("./types").CreativeMotionRequest) =>
+    request<Job>(`/projects/${id}/creative/motion/render`,{method:"POST",body:JSON.stringify(payload)}),
+  creativeMotionVideo: (id:string,jobId:string) => `${baseUrl}/projects/${id}/creative/motion/jobs/${jobId}/video`,
   session: () => request<{authenticated: boolean; login_required: boolean}>("/auth/session"),
   login: (password: string) => request<{authenticated: boolean}>("/auth/login", {method: "POST", body: JSON.stringify({password})}),
   logout: () => request<{authenticated: boolean}>("/auth/logout", {method: "POST"}),

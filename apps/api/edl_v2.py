@@ -91,6 +91,28 @@ class MotionCardSpec(OverlaySpec):
         return self
 
 
+class SportsCinematicSpec(OverlaySpec):
+    """One original, bounded sports proof preset; no free-form scene compiler."""
+
+    text: str = Field(min_length=1, max_length=32)
+    phase: Literal["impact", "reveal", "play", "resolve"]
+    background: str = Field(pattern=r"^#[0-9a-fA-F]{6}$")
+    paper: str = Field(pattern=r"^#[0-9a-fA-F]{6}$")
+    font_display: Literal["Barlow Condensed"]
+    label: str = Field(min_length=1, max_length=32)
+
+    @model_validator(mode="after")
+    def safe_text(self) -> "SportsCinematicSpec":
+        if len(self.text.splitlines()) > 2 or any(
+            len(line) > 16 for line in self.text.splitlines()
+        ):
+            raise ValueError("Sports titles allow two lines of at most 16 characters")
+        if any(abs(frame.x - 0.5) > 0.01 or abs(frame.y - 0.5) > 0.01
+               or not 0.85 <= frame.scale <= 1.12 for frame in self.keyframes):
+            raise ValueError("Sports titles must remain centered inside the safe area")
+        return self
+
+
 class FlowDiagramSpec(OverlaySpec):
     text: str = Field(min_length=1, max_length=60)
     steps: list[str] = Field(min_length=2, max_length=4)
@@ -147,10 +169,10 @@ class CharacterDialogueSpec(OverlaySpec):
 
 def validate_overlay(
     item: TimelineItem,
-) -> OverlaySpec | MotionCardSpec | FlowDiagramSpec | CharacterDialogueSpec:
+) -> OverlaySpec | MotionCardSpec | FlowDiagramSpec | CharacterDialogueSpec | SportsCinematicSpec:
     if (
         item.preset not in {"kinetic_title_v1", "motion_card_v1", "flow_path_v1",
-                            "character_dialogue_v1"}
+                            "character_dialogue_v1", "sports_cinematic_v1"}
         or item.source_asset_id is not None
         or item.source_in_ms is not None or item.speed != 1 or item.z_index < 1
     ):
@@ -160,7 +182,8 @@ def validate_overlay(
         )
     schema = {"kinetic_title_v1": OverlaySpec, "motion_card_v1": MotionCardSpec,
               "flow_path_v1": FlowDiagramSpec,
-              "character_dialogue_v1": CharacterDialogueSpec}[item.preset]
+              "character_dialogue_v1": CharacterDialogueSpec,
+              "sports_cinematic_v1": SportsCinematicSpec}[item.preset]
     spec = schema.model_validate(item.params)
     if item.preset == "motion_card_v1" and item.duration_ms < 2500:
         raise ValueError("Motion cards need at least 2.5 seconds to read")

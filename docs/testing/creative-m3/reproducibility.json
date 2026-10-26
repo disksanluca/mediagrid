@@ -1,0 +1,10 @@
+{
+  "final-01": {
+    "v": "SHA256=2dd9b810c4fbe53febd5d4b9008d95c6381ef32a10758824be318ea2fa764b3c",
+    "a": "SHA256=9c32612cbf8b10a3a8f358605782b7a77c74e86d8ca2e5a92baf798a642b0e5a"
+  },
+  "reproduce-01": {
+    "v": "SHA256=4710e8db25160e2465bdacc7a5cb63caa03834522a9d7cd47709b523db1f2c07",
+    "a": "SHA256=9c32612cbf8b10a3a8f358605782b7a77c74e86d8ca2e5a92baf798a642b0e5a"
+  }
+}
