@@ -1,0 +1,476 @@
+{
+  "variant": "broadcast",
+  "seed": 3102,
+  "origin": "Original additive/noise synthesis; no samples or external assets",
+  "license": "Original MediaGrid procedural sound design; project use permitted",
+  "generator": "scripts/m3_1_score.py",
+  "generator_sha256": "4e3cab9ca30305e904fd6d86e140ccec60d96601f66c2c426bcf726a4f90ab30",
+  "sha256": "a8e38dd7f0bd27764b2487da9334a54df301ac5006253641f3bce218c9f3018a",
+  "sample_rate": 48000,
+  "samples_per_channel": 576000,
+  "channels": 2,
+  "peak_ceiling_dbfs": -3.349821745875273,
+  "rms_dbfs": -22.122934313131765,
+  "events": [
+    {
+      "at_seconds": 0,
+      "duration": 0.8,
+      "kind": "impact",
+      "role": "act boundary",
+      "gain": 0.6,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 2,
+      "duration": 0.8,
+      "kind": "impact",
+      "role": "act boundary",
+      "gain": 0.48,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 1.76,
+      "duration": 0.24,
+      "kind": "riser",
+      "role": "anticipation",
+      "gain": 0.24,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 2,
+      "duration": 0.4,
+      "kind": "air",
+      "role": "transition release",
+      "gain": 0.15,
+      "frequency": 110,
+      "pan": 0.3
+    },
+    {
+      "at_seconds": 5,
+      "duration": 0.8,
+      "kind": "impact",
+      "role": "act boundary",
+      "gain": 0.56,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 4.76,
+      "duration": 0.24,
+      "kind": "riser",
+      "role": "anticipation",
+      "gain": 0.24,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 5,
+      "duration": 0.4,
+      "kind": "air",
+      "role": "transition release",
+      "gain": 0.15,
+      "frequency": 110,
+      "pan": 0.3
+    },
+    {
+      "at_seconds": 9,
+      "duration": 0.8,
+      "kind": "impact",
+      "role": "act boundary",
+      "gain": 0.72,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 8.76,
+      "duration": 0.24,
+      "kind": "riser",
+      "role": "anticipation",
+      "gain": 0.24,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 9,
+      "duration": 0.4,
+      "kind": "air",
+      "role": "transition release",
+      "gain": 0.15,
+      "frequency": 110,
+      "pan": 0.3
+    },
+    {
+      "at_seconds": 0.2,
+      "duration": 4.3,
+      "kind": "pad",
+      "role": "low atmosphere",
+      "gain": 0.12,
+      "frequency": 55,
+      "pan": -0.3
+    },
+    {
+      "at_seconds": 2.08,
+      "duration": 2.7,
+      "kind": "pad",
+      "role": "reveal depth",
+      "gain": 0.16,
+      "frequency": 164.8138,
+      "pan": 0.3
+    },
+    {
+      "at_seconds": 2.25,
+      "duration": 0.65,
+      "kind": "note",
+      "role": "orbit motif",
+      "gain": 0.13,
+      "frequency": 110,
+      "pan": -0.35
+    },
+    {
+      "at_seconds": 3,
+      "duration": 0.65,
+      "kind": "note",
+      "role": "orbit motif",
+      "gain": 0.13,
+      "frequency": 164.8138,
+      "pan": 0.35
+    },
+    {
+      "at_seconds": 3.75,
+      "duration": 0.65,
+      "kind": "note",
+      "role": "orbit motif",
+      "gain": 0.13,
+      "frequency": 146.8324,
+      "pan": 0.35
+    },
+    {
+      "at_seconds": 6.45,
+      "duration": 0.45,
+      "kind": "impact",
+      "role": "ball contact",
+      "gain": 0.36,
+      "frequency": 110,
+      "pan": -0.25
+    },
+    {
+      "at_seconds": 6.28,
+      "duration": 0.25,
+      "kind": "air",
+      "role": "trajectory",
+      "gain": 0.18,
+      "frequency": 110,
+      "pan": -0.25
+    },
+    {
+      "at_seconds": 7.7,
+      "duration": 0.45,
+      "kind": "impact",
+      "role": "ball contact",
+      "gain": 0.36,
+      "frequency": 110,
+      "pan": 0.35
+    },
+    {
+      "at_seconds": 7.53,
+      "duration": 0.25,
+      "kind": "air",
+      "role": "trajectory",
+      "gain": 0.18,
+      "frequency": 110,
+      "pan": 0.35
+    },
+    {
+      "at_seconds": 5.5,
+      "duration": 0.16,
+      "kind": "snap",
+      "role": "subdivision",
+      "gain": 0.12,
+      "frequency": 1900,
+      "pan": 0.45
+    },
+    {
+      "at_seconds": 5.625,
+      "duration": 0.11,
+      "kind": "snap",
+      "role": "ghost accent",
+      "gain": 0.075,
+      "frequency": 2400,
+      "pan": -0.6
+    },
+    {
+      "at_seconds": 5.5,
+      "duration": 0.4,
+      "kind": "note",
+      "role": "drive",
+      "gain": 0.1,
+      "frequency": 82.4069,
+      "pan": 0
+    },
+    {
+      "at_seconds": 6,
+      "duration": 0.16,
+      "kind": "snap",
+      "role": "subdivision",
+      "gain": 0.12,
+      "frequency": 1900,
+      "pan": -0.45
+    },
+    {
+      "at_seconds": 6.125,
+      "duration": 0.11,
+      "kind": "snap",
+      "role": "ghost accent",
+      "gain": 0.075,
+      "frequency": 2400,
+      "pan": 0.6
+    },
+    {
+      "at_seconds": 6,
+      "duration": 0.4,
+      "kind": "note",
+      "role": "drive",
+      "gain": 0.1,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 6.75,
+      "duration": 0.16,
+      "kind": "snap",
+      "role": "subdivision",
+      "gain": 0.12,
+      "frequency": 1900,
+      "pan": 0.45
+    },
+    {
+      "at_seconds": 6.875,
+      "duration": 0.11,
+      "kind": "snap",
+      "role": "ghost accent",
+      "gain": 0.075,
+      "frequency": 2400,
+      "pan": -0.6
+    },
+    {
+      "at_seconds": 6.75,
+      "duration": 0.4,
+      "kind": "note",
+      "role": "drive",
+      "gain": 0.1,
+      "frequency": 146.8324,
+      "pan": 0
+    },
+    {
+      "at_seconds": 7.25,
+      "duration": 0.16,
+      "kind": "snap",
+      "role": "subdivision",
+      "gain": 0.12,
+      "frequency": 1900,
+      "pan": -0.45
+    },
+    {
+      "at_seconds": 7.375,
+      "duration": 0.11,
+      "kind": "snap",
+      "role": "ghost accent",
+      "gain": 0.075,
+      "frequency": 2400,
+      "pan": 0.6
+    },
+    {
+      "at_seconds": 7.25,
+      "duration": 0.4,
+      "kind": "note",
+      "role": "drive",
+      "gain": 0.1,
+      "frequency": 82.4069,
+      "pan": 0
+    },
+    {
+      "at_seconds": 8,
+      "duration": 0.16,
+      "kind": "snap",
+      "role": "subdivision",
+      "gain": 0.12,
+      "frequency": 1900,
+      "pan": 0.45
+    },
+    {
+      "at_seconds": 8.125,
+      "duration": 0.11,
+      "kind": "snap",
+      "role": "ghost accent",
+      "gain": 0.075,
+      "frequency": 2400,
+      "pan": -0.6
+    },
+    {
+      "at_seconds": 8,
+      "duration": 0.4,
+      "kind": "note",
+      "role": "drive",
+      "gain": 0.1,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 8.5,
+      "duration": 0.16,
+      "kind": "snap",
+      "role": "subdivision",
+      "gain": 0.12,
+      "frequency": 1900,
+      "pan": -0.45
+    },
+    {
+      "at_seconds": 8.625,
+      "duration": 0.11,
+      "kind": "snap",
+      "role": "ghost accent",
+      "gain": 0.075,
+      "frequency": 2400,
+      "pan": 0.6
+    },
+    {
+      "at_seconds": 8.5,
+      "duration": 0.4,
+      "kind": "note",
+      "role": "drive",
+      "gain": 0.1,
+      "frequency": 146.8324,
+      "pan": 0
+    },
+    {
+      "at_seconds": 8.4,
+      "duration": 0.6,
+      "kind": "riser",
+      "role": "climax anticipation",
+      "gain": 0.19,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 9.02,
+      "duration": 2.8,
+      "kind": "pad",
+      "role": "harmonic resolution",
+      "gain": 0.23,
+      "frequency": 55,
+      "pan": 0
+    },
+    {
+      "at_seconds": 9.02,
+      "duration": 2.8,
+      "kind": "pad",
+      "role": "harmonic resolution",
+      "gain": 0.23,
+      "frequency": 110,
+      "pan": -0.3
+    },
+    {
+      "at_seconds": 9.02,
+      "duration": 2.8,
+      "kind": "pad",
+      "role": "harmonic resolution",
+      "gain": 0.23,
+      "frequency": 164.8138,
+      "pan": 0.3
+    },
+    {
+      "at_seconds": 9,
+      "duration": 1.7,
+      "kind": "note",
+      "role": "climax body",
+      "gain": 0.24,
+      "frequency": 55,
+      "pan": 0
+    },
+    {
+      "at_seconds": 10.5,
+      "duration": 0.5,
+      "kind": "note",
+      "role": "settling accent",
+      "gain": 0.11,
+      "frequency": 220,
+      "pan": 0.3
+    },
+    {
+      "at_seconds": 0.5,
+      "duration": 0.35,
+      "kind": "impact",
+      "role": "broadcast pulse",
+      "gain": 0.18,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 1,
+      "duration": 0.35,
+      "kind": "impact",
+      "role": "broadcast pulse",
+      "gain": 0.18,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 1.5,
+      "duration": 0.35,
+      "kind": "impact",
+      "role": "broadcast pulse",
+      "gain": 0.18,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 2.5,
+      "duration": 0.35,
+      "kind": "impact",
+      "role": "broadcast pulse",
+      "gain": 0.18,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 3.5,
+      "duration": 0.35,
+      "kind": "impact",
+      "role": "broadcast pulse",
+      "gain": 0.18,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 5.5,
+      "duration": 0.35,
+      "kind": "impact",
+      "role": "broadcast pulse",
+      "gain": 0.18,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 7,
+      "duration": 0.35,
+      "kind": "impact",
+      "role": "broadcast pulse",
+      "gain": 0.18,
+      "frequency": 110,
+      "pan": 0
+    },
+    {
+      "at_seconds": 8,
+      "duration": 0.35,
+      "kind": "impact",
+      "role": "broadcast pulse",
+      "gain": 0.18,
+      "frequency": 110,
+      "pan": 0
+    }
+  ],
+  "human_listening_approval": "PENDING"
+}

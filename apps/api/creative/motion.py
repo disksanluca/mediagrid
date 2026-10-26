@@ -6,7 +6,7 @@ from typing import Literal
 from uuid import NAMESPACE_URL, uuid5
 
 from fastapi import HTTPException
-from pydantic import Field
+from pydantic import Field, model_validator
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -37,6 +37,19 @@ class MotionRequest(StrictModel):
     expected_snapshot_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     soundtrack_asset_id: str = Field(min_length=1, max_length=36)
     quality: Literal["preview", "final"] = "preview"
+    art_direction: Literal["original", "editorial", "broadcast"] = "original"
+    diagnostics: bool = False
+    sound_design_asset_id: str | None = Field(default=None, min_length=1, max_length=36)
+
+    @model_validator(mode="after")
+    def refinement_audio(self) -> "MotionRequest":
+        if self.art_direction == "original" and self.sound_design_asset_id:
+            raise ValueError("Original M3 uses its approved soundtrack")
+        if self.art_direction != "original" and (
+            not self.sound_design_asset_id or self.sound_design_asset_id == self.soundtrack_asset_id
+        ):
+            raise ValueError("Refinement requires a distinct, licensed sound-design asset")
+        return self
 
 
 def runtime_manifest() -> dict:
@@ -107,6 +120,19 @@ def derive_motion(db: Session, project_id: str, request: MotionRequest) -> dict:
             raise ValueError("Soundtrack is shorter than the approved storyboard")
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
+    # Approved source remains untouched. The new mix belongs only to the derived
+    # render plan; storyboard approval is not audiovisual approval of this mix.
+    render_asset = asset
+    if request.sound_design_asset_id:
+        render_asset = sound_asset(db, request.sound_design_asset_id)
+        path = get_settings().mediagrid_data_dir / "assets" / render_asset.id
+        if not render_asset.commercial_use or sha256_file(path) != render_asset.sha256:
+            raise HTTPException(409, "Sound design rights or physical SHA-256 changed")
+        try:
+            if abs(probe_source(path, "audio") - 12) > 1 / 30:
+                raise ValueError("Sound design must match the 12-second storyboard")
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
     legacy = {
         "version": 1,
         "format": "vertical",
@@ -142,6 +168,8 @@ def derive_motion(db: Session, project_id: str, request: MotionRequest) -> dict:
                     "background": palette[0],
                     "paper": palette[1],
                     "phase": phase,
+                    "art_direction": request.art_direction,
+                    "diagnostics": request.diagnostics,
                     "font_display": "Barlow Condensed",
                     "label": "ESTUDO ESPORTIVO / FICÇÃO",
                     "keyframes": [
@@ -164,7 +192,7 @@ def derive_motion(db: Session, project_id: str, request: MotionRequest) -> dict:
                         id="original-score",
                         start_ms=0,
                         duration_ms=12000,
-                        source_asset_id=asset.id,
+                        source_asset_id=render_asset.id,
                         source_in_ms=0,
                         source_out_ms=12000,
                         preset="sound_v1",
@@ -200,16 +228,23 @@ def derive_motion(db: Session, project_id: str, request: MotionRequest) -> dict:
         },
         "assets": [
             {
-                "id": asset.id,
-                "sha256": asset.sha256,
-                "role": "soundtrack",
-                "rights_status": asset.rights_status,
-                "license_name": asset.license_name,
-                "creator": asset.creator,
-                "source_url": asset.source_url,
-                "commercial_use": asset.commercial_use,
+                "id": media.id,
+                "sha256": media.sha256,
+                "role": role,
+                "rights_status": media.rights_status,
+                "license_name": media.license_name,
+                "creator": media.creator,
+                "source_url": media.source_url,
+                "commercial_use": media.commercial_use,
             }
+            for media, role in (
+                [(asset, "approved_soundtrack")]
+                + ([(render_asset, "derived_sound_design")] if render_asset.id != asset.id else [])
+            )
         ],
+        "art_direction": request.art_direction,
+        "diagnostics": request.diagnostics,
+        "approval_scope": "STORYBOARD_INPUT_ONLY; DERIVED_AUDIOVISUAL_REVIEW_PENDING",
         "presets": [PRESET, "scene_v1", "scene_title_v1", "sound_v1"],
         "runtime": runtime_manifest(),
         "edl_v2": edl.model_dump(mode="json"),

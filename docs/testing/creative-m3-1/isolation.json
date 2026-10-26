@@ -1,0 +1,9 @@
+{
+  "source_db_sha256_unchanged": "007e266dc05d9e0f281077044a4570f67500a613ad2b81964a34e235be46f962",
+  "source": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\creative-m3-proof\\final-01",
+  "copied_with": "sqlite3 backup, mode=ro",
+  "storyboard_sha256": "58284939a9a0526d430fc29530c0cb7d8ae5be07f76805095acafa59b61317c7",
+  "approved_snapshot_sha256": "1f93f337029126e955a9d84aca9552784fbf3e8c00ae85d6fcb432aa1b4d2242",
+  "new_storyboard_decisions": 0,
+  "schema_changes": 0
+}

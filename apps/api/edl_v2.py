@@ -99,6 +99,8 @@ class SportsCinematicSpec(OverlaySpec):
     background: str = Field(pattern=r"^#[0-9a-fA-F]{6}$")
     paper: str = Field(pattern=r"^#[0-9a-fA-F]{6}$")
     font_display: Literal["Barlow Condensed"]
+    art_direction: Literal["original", "editorial", "broadcast"] = "original"
+    diagnostics: bool = False
     label: str = Field(min_length=1, max_length=32)
 
     @model_validator(mode="after")

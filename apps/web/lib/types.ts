@@ -3,6 +3,8 @@ export type Engine = "football" | "geo" | "music" | "clips" | "politics" | "tren
 export interface CreativeMotionRequest {
   expected_storyboard_revision:number; expected_snapshot_sha256:string;
   soundtrack_asset_id:string; quality:"preview"|"final";
+  art_direction?:"original"|"editorial"|"broadcast";
+  sound_design_asset_id?:string|null; diagnostics?:boolean;
 }
 export interface CreativeMotionPreview {
   plan_sha256:string;
@@ -272,7 +274,7 @@ export interface Job {
   attempt: number;
   max_attempts: number;
   result: {output?: string; sha256?:string; approved_snapshot_sha256?:string;
-    plan_sha256?:string; artistic_review?:string} | null;
+    plan_sha256?:string; artistic_review?:string; art_direction?:string; diagnostics?:boolean} | null;
   error: string | null;
   created_at: string;
 }

@@ -108,6 +108,8 @@ def render_creative_motion(db: Session, job: Job, attempt_id: str, output: Path)
             "storyboard_sha256": plan["storyboard"]["sha256"],
             "ffprobe": probe,
             "render_seconds": round(perf_counter() - started, 3),
+            "art_direction": plan.get("art_direction", "original"),
+            "diagnostics": plan.get("diagnostics", False),
             "artistic_review": "AWAITING_HUMAN_REVIEW",
         }
     except HTTPException as exc:
