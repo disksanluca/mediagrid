@@ -32,6 +32,51 @@ export interface Project {
   updated_at: string;
 }
 
+export interface CreativeSource {url:string; title:string; fact_reviewed:boolean}
+export interface CreativeBrief {
+  schema_version:"brief_v1"; topic:string; audience:string; objective:string;
+  format:"vertical"|"horizontal"|"square"; duration_ms:number; fps:24|25|30|60;
+  language:string; factual_mode:"FICTIONAL"|"FACT_CHECK_REQUIRED";
+  sources:CreativeSource[]; asset_ids:string[]; restrictions:string[]; style_notes:string;
+}
+export interface CreativeDNA {
+  schema_version:"creative_dna_v1"; palette:string[]; font_display:string; font_body:string;
+  tone:string; energy:"restrained"|"balanced"|"intense"; must_have:string[];
+  avoid:string[]; max_words_per_card:number;
+}
+export interface CreativeRevision<T> {id:string; revision:number; sha256:string; content:T; created_at:string}
+export interface CreativeDirection {
+  id:string; title:string; thesis:string; rationale:string; emotional_arc:string;
+  rhythm:"slow"|"dynamic"|"hybrid"; typography:string; composition:string;
+  motion_language:string; palette:string[]; estimated_complexity:"LOW"|"MEDIUM"|"HIGH";
+}
+export interface CreativeDirections extends CreativeRevision<{schema_version:"directions_v1";directions:CreativeDirection[]}> {
+  origin:"deterministic_reference"; brief_sha256:string; dna_sha256:string; status:"CURRENT"|"STALE";
+}
+export interface StoryboardShot {
+  id:string; start_ms:number; duration_ms:number; beat:string; on_screen_text:string;
+  visual_description:string; camera_intent:string; motion_intent:string; audio_cue:string;
+  asset_ids:string[]; claim_ids:string[];
+}
+export interface CreativeStoryboard {
+  schema_version:"storyboard_v1"; direction_id:string; duration_ms:number;
+  fps:24|25|30|60; shots:StoryboardShot[];
+}
+export interface CreativeStoryboardRevision extends CreativeRevision<CreativeStoryboard> {
+  direction_set_id:string; status:"CURRENT"|"STALE";
+}
+export interface CreativeReview {
+  status:"REVIEW_REQUIRED"|"APPROVED_STORYBOARD"|"STALE"|"BLOCKED"|"REVISE"|"REJECT";
+  current_snapshot_sha256:string; blockers:string[];
+  review:null|{id:string;revision:number;storyboard_revision:number;decision:"APPROVE"|"REVISE"|"REJECT";
+    actor:string;notes:string;snapshot_sha256:string;created_at:string};
+}
+export interface CreativeDecision {
+  expected_revision:number; expected_storyboard_revision:number; expected_snapshot_sha256:string;
+  decision:"APPROVE"|"REVISE"|"REJECT"; actor:string; notes:string;
+  storyboard_reviewed:boolean; rights_checked:boolean; facts_checked:boolean;
+}
+
 export interface FootballShot {
   asset_id: string;
   source_sha256?: string;
