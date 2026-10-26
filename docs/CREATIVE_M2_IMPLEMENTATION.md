@@ -1,6 +1,6 @@
 # MediaGrid M2 — Creative Director Workspace
 
-Data: 25/10/2026 (America/Sao_Paulo). Base conferida antes das alterações: PR #43, `codex/creative-m1-foundation`, commit `152ccc01be7966d0a6eb040d124fece8a5b1a591`, árvore limpa. Branch de implementação: `codex/creative-m2-workspace`. Versões existentes: React 19.1.1, Next.js 16.3.8, TypeScript 5.9.2, FastAPI `>=0.115,<1`, SQLAlchemy `>=2,<3`, Python 3.12.10, Node 24.19.0. Nenhuma dependência foi adicionada.
+Data: 25/10/2026 (America/Sao_Paulo). Base conferida antes das alterações: PR #43, `codex/creative-m1-foundation`, commit `152ccc01be7966d0a6eb040d124fece8a5b1a591`, árvore limpa. Branch de implementação: `codex/creative-m2-workspace`. Versões instaladas: React 19.3.0, Next.js 16.3.8, TypeScript 5.9.3, FastAPI 0.142.2, SQLAlchemy 2.1.3, Pydantic 2.13.5, Alembic 1.20.0, SQLite 3.49.1, Python 3.12.10 e Node 24.19.0. Nenhuma dependência foi adicionada.
 
 ## Arquivos e decisões
 
@@ -11,7 +11,7 @@ Data: 25/10/2026 (America/Sao_Paulo). Base conferida antes das alterações: PR 
 | `apps/web/components/creative/storyboard-draft.test.ts` | Três testes de invariantes temporais e proteção contra duração inválida. |
 | `apps/web/components/creative/creative-workspace.css` | Estética dark Atelier OS com tokens existentes, contraste, foco, layout adaptável e redução de movimento. |
 | `apps/web/components/control-panel.tsx` | Entrada pelo projeto no Studio/Editor/Motions e abas **Creative Director / Editor e produção**. O editor existente continua acessível; o workspace criativo permanece montado ao alternar abas, preservando o rascunho. |
-| `apps/web/lib/types.ts`, `apps/web/lib/api.ts` | Tipos fiéis aos contratos Pydantic do M1, sete pares de operações REST e erro HTTP tipado. Erros 422 mostram campo e causa; 409 exige resolução explícita. |
+| `apps/web/lib/types.ts`, `apps/web/lib/api.ts` | Tipos fiéis aos contratos Pydantic do M1, cinco fluxos REST e erro HTTP tipado. Erros 422 mostram campo e causa; 409 exige resolução explícita. |
 | `docs/testing/creative-m2/*.jpg` | Capturas do navegador real conectado ao FastAPI e SQLite descartável. |
 
 Não houve novo endpoint, migração, modelo de banco, worker, alteração no EDL, Remotion, FFmpeg, instalador ou dependência externa. O storyboard é planejamento; não é uma segunda timeline renderizável nem um player. `APPROVED_STORYBOARD` aprova somente a revisão de storyboard.
@@ -29,7 +29,7 @@ Não houve novo endpoint, migração, modelo de banco, worker, alteração no ED
 
 Banco em `data/creative-m2-proof/workspace.db` (ignorado pelo Git), criado com `DATABASE_URL` e `MEDIAGRID_DATA_DIR` específicos e `python -m apps.api.migrate`. API em `127.0.0.1:8000`, Next dev em `127.0.0.1:3000`. Canal e projeto sintéticos criados para este ensaio, sem mídia do usuário. O material factual de bloqueio usa `example.org` **apenas como entrada sintética não revisada**.
 
-No navegador real: 404 inicial apresentado como revisão 0; brief salvo na revisão 1; DNA salvo na revisão 1; três direções retornadas na revisão 1; direção `evidence-led` selecionada; storyboard de 30 s dividido em 12 s + 18 s e salvo na revisão 1; revisão retornou `REVIEW_REQUIRED`; aprovação humana de teste retornou `APPROVED_STORYBOARD`; recarga da página manteve brief e aprovação; edição de um plano gravou revisão 2 e retornou `STALE`. Duas gravações concorrentes foram simuladas contra o banco descartável: a UI recebeu HTTP 409, manteve o texto local, atualizou para revisão 4 e exigiu a escolha explícita. Escolher a versão do servidor preservou a alteração concorrente. Uma URL inválida produziu 422 com `content › fontes › 0 › URL: URL inválida`. Uma fonte não revisada, claim pendente e asset com direitos `UNKNOWN` produziram `DIRECTIONS_STALE`, `RIGHTS_BLOCKED`, `Factual claims need individual approval` e `Factual brief needs reviewed sources`; o botão de aprovação permaneceu desabilitado. Nenhum MP4 foi renderizado neste M2.
+No navegador real: 404 inicial apresentado como revisão 0; brief salvo na revisão 1; DNA salvo na revisão 1; três direções retornadas na revisão 1; direção `evidence-led` selecionada; storyboard de 30 s dividido em 12 s + 18 s e salvo na revisão 1; revisão retornou `REVIEW_REQUIRED`; aprovação humana de teste retornou `APPROVED_STORYBOARD`; recarga da página manteve brief e aprovação; edição de um plano gravou revisão 2 e retornou `STALE`. Um rascunho não salvo permaneceu ao alternar entre Creative Director e Editor e produção. Duas gravações concorrentes foram simuladas contra o banco descartável: a UI recebeu HTTP 409, manteve o texto local, atualizou para revisão 4 e exigiu a escolha explícita. Escolher a versão do servidor preservou a alteração concorrente. Uma URL inválida produziu 422 com `content › fontes › 0 › URL: URL inválida`. Uma fonte não revisada, claim pendente e asset com direitos `UNKNOWN` produziram `DIRECTIONS_STALE`, `RIGHTS_BLOCKED`, `Factual claims need individual approval` e `Factual brief needs reviewed sources`; o botão de aprovação permaneceu desabilitado. Nenhum MP4 foi renderizado neste M2.
 
 ## Capturas e inspeção visual
 
@@ -37,7 +37,7 @@ No navegador real: 404 inicial apresentado como revisão 0; brief salvo na revis
 - [Régua e primeiro plano no navegador móvel](testing/creative-m2/storyboard-ruler-mobile.jpg).
 - [Status de aprovação do storyboard](testing/creative-m2/review-status-mobile.jpg) e [bloqueios reais do backend](testing/creative-m2/review-blocked-mobile.jpg).
 
-As capturas são JPEGs retornados pelo navegador, sem mock. O ensaio de viewport mediu `innerWidth` de 1440/1280/1000/390 e `scrollWidth` de 1425/1265/985/375, respectivamente: sem overflow horizontal da página. Os cartões mediram 422 px em 1440, 367 px em 1280, 875 px em 1000 e 306 px em 390, indicando 3 colunas largas e 1 coluna nos dois menores tamanhos. O navegador de teste captura apenas a porção visível em 390 px; o DOM foi medido no viewport configurado de 390 × 900. Logs de console `error`/`warn`: lista vazia durante o ensaio. Foco visível e `prefers-reduced-motion` estão no CSS; a revisão por teclado foi inspecionada no DOM e CSS, sem automação completa de leitor de tela.
+As capturas são JPEGs retornados pelo navegador, sem mock. O ensaio de viewport mediu `innerWidth` de 1440/1280/1000/390 e `scrollWidth` de 1425/1265/985/375, respectivamente: sem overflow horizontal da página. Os cartões mediram 422 px em 1440, 367 px em 1280, 875 px em 1000 e 306 px em 390, indicando 3 colunas largas e 1 coluna nos dois menores tamanhos. O navegador de teste captura apenas a porção visível em 390 px; o DOM foi medido no viewport configurado de 390 × 900. Logs de console `error`/`warn`: lista vazia durante o ensaio. A navegação por `Tab` do Brief ao DNA foi exercitada, com contorno de foco computado como `solid`; `prefers-reduced-motion` está no CSS. Não houve automação completa de leitor de tela.
 
 ## Testes executados
 
@@ -52,7 +52,7 @@ As capturas são JPEGs retornados pelo navegador, sem mock. O ensaio de viewport
 | Navegador real + API + SQLite isolado | Passou: criação, persistência, aprovação, STALE, 409, 422 e bloqueios. |
 | `git diff --check` | Passou. |
 
-O workflow Windows em PR inclui build Tauri e smoke do instalador; registrar o resultado da CI quando a branch remota for aberta. O workflow PostgreSQL filtra apenas alterações de API/migrações/workers e não é acionado por este M2 de frontend. O M1 já validou o schema PostgreSQL na PR #43; não houve mudança de schema nesta etapa.
+A [CI Windows da PR #44](https://github.com/disksanluca/mediagrid/actions/runs/40256252370) passou instalação de dependências, testes Python e empacotamento do serviço local; na última consulta, ainda compilava a aplicação Tauri, antes do smoke do instalador. O resultado completo permanece **pendente**. O workflow PostgreSQL filtra apenas alterações de API/migrações/workers e não é acionado por este M2 de frontend. O M1 já validou o schema PostgreSQL na PR #43; não houve mudança de schema nesta etapa.
 
 ## Limitações e M3
 
