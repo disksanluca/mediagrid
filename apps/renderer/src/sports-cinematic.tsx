@@ -119,8 +119,8 @@ export function SportsCinematic({item}: {item:RenderOverlay}) {
         <path d={`M${540-enter*240} 1240H${540+enter*240}`} stroke={accent} strokeWidth="9"/>
       </>}
     </svg>
-    <div style={{position:"absolute",left:108,right:120,top:250,display:"flex",justifyContent:"space-between",
-      letterSpacing:4,fontSize:26,color:paper}}><span>MEDIAGRID / MOTION LAB</span><span style={{color:accent}}>VOL. 01</span></div>
+    {item.diagnostics && <div style={{position:"absolute",left:108,right:120,top:250,display:"flex",justifyContent:"space-between",
+      letterSpacing:4,fontSize:26,color:paper}}><span>MEDIAGRID / MOTION LAB</span><span style={{color:accent}}>VOL. 01</span></div>}
     <div style={{position:"absolute",left:`${value("x")*100}%`,top:titleY + (value("y")-.5)*1920,
       width:840,textAlign:phase==="resolve"?"center":"left",opacity:value("opacity"),
       transform:`translateX(-50%) translateY(${(1-enter)*100}px) scale(${value("scale")})`,
@@ -131,11 +131,12 @@ export function SportsCinematic({item}: {item:RenderOverlay}) {
       <div style={{fontSize,lineHeight:.88,letterSpacing:-2,whiteSpace:"pre-line",
         transform:"skewX(-5deg)",textShadow:`0 4px 30px ${background}`}}>{item.text}</div>
     </div>
-    <div style={{position:"absolute",left:108,right:130,bottom:280,display:"flex",justifyContent:"space-between",
+    {item.diagnostics && <><div style={{position:"absolute",left:108,right:130,bottom:280,display:"flex",justifyContent:"space-between",
       color:paper,fontSize:24,letterSpacing:3,opacity:.78}}><span>{item.label}</span><span>12s / 30</span></div>
     <div style={{position:"absolute",left:108,right:130,bottom:252,height:2,background:"#ffffff18"}}>
       <div style={{height:2,width:`${globalFrame/359*100}%`,background:accent}}/>
     </div>
+    </>}
     {phase!=="resolve" && <div style={{position:"absolute",top:-200,bottom:-200,left:`${-40+exit*170}%`,
       width:"18%",background:accent,transform:"skewX(-18deg)",opacity:exit>0?1:0}}/>}
   </AbsoluteFill>;

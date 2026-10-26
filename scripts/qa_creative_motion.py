@@ -28,6 +28,7 @@ def envelope(samples: array.array) -> list[float]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("folder", type=Path)
+    parser.add_argument("--cues", type=float, nargs="+", default=[0, 2, 5, 9])
     args = parser.parse_args()
     folder = args.folder.resolve()
     proof = json.loads((folder / "proof.json").read_text(encoding="utf-8"))
@@ -47,7 +48,7 @@ def main() -> None:
     peak = max(abs(s) for s in samples)
     assert rms > .005 and peak < .99, "Audio is silent or clips"
     offsets = []
-    for cue in (0, 2, 5, 9):
+    for cue in args.cues:
         start = int(cue * 100)
         a = reference[start:start+20]
         # Normalize gain; compare 200 ms envelopes at each approved scene boundary.

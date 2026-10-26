@@ -1,0 +1,80 @@
+{
+  "video_sha256": "22d19aeb8f0727c99100e28b8c58f6d5c9828b7938b3f010ff7ec6f5f987c7bc",
+  "audio_source_sha256": "b724bc09c067833d2b811246d6087d276d588d72ea25e93a2d33e561590b9c04",
+  "full_decode": "PASS",
+  "black_segments": [],
+  "black_rule": ">=98% pixels below 2% luminance for >=0.03 seconds",
+  "mono_rms_dbfs": -20.38,
+  "mono_sample_peak_dbfs": -1.348,
+  "sync_envelopes": [
+    {
+      "cue_seconds": 0.0,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 2.0,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 5.0,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 6.45,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 7.7,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 9.0,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 10.5,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    }
+  ],
+  "sampled_frames": 120,
+  "minimum_frame_delta_8bit": 0.09594,
+  "motion_check": "10 Hz downscaled mean absolute pixel delta; not artistic quality",
+  "human_visual_and_listening_approval": "PENDING",
+  "tolerances": {
+    "video_seconds": 0.03333333333333333,
+    "container_audio_seconds": 0.06,
+    "audio_sync_ms": 30
+  },
+  "integrated_lufs": -21.6,
+  "true_peak_dbfs": -4.4,
+  "audio_channels": 2,
+  "motion_by_act": {
+    "impact": {
+      "mean_adjacent_delta": 3.2301,
+      "min_adjacent_delta": 0.47738,
+      "early_late_delta": 13.20998
+    },
+    "reveal": {
+      "mean_adjacent_delta": 3.70043,
+      "min_adjacent_delta": 1.32251,
+      "early_late_delta": 21.00452
+    },
+    "play": {
+      "mean_adjacent_delta": 2.08347,
+      "min_adjacent_delta": 0.56401,
+      "early_late_delta": 14.09978
+    },
+    "resolve": {
+      "mean_adjacent_delta": 2.09866,
+      "min_adjacent_delta": 0.09594,
+      "early_late_delta": 8.86554
+    }
+  }
+}
