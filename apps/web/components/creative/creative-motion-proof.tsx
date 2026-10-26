@@ -11,7 +11,7 @@ export function CreativeMotionProof({projectId,revision,review,assets,dirty}:{
 }) {
   const [soundtrack,setSoundtrack]=useState("");
   const [quality,setQuality]=useState<"preview"|"final">("preview");
-  const [direction,setDirection]=useState<"original"|"editorial"|"broadcast">("original");
+  const [direction,setDirection]=useState<"original"|"editorial"|"broadcast"|"broadcast_final">("original");
   const [soundDesign,setSoundDesign]=useState("");
   const [diagnostics,setDiagnostics]=useState(false);
   const [preview,setPreview]=useState<CreativeMotionPreview|null>(null);
@@ -69,7 +69,8 @@ export function CreativeMotionProof({projectId,revision,review,assets,dirty}:{
     <div className="creative-fields">
       <label>Direção de movimento<select value={direction} onChange={(e)=>setDirection(e.target.value as typeof direction)}>
         <option value="original">M3 · original</option><option value="editorial">V1 · editorial</option>
-        <option value="broadcast">V2 · esportiva broadcast</option></select></label>
+        <option value="broadcast">V2 · broadcast M3.1</option>
+        <option value="broadcast_final">V2 · broadcast final M3.2</option></select></label>
       <label>Trilha aprovada no brief e nos quatro planos<select value={soundtrack} onChange={(e)=>setSoundtrack(e.target.value)}>
         <option value="">Selecione o áudio</option>{assets.filter((a)=>a.media_type.startsWith("audio/")).map((a)=>
           <option key={a.id} value={a.id}>{a.name} · {a.rights_status}</option>)}</select></label>

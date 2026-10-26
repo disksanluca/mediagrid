@@ -77,7 +77,8 @@ function LeatherBall({x,y,r,turn,accent}:{x:number;y:number;r:number;turn:number
 export function SportsRefinement({item}:{item:RenderOverlay}) {
   const local=useCurrentFrame()/useVideoConfig().fps;
   const t=local+item.start_ms/1000;
-  const energetic=item.art_direction==="broadcast";
+  const polished=item.art_direction==="broadcast_final";
+  const energetic=item.art_direction==="broadcast"||polished;
   const accent=item.color,paper=item.paper??"#F4F0E6",bg=item.background??"#0B1013";
   const phase=item.phase??"impact";
   const duration=item.duration_ms/1000;
@@ -119,18 +120,20 @@ export function SportsRefinement({item}:{item:RenderOverlay}) {
   // over the reveal. The remaining time belongs to the visual transition.
   const titleExit=phase==="resolve"?0:phase==="impact"?range(local,1.3,1.62)
     :phase==="reveal"?range(local,2.18,2.52):range(local,duration-.38,duration-.08);
-  const titleY=phase==="impact"?510:phase==="reveal"?1240:phase==="play"?355:565;
+  const titleY=phase==="impact"?510:phase==="reveal"?1240:phase==="play"?355:(polished?620:565);
   const lines=item.text.split("\n");
   const longest=Math.max(...lines.map(l=>l.length));
-  const fontSize=Math.min(phase==="impact"?228:phase==="resolve"?200:184,1420/longest);
+  const fontSize=Math.min(phase==="impact"?228:phase==="resolve"?(polished?220:200):polished?200:184,
+    (polished?1560:1420)/longest);
   // The text remains in a fixed 108..950 safe frame, independent of camera shake.
   return <AbsoluteFill style={{background:bg,overflow:"hidden",zIndex:item.z_index,fontFamily:'"MG Barlow", sans-serif',fontWeight:700}}>
     <svg viewBox="0 0 1080 1920" style={{position:"absolute",width:"100%",height:"100%"}}>
       <defs>
         <radialGradient id="haze"><stop stopColor="#406e60" stopOpacity=".55"/>
           <stop offset="1" stopColor={bg} stopOpacity="0"/></radialGradient>
-        <linearGradient id="floor" x1="0" y1="0" x2=".7" y2="1"><stop stopColor="#16392f"/><stop offset="1" stopColor={bg}/></linearGradient>
-        <radialGradient id="vignette"><stop offset=".4" stopColor="#000" stopOpacity="0"/><stop offset="1" stopColor="#000" stopOpacity=".66"/></radialGradient>
+        <linearGradient id="floor" x1="0" y1="0" x2=".7" y2="1"><stop stopColor={polished?"#35634f":"#16392f"}/><stop offset="1" stopColor={polished?"#152c24":bg}/></linearGradient>
+        <radialGradient id="vignette"><stop offset=".4" stopColor="#000" stopOpacity="0"/><stop offset="1" stopColor="#000" stopOpacity={polished?.53:.66}/></radialGradient>
+        <linearGradient id="finish-band"><stop stopColor={accent} stopOpacity=".3"/><stop offset=".5" stopColor={accent} stopOpacity=".72"/><stop offset="1" stopColor={accent} stopOpacity=".4"/></linearGradient>
         <linearGradient id="beam"><stop stopColor={accent} stopOpacity="0"/><stop offset=".55" stopColor={accent} stopOpacity=".12"/><stop offset="1" stopColor={paper} stopOpacity="0"/></linearGradient>
         <filter id="soft"><feGaussianBlur stdDeviation="24"/></filter>
         <filter id="foreground-soft"><feGaussianBlur stdDeviation="7"/></filter>
@@ -140,12 +143,16 @@ export function SportsRefinement({item}:{item:RenderOverlay}) {
       <ellipse cx={back[0]+140} cy={back[1]-130} rx="850" ry="1150" fill="url(#haze)"/>
       <g transform={`translate(${back[0]} ${back[1]}) scale(${back[2]})`} stroke={paper} fill="none">
         {[-1000,-650,-300,50,400,750,1100].map((x,i)=><path key={i}
-          d={`M${x} -1500L${x-220} 1550`} strokeOpacity=".055" strokeWidth="3"/>)}
-        {[0,1,2].map(i=><ellipse key={i} cx="0" cy={-650+i*120} rx={1050+i*250} ry={240+i*60} strokeOpacity=".08" strokeWidth="3"/>)}
+          d={`M${x} -1500L${x-220} 1550`} strokeOpacity={polished?.10:.055} strokeWidth="3"/>)}
+        {[0,1,2].map(i=><ellipse key={i} cx="0" cy={-650+i*120} rx={1050+i*250} ry={240+i*60} strokeOpacity={polished?.13:.08} strokeWidth="3"/>)}
       </g>
       <path d={`M${-280+back[0]*.1} -100L${450+back[0]*.1} -100L${1100+back[0]*.2} 1920L${650+back[0]*.2} 1920Z`}
         fill="url(#beam)" opacity={.8+kick*.2}/>
-      {energetic&&t>=9&&<g transform={`translate(540 ${1370-range(t,9,9.45)*80}) rotate(${-14+range(t,9,11)*5})`}>
+      {polished&&t>=9&&<g transform={`translate(540 ${1530-range(t,9.15,9.65)*55}) rotate(${-11+range(t,9.15,10.1)*2})`}>
+        <rect x="-900" y="-42" width="1800" height={90+range(t,9.15,9.65)*30} fill="url(#finish-band)"/>
+        <path d="M-900 -54H900" stroke={accent} strokeWidth="3" opacity=".7"/>
+      </g>}
+      {energetic&&!polished&&t>=9&&<g transform={`translate(540 ${1370-range(t,9,9.45)*80}) rotate(${-14+range(t,9,11)*5})`}>
         <rect x="-900" y="-90" width="1800" height={170+range(t,9,10.3)*130} fill={accent}/>
         <path d="M-900 -120H900 M-900 250H900" stroke={paper} strokeWidth="2" opacity=".6"/>
       </g>}
@@ -156,12 +163,12 @@ export function SportsRefinement({item}:{item:RenderOverlay}) {
         <path d={`M${-br-190} 0h60 M${br+130} 0h60`} stroke={accent} strokeWidth="5"/>
       </g>
       <g opacity={fieldOpacity} transform={`translate(${project(0,230,190)[0]} ${project(0,230,190)[1]}) rotate(${-12+cam[3]*2}) scale(${cam[2]})`}>
-        <path d="M-260 -470H260L440 450H-440Z" fill="url(#floor)" stroke={paper} strokeOpacity=".36" strokeWidth="2"/>
+        <path d="M-260 -470H260L440 450H-440Z" fill="url(#floor)" stroke={paper} strokeOpacity={polished?.65:.36} strokeWidth={polished?3:2}/>
         <path d="M-350 0H350 M-110 -470L-135 -290H135L110 -470 M-200 450L-175 250H175L200 450"
-          fill="none" stroke={paper} strokeOpacity=".28" strokeWidth="2"/>
-        <ellipse rx="100" ry="80" fill="none" stroke={paper} strokeOpacity=".32" strokeWidth="2"/>
+          fill="none" stroke={paper} strokeOpacity={polished?.55:.28} strokeWidth={polished?3:2}/>
+        <ellipse rx="100" ry="80" fill="none" stroke={paper} strokeOpacity={polished?.58:.32} strokeWidth={polished?3:2}/>
         {Array.from({length:7},(_,i)=><path key={i} d={`M${-260-i*24} ${-470+i*130}H${260+i*24}`}
-          stroke={paper} strokeOpacity=".035" strokeWidth="50"/>)}
+          stroke={paper} strokeOpacity={polished?.05:.035} strokeWidth="50"/>)}
       </g>
       {/* Route is driven by the same event times as the moving ball and score. */}
       {t>=5&&t<10&&<g opacity={1-range(t,9,10)}>
@@ -173,7 +180,7 @@ export function SportsRefinement({item}:{item:RenderOverlay}) {
           return <g key={i} opacity={range(t,at-.25,at)}>
             <ellipse cx={p[0]} cy={p[1]+50} rx={35+a*95} ry={12+a*32}
               fill="none" stroke={accent} strokeWidth={2+a*3} opacity={.25+a*.6}/>
-            <text x={p[0]-65} y={p[1]+110} fill={paper} fontSize="22" opacity=".65">0{i+1}</text>
+            {(!polished||item.diagnostics)&&<text x={p[0]-65} y={p[1]+110} fill={paper} fontSize="22" opacity=".65">0{i+1}</text>}
           </g>;
         })}
       </g>}
@@ -196,7 +203,7 @@ export function SportsRefinement({item}:{item:RenderOverlay}) {
           fill={i%4===0?accent:paper} opacity={.1+kick*.16}/>;
       })}
       {/* Foreground: dark defocused rails cross faster than distant architecture. */}
-      <g filter="url(#foreground-soft)" opacity=".68" transform={`translate(${(front[0]-540)*2} ${(front[1]-960)*.7}) rotate(${cam[3]*.4})`}>
+      <g filter="url(#foreground-soft)" opacity={polished?.52:.68} transform={`translate(${(front[0]-540)*2} ${(front[1]-960)*.7}) rotate(${cam[3]*.4})`}>
         <path d="M-170 -150L-25 -150L120 2100H-70Z" fill="#020b0a"/>
         <path d="M1130 -150L1200 -150L1020 2100H980Z" fill="#020b0a"/>
         <path d="M-20 1520L1120 1770" stroke="#030e0b" strokeWidth="16" opacity=".55"/>
@@ -205,7 +212,7 @@ export function SportsRefinement({item}:{item:RenderOverlay}) {
       {/* Climax ring grows beyond the image, followed by an intentional settled lockup. */}
       {t>=9&&<g fill="none" stroke={accent}>
         <circle cx="540" cy="1060" r={180+range(t,9,10.6)*1000} opacity={.55*(1-range(t,9.2,10.6))} strokeWidth={mix(12,1,range(t,9,10.6))}/>
-        <path d={`M${150+end*30} 1515H${150+range(t,9.4,11.4)*780}`} strokeWidth="3" opacity=".7"/>
+        {!polished&&<path d={`M${150+end*30} 1515H${150+range(t,9.4,11.4)*780}`} strokeWidth="3" opacity=".7"/>}
       </g>}
       {energetic&&[1.92,4.92,8.92].map((at,i)=>{
         const p=clamp((t-at)/.14);
@@ -220,16 +227,17 @@ export function SportsRefinement({item}:{item:RenderOverlay}) {
     </svg>
     <div style={{position:"absolute",left:108,top:titleY,width:842,
       color:paper,opacity:(1-titleExit),transform:`translateY(${(1-titleEnter)*(energetic?25:46)-titleExit*20}px)`}}>
-      <div style={{fontSize:24,letterSpacing:6,color:accent,marginBottom:26,opacity:titleEnter,
+      {(!polished||item.diagnostics)&&<div style={{fontSize:polished?34:24,letterSpacing:polished?3:6,color:accent,marginBottom:26,opacity:titleEnter,
         transform:`translateX(${(1-titleEnter)*-16}px)`}}>
         {phase==="impact"?"O INSTANTE ANTES":phase==="reveal"?"ENERGIA EM MOVIMENTO":phase==="play"?"CRIE O PRÓXIMO LANCE":"SEU MOVIMENTO COMEÇA"}
-      </div>
+      </div>}
       {lines.map((line,i)=>{
-        const enter=easeOut((local-.1-i*(energetic?.055:.11))/(energetic?.28:.52));
-        return <div key={i} style={{overflow:"hidden",paddingBottom:10,marginBottom:-10}}>
-          <div style={{fontSize,lineHeight:.97,letterSpacing:energetic?-1:-2,
+        const enter=easeOut((local-.1-i*(energetic?.055:.11))/(polished?.2:energetic?.28:.52));
+        return <div key={i} style={{overflow:polished?"visible":"hidden",paddingBottom:10,marginBottom:-10}}>
+          <div style={{fontSize,lineHeight:polished?1:.97,letterSpacing:energetic?-1:-2,
+            opacity:polished?enter:1,
             whiteSpace:"pre",transformOrigin:"left center",
-            transform:`translateY(${(1-enter)*112}%) skewX(${energetic?-6:-2}deg) scaleX(${.97+.03*enter})`,
+            transform:`translateY(${(1-enter)*(polished?18:112)}${polished?"px":"%"}) skewX(${energetic?-6:-2}deg) scaleX(${.97+.03*enter})`,
             textShadow:"0 4px 28px #0009"}}>{line}</div>
         </div>;
       })}

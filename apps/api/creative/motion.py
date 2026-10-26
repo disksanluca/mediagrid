@@ -37,7 +37,7 @@ class MotionRequest(StrictModel):
     expected_snapshot_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     soundtrack_asset_id: str = Field(min_length=1, max_length=36)
     quality: Literal["preview", "final"] = "preview"
-    art_direction: Literal["original", "editorial", "broadcast"] = "original"
+    art_direction: Literal["original", "editorial", "broadcast", "broadcast_final"] = "original"
     diagnostics: bool = False
     sound_design_asset_id: str | None = Field(default=None, min_length=1, max_length=36)
 

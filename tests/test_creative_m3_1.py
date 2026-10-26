@@ -29,7 +29,7 @@ def test_variants_bind_distinct_plans_to_same_approved_snapshot(client, tmp_path
     project, root, request = refined(client, tmp_path, monkeypatch)
     before = client.get(root+"/review").json()
     results = []
-    for variant in ("editorial", "broadcast"):
+    for variant in ("editorial", "broadcast", "broadcast_final"):
         request["art_direction"] = variant
         preview = client.post(root+"/motion/preview", json=request)
         assert preview.status_code == 200, preview.text
@@ -49,7 +49,7 @@ def test_variants_bind_distinct_plans_to_same_approved_snapshot(client, tmp_path
             verify_motion(db, project, db.get(Job, job["id"]).payload)
             row = db.get(Project, project)
             assert row.edl is None and row.plan is None and row.script is None
-    assert results[0] != results[1]
+    assert len(set(results)) == 3
     assert client.get(root+"/review").json() == before
 
 

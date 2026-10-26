@@ -43,7 +43,7 @@ export interface RenderOverlay {
   background?: string;
   paper?: string;
   font_display?: string;
-  art_direction?: "original" | "editorial" | "broadcast";
+  art_direction?: "original" | "editorial" | "broadcast" | "broadcast_final";
   diagnostics?: boolean;
   start_ms: number;
   duration_ms: number;

@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts.m3_1_score import create_score  # noqa: E402
+from scripts.m3_2_score import create_score as create_polished_score  # noqa: E402
 from scripts.proof_creative_motion import checked  # noqa: E402
 
 
@@ -25,15 +26,18 @@ def main():
     parser.add_argument("--source", type=Path, required=True, help="Existing disposable M3 proof")
     parser.add_argument("--run", required=True)
     parser.add_argument("--quality", choices=("preview", "final"), default="final")
+    parser.add_argument("--polish-broadcast", action="store_true",
+                        help="Render only the M3.2 final V2 in its own disposable directory")
     args = parser.parse_args()
     source = args.source.resolve()
     allowed = (ROOT / "data/creative-m3-proof").resolve()
     if not source.is_relative_to(allowed) or not (source / "proof.json").is_file():
         parser.error("Source must be a disposable M3 proof under data/creative-m3-proof")
-    base = (ROOT / "data/creative-m3-1-proof").resolve()
+    proof_area = "creative-m3-2-proof" if args.polish_broadcast else "creative-m3-1-proof"
+    base = (ROOT / "data" / proof_area).resolve()
     folder = (base / args.run).resolve()
     if not folder.is_relative_to(base) or folder == base or folder.exists():
-        parser.error("Use a new child directory under data/creative-m3-1-proof")
+        parser.error(f"Use a new child directory under data/{proof_area}")
     previous = json.loads((source / "proof.json").read_text(encoding="utf-8"))
     source_db = source / "workspace.db"
     original_hash = hashlib.sha256(source_db.read_bytes()).hexdigest()
@@ -72,11 +76,15 @@ def main():
             project = db.get(Project, project_id)
             original = (project.edl, project.plan, project.script)
             assert not db.query(Job).filter(Job.status.in_(["QUEUED", "RUNNING"])).count()
-        for name, variant in (("v1", "editorial"), ("v2", "broadcast")):
+        variants = (("v2", "broadcast_final"),) if args.polish_broadcast else (
+            ("v1", "editorial"), ("v2", "broadcast"),
+        )
+        for name, variant in variants:
             output = folder / name
             output.mkdir()
             score = output / "original-score.wav"
-            manifest = create_score(score, variant)
+            manifest = (create_polished_score(score) if args.polish_broadcast
+                        else create_score(score, variant))
             write(output / "score-manifest.json", manifest)
             with score.open("rb") as audio:
                 asset = checked(client.post("/api/v1/assets",
@@ -113,7 +121,8 @@ def main():
                 "result": result["result"], "original_project_unchanged": True,
                 "human_visual_and_listening_approval": "PENDING",
             })
-            shutil.copy2(result["result"]["output"], output / f"mediagrid-{name}-{variant}.mp4")
+            filename = f"mediagrid-{name}-{variant.replace('_', '-')}.mp4"
+            shutil.copy2(result["result"]["output"], output / filename)
             print(json.dumps({"variant": variant, "folder": str(output),
                               "sha256": result["result"]["sha256"],
                               "render_seconds": result["result"]["render_seconds"]}), flush=True)

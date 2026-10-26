@@ -3,7 +3,7 @@ export type Engine = "football" | "geo" | "music" | "clips" | "politics" | "tren
 export interface CreativeMotionRequest {
   expected_storyboard_revision:number; expected_snapshot_sha256:string;
   soundtrack_asset_id:string; quality:"preview"|"final";
-  art_direction?:"original"|"editorial"|"broadcast";
+  art_direction?:"original"|"editorial"|"broadcast"|"broadcast_final";
   sound_design_asset_id?:string|null; diagnostics?:boolean;
 }
 export interface CreativeMotionPreview {

@@ -1,0 +1,85 @@
+{
+  "video_sha256": "01148fca7efcb273059797b06437f8e4d553fe832165e6f940b4952270f661ec",
+  "audio_source_sha256": "195fbe795798a21e4cf7af34ffc4e91f756b809993cd87e6fd6d5b8b929ee539",
+  "full_decode": "PASS",
+  "black_segments": [],
+  "black_rule": ">=98% pixels below 2% luminance for >=0.03 seconds",
+  "mono_rms_dbfs": -23.019,
+  "mono_sample_peak_dbfs": -1.828,
+  "sync_envelopes": [
+    {
+      "cue_seconds": 0.0,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 2.0,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 5.0,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 6.45,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 7.7,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 9.0,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    },
+    {
+      "cue_seconds": 10.5,
+      "envelope_offset_ms": 0,
+      "resolution_ms": 10
+    }
+  ],
+  "sampled_frames": 120,
+  "minimum_frame_delta_8bit": 0.20724,
+  "motion_check": "10 Hz downscaled mean absolute pixel delta; not artistic quality",
+  "human_visual_and_listening_approval": "PENDING",
+  "tolerances": {
+    "video_seconds": 0.03333333333333333,
+    "container_audio_seconds": 0.06,
+    "audio_sync_ms": 30
+  },
+  "integrated_lufs": -22.8,
+  "true_peak_dbfs": -4.1,
+  "audio_channels": 2,
+  "motion_by_act": {
+    "impact": {
+      "mean_adjacent_delta": 3.26778,
+      "min_adjacent_delta": 0.5614,
+      "early_late_delta": 16.59471
+    },
+    "reveal": {
+      "mean_adjacent_delta": 4.74055,
+      "min_adjacent_delta": 1.75685,
+      "early_late_delta": 22.35348
+    },
+    "play": {
+      "mean_adjacent_delta": 3.41418,
+      "min_adjacent_delta": 1.55181,
+      "early_late_delta": 15.21779
+    },
+    "resolve": {
+      "mean_adjacent_delta": 2.75883,
+      "min_adjacent_delta": 0.20724,
+      "early_late_delta": 10.99877
+    }
+  },
+  "field_luma": {
+    "mean_8bit": 59.675,
+    "stddev_8bit": 32.12,
+    "region": "x180 y800 w720 h750 at 6.7s; includes ball/route, not a contrast rating"
+  }
+}

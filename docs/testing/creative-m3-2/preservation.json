@@ -1,0 +1,20 @@
+[
+  {
+    "artifact": "M3",
+    "path": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\creative-m3-proof\\final-01\\creative-renders\\92516ca6-8be2-559f-9a43-3e170fcec433.mp4",
+    "sha256": "146246344c51e00674df6463a13a37721b5138865f7bfb55e41eeff340fe8f14",
+    "unchanged": true
+  },
+  {
+    "artifact": "M3.1 V1",
+    "path": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\creative-m3-1-proof\\final-02\\creative-renders\\df555fc8-12f8-5086-a98e-8ca7df2bd6ff.mp4",
+    "sha256": "22d19aeb8f0727c99100e28b8c58f6d5c9828b7938b3f010ff7ec6f5f987c7bc",
+    "unchanged": true
+  },
+  {
+    "artifact": "M3.1 V2",
+    "path": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\creative-m3-1-proof\\final-02\\creative-renders\\fe7177ef-d936-5c95-bdf7-1a01eeec736c.mp4",
+    "sha256": "1108873f2df345e27e5f6de7fb1ce12bc6e51ed82afb9898929b9202ec04dcbb",
+    "unchanged": true
+  }
+]
