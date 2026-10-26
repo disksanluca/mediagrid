@@ -4,6 +4,9 @@
 Esta entrega implementa somente o polimento M3.2 e documenta o M4.
 A implementação do motor depende de avaliação humana posterior.
 
+Adendo de 26/10/2026: [Visual Reference Scout, seção 16](#16-adendo--visual-reference-scout-subsistema-futuro),
+subsistema futuro opcional; interfaces, fontes candidatas, riscos e fases apenas documentados.
+
 ## 1. Contexto e decisão proposta
 
 M3 tornou real o caminho Creative Director → vídeo. M3.1 introduziu V1/V2;
@@ -1448,3 +1451,321 @@ redesign Lovable, suporte a FPS/formatos arbitrários e migração geral do proj
 
 **Entrega desta rodada:** somente este ADR. Implementar o M4 exige avaliação humana
 da prova M3.2 e autorização posterior; nenhum motor genérico foi criado.
+
+## 16. Adendo — Visual Reference Scout (subsistema futuro)
+
+**Estado: PROPOSTO / PAPER; nenhuma integração ou implementação nesta rodada.**
+Adendo solicitado em 26/10/2026. O Visual Reference Scout será integrado ao Creative
+Director para pesquisar referências a partir de briefing, tema, nicho e Creative DNA,
+sem exigir moodboard ou links fornecidos pelo usuário.
+
+Este adendo não altera os gates M4.A–D nem o escopo aprovado do M3.2. É uma extensão
+futura opcional, com fases próprias e autorização de implementação posterior.
+O núcleo planejado do M4 v1 deverá funcionar sem busca/LLM. A exclusão de “LLM automático”
+da seção 15 permanece válida para esse núcleo; a análise multimodal aqui estudada
+fica na camada de pesquisa/proposta, nunca no compilador determinístico.
+
+### 16.1 Responsabilidade e fluxo de ponta a ponta
+
+1. Capturar revisões/hashes do CreativeBrief e CreativeDNA vigentes, idioma,
+   restrições e finalidade. Nicho é um parâmetro estruturado opcional ou uma
+   classificação registrada como hipótese; não é um campo existente presumido.
+2. Gerar QueryPlan limitado: assunto + linguagem visual + composição + formato,
+   com variações por dimensão. Exemplo sintético: “sports kinetic typography
+   layered depth vertical motion”. Evitar consultas para reproduzir um autor,
+   layout, obra, marca ou resultado específico. Templates determinísticos primeiro;
+   expansão por modelo local é futura e precisa registrar modelo/prompt/seed.
+3. Consultar somente adapters aprovados, conforme políticas e orçamento. Buscar
+   imagens, registros de projetos visuais e vídeos quando o provedor permitir.
+   Não percorrer automaticamente todos os links de um projeto/portfólio.
+4. Registrar metadados verificáveis: URL canônica e de origem, provedor/ID,
+   autoria declarada, licença declarada/evidência, datas e resposta de origem.
+   Desconhecidos permanecem null/UNKNOWN; uploader não equivale ao autor.
+5. Verificar separadamente as permissões de consulta, exibição/cache, obtenção de
+   bytes, análise multimodal e eventual reutilização. Somente então obter o mínimo
+   de mídia autorizado, em staging de pesquisa isolado.
+6. Extrair atributos por ferramentas locais e, opcionalmente, modelo multimodal.
+   Associar observações a imagem/frame/timecode e método; registrar incertezas.
+7. Congelar um Visual Inspiration Manifest versionado, com fontes, atributos,
+   lacunas, orçamento consumido, hashes e política aplicada.
+8. Produzir três propostas originais para o Creative Director combinando atributos
+   abstratos, objetivos e DNA. Explicar decisões, influência das referências,
+   diferenças intencionais e limites. Sem copiar texto, arranjo exato ou sequência.
+9. Após escolha humana, salvar direção/storyboard pelos fluxos revisionados
+   existentes. Aprovar o storyboard exato antes de compilar para motion_scene_v1/
+   EDL v2 e enfileirar uma prévia Remotion real.
+10. Executar QA técnico/legibilidade e apresentar MP4, proveniência e ressalvas.
+    Aprovação audiovisual e publicação continuam sob controle humano.
+
+Não declarar preview “pronto” com screenshot, thumbnail ou storyboard desenhado.
+Um job de pesquisa pode terminar sem mídia analisável; nesse caso mostrar os
+resultados e bloqueios reais, sem preencher um manifesto com referências fictícias.
+
+### 16.2 Interfaces propostas
+
+Todas as interfaces abaixo são de projeto arquitetural; não existem por causa deste
+adendo. Reutilizar FastAPI/Pydantic, ownership, Jobs, SQLite/PostgreSQL e workers.
+
+| Interface lógica | Entrada | Saída e invariantes |
+|---|---|---|
+| QueryPlanner.plan | brief/DNA fixados, niche_hint, idioma, restrictions, budget | scout_query_plan_v1; queries distintas e rastreáveis; sem dados privados desnecessários |
+| ReferenceProvider.capabilities | adapter/version e credencial configurada | mídias/operações permitidas, política de cache, quota, autenticação e custo |
+| ReferenceProvider.search | query, cursor limitado, policy_version | ReferenceCandidates com IDs/URLs vindos da resposta real; nenhum link gerado por modelo |
+| ReferenceProvider.describe | IDs selecionados | autoria/licença/datas, evidence_ref e status de disponibilidade |
+| ReferencePolicy.evaluate | candidate, finalidade e termos revisados | decisões por operação: ALLOW/DENY/UNKNOWN, justificativa e evidência |
+| ReferenceFetcher.obtain | candidate autorizado + limites | blob isolado/hash ou bloqueio; não cria Asset de produção |
+| VisualAnalyzer.analyze | blob permitido, frames/timecodes, modelo/config fixados | visual_observations_v1 com evidências, hipóteses e campos NOT_ASSESSED |
+| InspirationManifest.freeze | QueryPlan, resultados, análises, budgets | visual_inspiration_manifest_v1 imutável, versão e hash |
+| DirectionProposer.propose | manifesto + brief/DNA fixados | três candidatos compatíveis com CreativeDirectionSet, proveniência em envelope separado |
+| CompositionPlanner.plan | proposta escolhida, storyboard aprovado, capabilities M4 | especificação visual tipada/receita suportada; prosa não executável rejeitada |
+| PreviewQA.evaluate | Job/MP4/hash, props, texto esperado | relatório técnico, evidências de legibilidade e artistic_review=PENDING |
+
+Rotas **candidatas**, no router Creative existente:
+
+- POST /api/v1/projects/{project_id}/creative/reference-scout/runs:
+  recebe scout_request_v1, revisões/hashes esperados, idempotency_key, policy_id,
+  modo e orçamento. Retorna 202 com Job real, nunca sucesso de pesquisa antecipado.
+- GET /api/v1/projects/{project_id}/creative/reference-scout/runs/{job_id}:
+  estado/etapa, uso de orçamento, limitações e motivo de bloqueio.
+- GET /api/v1/projects/{project_id}/creative/inspiration-manifests/{manifest_id}:
+  revisão/hash e referências cuja retenção/exibição continuam autorizadas.
+- POST /api/v1/projects/{project_id}/creative/reference-scout/proposals:
+  manifesto/revisão/hash + revisões do brief/DNA; gera candidatos sem aprová-los.
+
+Cancelamento deve usar o mecanismo de Job existente, adaptado explicitamente se
+necessário. Credenciais ficam em configuração segura do backend local, nunca no
+request do projeto, manifesto, prompt ou bundle Tauri. Nenhum novo endpoint publica.
+
+Contratos com extra=forbid, strict=true e limites de tamanho como na seção 4;
+URIs, enums e números validados. 409 para revisões/hashes obsoletos, 422 para
+contrato inválido, autenticação/ownership como nas demais rotas. Resultado vazio
+é EMPTY com motivo; cobertura parcial é PARTIAL no relatório do run, não “sucesso
+completo”. BLOCKED/WAITING_FOR_WORKER, erro e cancelamento devem ser mapeados aos
+estados reais da fila antes de implementar; não presumir enums já disponíveis.
+
+### 16.3 Visual Inspiration Manifest e proveniência
+
+Envelope proposto visual_inspiration_manifest_v1:
+
+| Grupo | Campos obrigatórios ou explicitamente desconhecidos |
+|---|---|
+| Identidade | manifest_id, project_id, revision, parent_sha256, manifest_sha256, created_at UTC |
+| Entradas | brief_revision/sha256, dna_revision/sha256, niche_hint e sua origem; query_plan_sha256 |
+| Execução | job_id, adapter_versions, policy_version/hash, início/fim, status, counters e blockers |
+| Pesquisa | query_id/texto enviado, provedor, filtros, fetched_at, cursor usado e response_sha256 |
+| Referência | reference_id, provider_item_id, canonical_url, origin_url, title, media_type, creators com evidence_ref |
+| Datas | published_at, source_modified_at, retrieved_at; null se a origem não informar |
+| Direitos | reported_license, license_url, attribution, rights_evidence_ref, verified_at/actor e allowed_operations |
+| Bytes | metadata_sha256, thumbnail_sha256 e media_sha256 separados, content_type, tamanho; null quando não obtidos |
+| Análise | features, evidence_refs/timecodes, método/modelo/config/hash, confidence e limitações |
+| Síntese | princípios abstratos, rejected_elements, diversidade/duplicatas, ligações propostas → evidências |
+| Retenção | cache_expires_at, policy_expiry, estado de disponibilidade/redação e motivo |
+| Revisão | estado da seleção humana; sem transportar aprovação de publicação |
+
+Revisão imutável com hash calculado pelo servidor sobre conteúdo canônico, excluindo
+apenas o próprio campo de hash; listas ordenadas e números normalizados. Alterações
+criam outra revisão. metadata_sha256 identifica os metadados normalizados observados;
+response_sha256 identifica bytes da resposta realmente recebida quando permitido.
+O SHA do provedor (por exemplo SHA-1) mantém nome/algoritmo próprios, nunca é
+apresentado como SHA-256 calculado localmente. Hash de thumbnail não é hash do original.
+
+Datas, autores e licenças vêm de evidências do provedor/origem; o modelo não os
+“completa”. Uma página de inspiração não vira fonte de alegação factual automaticamente.
+Estatísticas/resultados esportivos, lugares e contexto político continuam no fluxo
+de claims e verificação já existente.
+
+As features incluem hierarquia/escala tipográfica, densidade, alinhamento, espaço
+negativo, paleta, contraste, profundidade aparente e relações de composição.
+Família tipográfica exata deve ser UNKNOWN sem evidência; não inferir sua licença.
+Ritmo/movimento/transições requerem frames de vídeo autorizados com timestamps;
+uma imagem permite apenas hipótese estática. Registrar amostragem, cobertura temporal
+e distinguir observado/estimado/não avaliado. Confidence é saída não calibrada do
+método, não probabilidade de verdade nem decisão editorial.
+
+Pesquisa web/modelos podem variar entre execuções. A reprodução começa no manifesto
+congelado e nos blobs ainda autorizados, não promete repetir o resultado de um buscador.
+Modelo, pesos, tokenizer, preprocessamento, quantização, seed e parâmetros entram
+no manifesto. Quando não houver evidência disponível, declarar análise não reproduzível.
+
+### 16.4 Fontes candidatas e verificação oficial
+
+Documentação consultada em **26/10/2026**. As linhas abaixo são candidatas de
+arquitetura, todas **PAPER / DESABILITADAS**, sem conta, credencial, coleta ou
+conector ativado. Antes de implementar, rever termos/quota/custos e fixar a versão
+do adapter e do contrato; endpoints atuais não são garantia permanente de acesso.
+
+| Fonte candidata | Operações futuras e limites | Referência oficial |
+|---|---|---|
+| Openverse API v1 | Descoberta de imagens e metadados, licença/atribuição declaradas; acesso anônimo ou token com limites. Sem assumir busca de vídeo. Rever limites retornados pela API | [API v1](https://api.openverse.org/v1/) |
+| Openverse — origem real | Confirmar direitos e condições no host original; catálogo não garante licença. Proibidos scraping do catálogo e contorno de limites; cumprir identificação/atribuição exigidas. Gratuidade futura não é garantida | [Termos oficiais](https://docs.openverse.org/terms_of_service) |
+| Wikimedia Commons / MediaWiki Action API | Pesquisa e imageinfo para arquivos de imagem/vídeo, URL, timestamp, hash do provedor e extmetadata. Validar licença por arquivo; obter metadados extensos em poucos itens e tratar HTML como dado | [Imageinfo](https://www.mediawiki.org/wiki/API:Imageinfo/en), [licença de arquivos](https://attribution.wikimedia.org/attribution-signals/license.html) |
+| Wikimedia — operação | User-Agent identificável, chamadas em série, cache permitido e backoff/maxlag; sem espelhar o acervo | [API etiquette](https://www.mediawiki.org/wiki/API:Etiquette) |
+| YouTube Data API v3 — candidato secundário | Apenas descoberta de links/metadados, com projeto/chave e quota. Não baixar vídeo/áudio nem extrair frames via API/player para VLM. Análise automatizada dos dados fica desabilitada até revisão específica do caso de uso | [Search](https://developers.google.com/youtube/data/reference/rest/v3/search/list), [configuração/quota](https://developers.google.com/youtube/v3/getting-started) |
+| YouTube — restrições | Armazenar audiovisual exige autorização prévia prevista pela plataforma; retenção de dados tem limites e regras de atualização/exclusão. Não presumir que uma licença de conteúdo dispense as regras da API | [Developer Policies](https://developers.google.com/youtube/terms/developer-policies) |
+| Projetos de estúdios/portfólios | Futuro catálogo por API/feed oficial ou autorização explícita do titular, caso a caso; sem adapter presumido. Behance, Dribbble, Pinterest e áreas autenticadas não entram no conjunto inicial habilitável | Nenhum contrato específico verificado nesta rodada; acesso automatizado permanece bloqueado |
+
+Openverse e Commons são uma hipótese inicial de baixo custo, não garantia de
+cobertura de motion design sofisticado. A lacuna de portfólios/vídeos será exibida
+como cobertura limitada. Um provider que só permite metadados continua útil para
+descoberta, mas não pode anunciar análise de câmera/ritmo daquele vídeo.
+
+Permissão de buscar, exibir thumbnail, guardar bytes, analisar e reutilizar são
+decisões independentes. Um rótulo Creative Commons no buscador não aprova produção.
+Licenças/desconhecidos/conflitos permanecem explícitos; a configuração comercial,
+atribuições e eventuais restrições precisam passar pelo ledger de direitos existente.
+Não ativar provider que exija cobrança ou novos termos sem decisão posterior.
+
+### 16.5 Execução local, dependências e custos
+
+Priorizar QueryPlanner determinístico e descritores locais de cor/geometria antes de
+adicionar inferência. Análise multimodal é plugin opcional do worker local Windows:
+recebe apenas blobs permitidos, sem acesso à rede, tokens ou ferramentas de escrita.
+
+Candidato de estudo: SmolVLM2-256M-Video-Instruct, cujo model card declara Apache 2.0
+e suporte multimodal. A documentação Transformers descreve entradas de imagem/vídeo.
+É uma opção a medir, não modelo instalado/selecionado; o suporte descrito não comprova
+latência, acurácia em português ou desempenho CPU no PC do usuário.
+[Model card oficial](https://huggingface.co/HuggingFaceTB/SmolVLM2-256M-Video-Instruct),
+[documentação SmolVLM](https://huggingface.co/docs/transformers/model_doc/smolvlm).
+
+Antes de adotar qualquer modelo: fixar revisão de pesos, hashes, licença, dependências,
+quantização e orçamento de memória; usar formatos seguros, sem código remoto do
+repositório do modelo. Benchmark de CPU Windows e teste de cancelamento são gates.
+Download de pesos e eventual aceleração são decisões futuras, não efeitos do ADR.
+Se modelo/runtime não estiver disponível, devolver WAITING_FOR_WORKER ou análise
+parcial de descritores, explicitamente sem avaliação semântica/movimento.
+Não fazer fallback silencioso para API remota paga.
+
+FFmpeg/FFprobe existentes podem medir frames/cortes/envelopes apenas de arquivos
+obtidos com permissão. Remotion continua responsável pelas prévias finais.
+Nenhuma dependência nova foi instalada; .env.example, lockfiles e banco permanecem
+iguais. Um futuro cadastro de dependências deve discriminar software, pesos, conteúdo
+e termos do serviço. Medir bytes, requests, tempo CPU, RSS e armazenamento por run;
+execução local não significa energia/hardware sem custo.
+
+### 16.6 Cache, limites e idempotência
+
+Defaults **propostos**, sujeitos à quota/termos mais restritivos do provedor:
+
+| Controle por run | Orçamento inicial |
+|---|---|
+| Consultas | até 6, até 2 providers, uma página por par query/provider |
+| Requests totais | 36, incluindo metadata, downloads e tentativas; teto diário local 100 compartilhado |
+| Resultados | até 40 candidatos normalizados, 12 referências retidas, 8 mídias analisadas |
+| Download | 48 MiB agregados; imagem ≤4 MiB/16 MP; vídeo ≤16 MiB; até 2 vídeos |
+| Análise de vídeo | no máximo 12 s e 24 frames por vídeo autorizado; cobertura parcial declarada |
+| Concorrência | uma requisição por provider e um job de inferência local |
+| Tempo | 120 s para etapa de rede; 600 s para análise; timeout explícito |
+| Retries | até 2 por request, dentro dos tetos; Retry-After/backoff, sem rotação de IP/conta |
+| Gastos externos | teto zero; provider pago bloqueado |
+
+Estes são limites do produto, não quotas anunciadas pelas fontes. Somar consumo
+entre jobs/retries/reinicializações; não permitir ultrapassar teto com outra chave
+de idempotência. Se Retry-After exceder o deadline, adiar/bloquear com evidência,
+sem polling contínuo. Cancelar libera o worker e mantém o relatório parcial.
+
+Chave de cache: provider + versão do adapter/política + query normalizada/filtros +
+escopo de autenticação/idioma. Cache local por usuário/projeto quando houver dados
+privados; jamais compartilhar tokens. TTL de metadados inicial até 24 h e de mídia
+até 7 dias **somente quando a fonte permitir**; retenção mais curta prevalece.
+401/403/429 não acionam scraping alternativo.
+
+Deduplicar por provider/ID/URL canônica e SHA-256 dos bytes; hash perceptual local
+apenas se análise permitida. Similaridade não funde autorias/licenças e não concede
+direitos. Evitar várias cópias da mesma obra aparentando diversidade de referências.
+
+Manifesto imutável não autoriza retenção eterna de dados. Cache, embeddings e blobs
+têm expiração/exclusão independente; registrar disponibilidade e, quando permitido,
+um tombstone mínimo com motivo/hash. Se os termos exigirem apagar também derivados/
+metadados, respeitar a exclusão e marcar a evidência como indisponível. Hash não
+torna retenção automaticamente permitida nem prova direitos de uso. Um render não
+pode se apoiar em evidência revogada sem nova verificação aplicável.
+
+### 16.7 Originalidade, segurança e revisão humana
+
+- Extrair relações abstratas de várias fontes; não reconstruir coordenadas/layout,
+  sequência, identidade de marca ou texto de uma obra. Não rastrear imagem para
+  vetor, gerar cópia por image-to-image ou usar referência como frame do filme.
+- A proposta deve explicar como transformou as influências e o que recusou copiar.
+  Diversidade e comparação de similaridade podem sinalizar risco; não certificam
+  originalidade ou direitos. Se o conjunto for insuficiente, declarar a limitação.
+- ReferenceCandidate/Manifest não são Asset. Promoção opcional para Asset é uma
+  ação explícita separada, com licença/evidência, SHA dos bytes, proveniência,
+  direitos e revisão vigentes. Nenhuma referência é adicionada ao EDL automaticamente.
+- Fonte externa/OCR/legenda/metadados são dados não confiáveis: não podem mudar
+  instruções, limites, destinos, credenciais, aprovações ou publicação. Prompt injection
+  é tratada como conteúdo; saída do VLM é JSON validado, sem chamadas de ferramentas.
+- Fetcher usa HTTPS/hosts permitidos, valida DNS e cada redirect, bloqueia IP privado/
+  loopback/link-local, file URLs e caminhos locais. Limitar bytes antes/depois de
+  decodificar, MIME real, tempo e resolução. Nunca executar HTML/SVG/scripts coletados.
+- Antes da rede, mostrar os termos que serão enviados e remover segredos, dados
+  pessoais e planos privados do briefing. Modo automático futuro exige ativação
+  consciente do usuário, política e orçamento; não envia o brief completo por padrão.
+- Automático significa pesquisar/analisar/gerar rascunhos dentro desses limites.
+  Escolha de proposta, storyboard e aprovação audiovisual permanecem explícitas.
+  O Scout não possui credencial nem permissão para publicar.
+
+Integração revisionada: o run fixa brief/DNA; buscar referências não modifica nenhuma
+aprovação existente. Ao adotar proposta nova, usar o controle de concorrência do
+Creative Director; mudar direção/conteúdo segue a invalidação editorial normal.
+O manifesto selecionado deve ser vinculado à revisão da direção/storyboard por hash
+antes da aprovação, e copiado como dependência do plano derivado, não inserido depois
+no snapshot já aprovado.
+
+A estrutura M1 atual tem campos fechados e snapshot sem esse vínculo. Portanto será
+necessária uma extensão explícita compatível de proveniência, versão do snapshot e,
+se persistência dedicada for necessária, migração previamente justificada. Registros
+legados sem manifesto continuam válidos; nunca recalcular silenciosamente seu hash.
+Reutilizar Job para execução; eventual tabela de manifestos guarda pesquisa e relação
+de revisão, sem cenas/keyframes e sem outra timeline. Testar migração/restauração
+isoladas somente quando essa fase for autorizada.
+
+Para render, a revisão exata, manifesto selecionado, receita, fontes/claims, direitos
+dos assets finais e hash do plano seguem as verificações M4. Validade de licenças dos
+assets finais e decisões de retenção das referências são avaliadas separadamente.
+A revisão audiovisual por artefato proposta na seção 9 continua obrigatória; um
+relatório automático aprovado não dispara exportação editorial/publicação.
+
+### 16.8 QA, riscos e fases futuras
+
+QA das prévias reais: FFprobe/decode, duração/FPS, áudio, preto, fontes carregadas,
+bounds de texto e safe areas, contraste sobre fundos reais e tempo de leitura.
+Combinar medidas de layout e amostras de frames; OCR é auxiliar, sujeito a falha.
+Texto oculto/recortado é evidência de problema; thresholds não aprovam narrativa,
+originalidade ou experiência sonora. Emitir TECHNICAL_PASS/FAIL e ARTISTIC_PENDING
+como campos do relatório, mapeados a estados existentes ao implementar.
+
+| Risco | Resposta arquitetural |
+|---|---|
+| Catálogo não cobre referências de alto nível | cobertura explícita por mídia/dimensão; ampliar somente com fontes permitidas |
+| Origem/licença falsa ou incompleta | UNKNOWN/bloqueio; verificação independente; nunca autorizar por confiança do modelo |
+| Interpretar thumbnail como ritmo real | observações temporais só com sequência autorizada/timecodes |
+| Homogeneização ou cópia | síntese de atributos, diversidade, registro das diferenças e revisão humana |
+| Custos/rate limits/restrições mudam | política versionada, budgets persistidos, adapters desligáveis |
+| Alucinação/prompt injection | evidência por atributo, campos desconhecidos, isolamento e saída estrita |
+| CPU insuficiente | análise limitada/cancelável, benchmark, status explícito; nenhuma promessa de GPU gratuita |
+| Cache entra em conflito com retenção | expiração/exclusão de blobs e derivados, evidência indisponível declarada |
+| Mudança editorial invalida storyboard | leitura isolada; adoção via revisões; nenhum update oculto de Project.plan/edl/script |
+
+| Fase futura, após autorização | Entrega e gate |
+|---|---|
+| Scout A — contratos/políticas | Request/Manifest/ProviderCapabilities; revisão dos termos e de privacidade; fixtures locais autorizadas; nenhum conector de busca ativo |
+| Scout B — pesquisa controlada | um adapter inicial aprovado, cache/dedupe/budgets, UI de progresso/cancelamento e proveniência; resultado vazio/429/401/403 demonstrados |
+| Scout C — análise local | descritores + VLM opcional fixado, evidência espacial/temporal, benchmark Windows CPU e exclusão/retention testadas |
+| Scout D — propostas e bridge | três propostas, seleção humana, vínculo revisionado/hash, compilador M4 e preview Remotion real; nenhuma segunda timeline |
+| Scout E — modo automático limitado | opt-in, orçamento e auditoria, QA técnico e revisão de artefato; teste de impossibilidade de publicação pelo Scout |
+
+Essas fases não renomeiam nem antecipam M4.A–D. Scout D depende do Motion Engine
+validado; o restante é backlog separado sujeito à aprovação de escopo.
+
+Critérios de aceite futuros: iniciar pelo briefing sem fornecer links; rastrear cada
+URL até resposta real; nenhuma licença inferida; distinguir imagem de evidência temporal;
+interromper por orçamento/cancelamento; preservar isolamento e revisão sob concorrência;
+bloquear URL maliciosa e instrução embutida; repetir análise em evidência fixada com
+limitações documentadas; gerar preview real somente após storyboard aprovado; provar
+que retirar aprovação impede a disponibilização editorial e que não há publicação
+automática. Testes offline usam fixtures declaradas, não “pesquisa real” simulada.
+Testes online de contrato precisam de autorização/configuração e quota registrada.
+
+**Entrega do adendo:** somente planejamento neste ADR. Nenhuma pesquisa de referências
+de projetos, integração, modelo, migração, serviço ou automação foi ativada.
