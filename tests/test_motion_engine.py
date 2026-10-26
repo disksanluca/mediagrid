@@ -4,6 +4,7 @@ import copy
 import hashlib
 import wave
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -154,6 +155,20 @@ def test_recipe_and_runtime_hashes_are_verified(client, engine_project, monkeypa
             verify_motion(
                 db, project_id, {"plan": result["plan"], "plan_sha256": result["plan_sha256"]}
             )
+
+
+def test_runtime_manifest_normalizes_module_path_alias(client, engine_project, monkeypatch):
+    from apps.api.creative import engine
+
+    expected = prepare(client, engine_project)
+    source = Path(engine.__file__).resolve()
+    # A lexical alias is portable; the frozen Windows executable can instead
+    # receive an 8.3 alias. Both must resolve before relative manifest keys.
+    alias = source.parent / ".." / source.parent.name / source.name
+    monkeypatch.setattr(engine, "__file__", str(alias))
+    actual = prepare(client, engine_project)
+    assert actual == expected
+    assert "creative/engine.py" in actual["plan"]["runtime"]["engine_files"]
 
 
 def test_human_artifact_review_is_exact_idempotent_and_separate(client, engine_project):

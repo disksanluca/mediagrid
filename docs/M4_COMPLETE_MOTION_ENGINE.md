@@ -14,7 +14,7 @@ continuam **REQUEST_REVIEW / avaliação artística humana pendente**.
 
 Não houve merge, instalação no PC, escrita no SQLite instalado, VPS, publicação,
 API paga ou implementação do Reference Scout. Os vídeos e bancos descartáveis
-ficam em `data/m4-complete-proof/final/`, ignorados pelo Git.
+ficam em `data/m4-complete-proof/final-pathfix/`, ignorados pelo Git.
 
 ## Arquitetura
 
@@ -163,7 +163,7 @@ SQLite instalado do usuário não foi aberto ou alterado.
 | `tsc --noEmit -p apps/web`, `apps/renderer`, `contracts/motion` | PASS |
 | `vitest run --root apps/web` | 8 passed |
 | `next build apps/web` | PASS, build otimizado/TypeScript/páginas estáticas |
-| `proof_motion_engine.py --run final --concurrency 2 --approve-synthetic-storyboards` | 3 renders reais SUCCEEDED, projetos originais intactos |
+| `proof_motion_engine.py --run final-pathfix --concurrency 2 --approve-synthetic-storyboards` | 3 renders reais SUCCEEDED, projetos originais intactos |
 | `qa_motion_engine.py` nas três pastas | 1110 frames + PCM decodificados; PASS |
 | `repeat_motion_engine.py .../final/sports` | Mesmo plano; áudio idêntico; vídeo dentro da tolerância |
 
@@ -203,9 +203,9 @@ Páginas compartilhadas podem contar duas vezes; picos curtos podem não aparece
 Não mede VRAM nem define hardware mínimo. Outros aplicativos/testes estavam abertos.
 Tempos e picos por produção: [evidence.json](testing/m4-complete/evidence.json).
 
-Sports repetido com concurrency=1: 32,477 s e pico 1437,47 MiB.
-Comparação com concurrency=2: PCM idêntico, vídeo PSNR médio 62,05 dB /
-mínimo 54,01 dB. O SHA-256 do MP4 mudou. O teste exige PSNR ≥50 dB e PCM
+Sports repetido com concurrency=1: 31.926 s e pico 1440.11 MiB.
+Comparação com concurrency=2: PCM idêntico, vídeo PSNR médio 61.865422 dB /
+mínimo 54.013103 dB. O SHA-256 do MP4 mudou. O teste exige PSNR ≥50 dB e PCM
 idêntico; não promete igualdade binária entre paralelismos ou ambientes.
 O plano e a composição permaneceram iguais.
 
@@ -238,9 +238,9 @@ abrir Creative Director → Revisão. Opções em .env.example.
 Raiz nesta máquina:
 `C:/Users/SP0097A/Documents/Codex/2026-10-12/github-plugin-github-openai-curated-remote-2/work/mediagrid`.
 
-- `data/m4-complete-proof/final/sports/sports-motion.mp4`
-- `data/m4-complete-proof/final/music/music-motion.mp4`
-- `data/m4-complete-proof/final/geo/geo-motion.mp4`
+- `data/m4-complete-proof/final-pathfix/sports/sports-motion.mp4`
+- `data/m4-complete-proof/final-pathfix/music/music-motion.mp4`
+- `data/m4-complete-proof/final-pathfix/geo/geo-motion.mp4`
 
 Abra os MP4s num player local com áudio. Cada pasta contém plano, preview, prova
 do job, score, FFprobe, QA, performance e frames. Hashes/IDs/proveniência em
@@ -293,7 +293,9 @@ Referências oficiais consultadas:
 
 ## Evidência final pela interface
 
-Build otimizado Next.js, API e worker apontados ao banco descartável final.
+Capturas e interação verificadas no build anterior cc773bc, banco descartável final.
+A correção posterior afeta apenas a normalização de caminhos do manifesto; as capturas
+permanecem evidência histórica dessa sessão, não da nova base final-pathfix.
 Receita e áudio do brief selecionados; botão Renderizar MP4 produziu job real
 1edfc5d1-feb9-591a-a036-f255f318927e, 540×960, 360 frames, SUCCEEDED.
 Player reproduzido e pausado em 7 s. Dois MP4s selecionados lado a lado;
@@ -307,12 +309,30 @@ sem confirmação humana. Console do navegador: nenhum erro capturado.
 
 | Vídeo | Render (s) | Fluxo/worker (s) | Pico amostrado (MiB) | Nodes por shot |
 |---|---:|---:|---:|---|
-| sports | 19.87 | 21.401 | 1669.48 | [21, 20, 23, 21] |
-| music | 17.574 | 19.061 | 1493.59 | [15, 15] |
-| geo | 22.4 | 24.002 | 1644.81 | [29, 29, 29] |
+| sports | 20.9 | 22.6 | 1654.84 | [21, 20, 23, 21] |
+| music | 17.97 | 19.462 | 1520.69 | [15, 15] |
+| geo | 22.545 | 23.741 | 1648.02 | [29, 29, 29] |
 
 | Vídeo | SHA-256 do MP4 final |
 |---|---|
-| sports | `1b7c9ecd63da2ff9f406ec22aad69354f794e9135455c1aea1b3edaa86bf6b3f` |
+| sports | `09cf151390a3f42517d5cff380e659436dba45c2dd452f06404deecc96124b93` |
 | music | `110c98f722353c4ad7d6088abc0a6cfad733424c3e5817782f11f2a8fe38bfb1` |
 | geo | `c2fab2c4c65c6c6071040637ba054c63eb38f7fa7f91fbaec82c727f50992545` |
+
+## Correção encontrada pelo teste Windows instalado
+
+A primeira execução do PR (#48, run 40284767369) compilou o serviço e o instalador,
+mas detectou erro 500 na prévia M4 instalada: PyInstaller forneceu __file__ pelo
+alias Windows 8.3, enquanto a raiz já estava resolvida para o caminho longo.
+O manifesto agora resolve o arquivo e a raiz de forma consistente antes de
+produzir chaves relativas; nenhum gate de hash foi removido.
+
+Novo teste de regressão com alias de caminho: 25 testes de test_motion_engine.py
+passaram em 23,74 s; Ruff nos dois arquivos passou. A suíte completa anterior
+permanece registrada acima; o resultado completo posterior está nos checks do PR.
+
+As três provas foram regeneradas em final-pathfix com os hashes atuais, QA completo
+e nova repetição Sports. A pasta final anterior foi preservada. Vídeos anteriores
+não são silenciosamente reaprovados: a mudança do hash de runtime os torna
+obsoletos para novas decisões/download pelo fluxo vigente.
+A validação Windows corrigida deve ser consultada no PR antes de instalar.

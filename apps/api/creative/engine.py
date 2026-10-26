@@ -350,11 +350,14 @@ def derive_engine(db: Session, project_id: str, request: EngineRequest) -> dict:
     selected = next(
         d for d in directions.payload["directions"] if d["id"] == storyboard.direction_id
     )
-    module_root = Path(__file__).resolve().parents[1]
+    # PyInstaller may expose __file__ through a Windows 8.3 alias. Use the same
+    # resolved path for both the root and every manifest entry.
+    module_file = Path(__file__).resolve()
+    module_root = module_file.parents[1]
     runtime = runtime_manifest()
     runtime["engine_files"] = {
         str(p.relative_to(module_root)).replace("\\", "/"): sha256_file(p)
-        for p in sorted([*(module_root / "motion_contracts").glob("*.py"), Path(__file__)])
+        for p in sorted([*(module_root / "motion_contracts").glob("*.py"), module_file])
     }
     runtime["font_license_sha256"] = sha256_file(font_source().with_name("sports-font-OFL.txt"))
     runtime["worker_files"] = {

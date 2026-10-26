@@ -1,9 +1,9 @@
 {
-  "output": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\final\\creative-renders\\7a660172-5ecf-5ff6-8f20-b2a704fae943.mp4",
-  "sha256": "857bfdf84fdb67cdd70901f11766fab860f72bab44406d84591de8f0f094f53c",
-  "plan_sha256": "9b302c4221a596b1343cc112638a892054a57c5e06e1c699058e113fa1aa819c",
-  "approved_snapshot_sha256": "213176e186c7205d35718b8ff53295aeb2a0e147285e5d5527a2b744f18ae359",
-  "storyboard_sha256": "26f87040b356d3eae966e5d4ef82e78ef203fc202991b482338500c42f8a1abb",
+  "output": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\final-pathfix\\creative-renders\\3b75fa5d-ceae-5b02-93ab-71ca040b16ef.mp4",
+  "sha256": "70a7c1caca7c8252c084ac43e63209fbbb6c5b0b646aca7d7a16e3e990eedefe",
+  "plan_sha256": "2aa476193624b62baabcadd0323a41b2d44c78a3b9972a1ff550a5fe44ad2363",
+  "approved_snapshot_sha256": "ba90002a73851ef2228bc009a0cde165846fefb23bf46e0fd8847bcd30115769",
+  "storyboard_sha256": "cd4dcf9f9a526aee29431abfc5cfc90f3d7079f89ff5c488347f6e5d6f2a6593",
   "ffprobe": {
     "streams": [
       {
@@ -39,7 +39,7 @@
         "start_time": "0.000000",
         "duration_ts": 1080000,
         "duration": "12.000000",
-        "bit_rate": "2743952",
+        "bit_rate": "2744000",
         "bits_per_raw_sample": "8",
         "nb_frames": "360",
         "nb_read_frames": "360",
@@ -131,7 +131,7 @@
       }
     ],
     "format": {
-      "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\final\\sports\\repeat-c1.mp4",
+      "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\final-pathfix\\sports\\repeat-c1.mp4",
       "nb_streams": 2,
       "nb_programs": 0,
       "nb_stream_groups": 0,
@@ -139,8 +139,8 @@
       "format_long_name": "QuickTime / MOV",
       "start_time": "0.000000",
       "duration": "12.011000",
-      "size": "4416246",
-      "bit_rate": "2941467",
+      "size": "4416318",
+      "bit_rate": "2941515",
       "probe_score": 100,
       "tags": {
         "major_brand": "isom",
@@ -151,7 +151,7 @@
       }
     }
   },
-  "render_seconds": 32.477,
+  "render_seconds": 31.926,
   "art_direction": "original",
   "diagnostics": false,
   "artistic_review": "AWAITING_HUMAN_REVIEW",
@@ -161,11 +161,11 @@
     "version": "1.1.0",
     "sha256": "4257e79042acbc68476843a4dd3da70ebfd20e56f06dc3ef3d04052ce5e94781"
   },
-  "composition_sha256": "8301898996658a4014ec88b0bf7b15223577fb9feac4ed0f9b4a90995577498e",
-  "dependencies_sha256": "24fccc58e7378282757346b2dcc63ad9c4a9a75a9cfa05164864c79f43d16e47",
+  "composition_sha256": "a256b8f4ee4581cc1bdc9177e27a8614f454031ed322e0248b309f87979aa7ad",
+  "dependencies_sha256": "b3e8b3cf492745570c586ccc94e23f2077dcdb8c9f83a10ccafc69748f085481",
   "same_encoded_sha256": false,
-  "decoded_video_psnr_average_db": 62.050922,
-  "decoded_video_psnr_min_db": 54.007929,
+  "decoded_video_psnr_average_db": 61.865422,
+  "decoded_video_psnr_min_db": 54.013103,
   "decoded_audio_identical": true,
   "reproducibility_tolerance": "Decoded video PSNR >= 50 dB; identical decoded audio"
 }

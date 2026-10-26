@@ -1,12 +1,12 @@
 [
   {
     "label": "sports",
-    "project_id": "5a7033e2-1586-49d9-af2b-1ff2439d4af3",
-    "job_id": "7a660172-5ecf-5ff6-8f20-b2a704fae943",
-    "mp4_relative": "data/m4-complete-proof/final/sports/sports-motion.mp4",
-    "sha256": "1b7c9ecd63da2ff9f406ec22aad69354f794e9135455c1aea1b3edaa86bf6b3f",
-    "plan_sha256": "9b302c4221a596b1343cc112638a892054a57c5e06e1c699058e113fa1aa819c",
-    "composition_sha256": "8301898996658a4014ec88b0bf7b15223577fb9feac4ed0f9b4a90995577498e",
+    "project_id": "8d0af428-3ad2-4a42-aa00-af9d80767d90",
+    "job_id": "3b75fa5d-ceae-5b02-93ab-71ca040b16ef",
+    "mp4_relative": "data/m4-complete-proof/final-pathfix/sports/sports-motion.mp4",
+    "sha256": "09cf151390a3f42517d5cff380e659436dba45c2dd452f06404deecc96124b93",
+    "plan_sha256": "2aa476193624b62baabcadd0323a41b2d44c78a3b9972a1ff550a5fe44ad2363",
+    "composition_sha256": "a256b8f4ee4581cc1bdc9177e27a8614f454031ed322e0248b309f87979aa7ad",
     "recipe": {
       "id": "sports.depth-impact",
       "version": "1.1.0",
@@ -27,9 +27,9 @@
       "audio_bitrate": "192k",
       "quality": "final"
     },
-    "render_seconds": 19.87,
-    "wall_seconds": 21.401,
-    "peak_working_set_mib": 1669.48,
+    "render_seconds": 20.9,
+    "wall_seconds": 22.6,
+    "peak_working_set_mib": 1654.84,
     "node_counts": [
       21,
       20,
@@ -38,7 +38,7 @@
     ],
     "assets": [
       {
-        "id": "317dc8de-bf9d-49c1-8cae-9bbaa2706920",
+        "id": "c0bb1c83-4b00-4261-8074-42cf922b9987",
         "sha256": "240abb38d03ffc80f062205c32658029c21b1b3d4bb521bac08b26c30cfcdcd5",
         "rights_status": "OWNED",
         "license_name": "CC0-1.0",
@@ -47,7 +47,7 @@
         "commercial_use": true,
         "slot": "score",
         "metadata": {
-          "asset_id": "317dc8de-bf9d-49c1-8cae-9bbaa2706920",
+          "asset_id": "c0bb1c83-4b00-4261-8074-42cf922b9987",
           "sha256": "240abb38d03ffc80f062205c32658029c21b1b3d4bb521bac08b26c30cfcdcd5",
           "byte_size": 2304044,
           "kind": "audio",
@@ -94,8 +94,8 @@
       "label": "sports",
       "decoded_frames": 360,
       "black_intervals": [],
-      "mean_frame_delta_8bit": 1.7639,
-      "median_frame_delta_8bit": 1.1003,
+      "mean_frame_delta_8bit": 1.7638,
+      "median_frame_delta_8bit": 1.1002,
       "longest_run_below_0_1_seconds": 0.1667,
       "decoded_audio_seconds": 12.010666666666667,
       "audio_peak_dbfs": -4.444,
@@ -130,12 +130,12 @@
   },
   {
     "label": "music",
-    "project_id": "b0300009-2eae-4bf5-bd99-2fabcd27487e",
-    "job_id": "7fbb9efc-0ab2-56a4-a651-f820207f13d5",
-    "mp4_relative": "data/m4-complete-proof/final/music/music-motion.mp4",
+    "project_id": "426c267a-b715-47de-9954-bc6aed9a9ed6",
+    "job_id": "13b32d4e-850f-546b-a537-c700b51cdccb",
+    "mp4_relative": "data/m4-complete-proof/final-pathfix/music/music-motion.mp4",
     "sha256": "110c98f722353c4ad7d6088abc0a6cfad733424c3e5817782f11f2a8fe38bfb1",
-    "plan_sha256": "9882b92a6cf457d6d9de70b3c22585238e27a97b7ad6681423c002dbdd89977c",
-    "composition_sha256": "c525ffa850c69a405c5a903889ec4a63235d1cb0fef89b32b53449c4d813321d",
+    "plan_sha256": "d557ea18992ed84a6e30554878f5c5fe0f32b45586990e78544bd815dd3cad3d",
+    "composition_sha256": "cffa626f630acc5eef1ab22d63d10448f72860677e4cc7c0fc0b3e212d3896a1",
     "recipe": {
       "id": "music.orbital-sleeve",
       "version": "1.1.0",
@@ -156,16 +156,16 @@
       "audio_bitrate": "192k",
       "quality": "final"
     },
-    "render_seconds": 17.574,
-    "wall_seconds": 19.061,
-    "peak_working_set_mib": 1493.59,
+    "render_seconds": 17.97,
+    "wall_seconds": 19.462,
+    "peak_working_set_mib": 1520.69,
     "node_counts": [
       15,
       15
     ],
     "assets": [
       {
-        "id": "a31ef7d7-aeb2-44fa-8239-ad441e39610d",
+        "id": "2d5579e0-3a73-440b-b394-ceaa0dc07f6d",
         "sha256": "1f381522e21ff26595bd2bbe65330e2db592267ebd9e970ec0e14e16b8398966",
         "rights_status": "OWNED",
         "license_name": "CC0-1.0",
@@ -174,7 +174,7 @@
         "commercial_use": true,
         "slot": "score",
         "metadata": {
-          "asset_id": "a31ef7d7-aeb2-44fa-8239-ad441e39610d",
+          "asset_id": "2d5579e0-3a73-440b-b394-ceaa0dc07f6d",
           "sha256": "1f381522e21ff26595bd2bbe65330e2db592267ebd9e970ec0e14e16b8398966",
           "byte_size": 1920044,
           "kind": "audio",
@@ -184,7 +184,7 @@
         }
       },
       {
-        "id": "b9b5c054-493d-4988-9829-06472643e8a8",
+        "id": "95d8c315-8c2f-460a-b5cb-12c5e366eecb",
         "sha256": "da6c04073eeeec20e3c653693c787595b27425749ec97d90f3cf2b9b15163def",
         "rights_status": "OWNED",
         "license_name": "CC0-1.0",
@@ -193,7 +193,7 @@
         "commercial_use": true,
         "slot": "cover",
         "metadata": {
-          "asset_id": "b9b5c054-493d-4988-9829-06472643e8a8",
+          "asset_id": "95d8c315-8c2f-460a-b5cb-12c5e366eecb",
           "sha256": "da6c04073eeeec20e3c653693c787595b27425749ec97d90f3cf2b9b15163def",
           "byte_size": 146744,
           "kind": "image",
@@ -202,7 +202,7 @@
         }
       },
       {
-        "id": "7178b4da-df3f-4b01-99cb-2c6e746e292d",
+        "id": "1c53582a-9048-4957-b002-b2f3f5076fe3",
         "sha256": "93ac75e97aefc6fa54204beffb0da7913ee70450c9c6df69f5e1cb7cf4a3a87f",
         "rights_status": "OWNED",
         "license_name": "CC0-1.0",
@@ -211,7 +211,7 @@
         "commercial_use": true,
         "slot": "waveform",
         "metadata": {
-          "asset_id": "7178b4da-df3f-4b01-99cb-2c6e746e292d",
+          "asset_id": "1c53582a-9048-4957-b002-b2f3f5076fe3",
           "sha256": "93ac75e97aefc6fa54204beffb0da7913ee70450c9c6df69f5e1cb7cf4a3a87f",
           "byte_size": 770546,
           "kind": "video",
@@ -271,12 +271,12 @@
   },
   {
     "label": "geo",
-    "project_id": "4ed41f77-2f33-4f5f-8126-21c40e9ce0ed",
-    "job_id": "db2eeb4a-c609-5621-bf1c-c3c61b969abb",
-    "mp4_relative": "data/m4-complete-proof/final/geo/geo-motion.mp4",
+    "project_id": "247aa38e-af8a-43d1-a9b1-aa291ad17539",
+    "job_id": "7a98f8ec-c248-5f18-a74e-d7dd90e75a5a",
+    "mp4_relative": "data/m4-complete-proof/final-pathfix/geo/geo-motion.mp4",
     "sha256": "c2fab2c4c65c6c6071040637ba054c63eb38f7fa7f91fbaec82c727f50992545",
-    "plan_sha256": "1c8fed5021b3d335294003a631f7a151b3f28ff331f5765aa8efed863702d5c2",
-    "composition_sha256": "3fa45856aececfdc9f703c9109a7b960d1a81e23d26514f74efc70742cfaf489",
+    "plan_sha256": "4766fcc2d6cd1bbcda940b75f89da073219d95e8d7b60fc109ad5d694c533daa",
+    "composition_sha256": "6da3c2917b0238a38858a3b2664184d081b823b1f5c1d8d78a4e77b8e77bf5fe",
     "recipe": {
       "id": "geo.route-explainer",
       "version": "1.1.0",
@@ -297,9 +297,9 @@
       "audio_bitrate": "192k",
       "quality": "final"
     },
-    "render_seconds": 22.4,
-    "wall_seconds": 24.002,
-    "peak_working_set_mib": 1644.81,
+    "render_seconds": 22.545,
+    "wall_seconds": 23.741,
+    "peak_working_set_mib": 1648.02,
     "node_counts": [
       29,
       29,
@@ -307,7 +307,7 @@
     ],
     "assets": [
       {
-        "id": "2f62102b-ba03-4028-a8f9-ee7f2d29a447",
+        "id": "4715181c-f916-4365-8523-89c5829e2ff4",
         "sha256": "4418590185a94c59853cbeac1d82c42e03f8d6da47155a6eae9f38512860e6f6",
         "rights_status": "OWNED",
         "license_name": "CC0-1.0",
@@ -316,7 +316,7 @@
         "commercial_use": true,
         "slot": "score",
         "metadata": {
-          "asset_id": "2f62102b-ba03-4028-a8f9-ee7f2d29a447",
+          "asset_id": "4715181c-f916-4365-8523-89c5829e2ff4",
           "sha256": "4418590185a94c59853cbeac1d82c42e03f8d6da47155a6eae9f38512860e6f6",
           "byte_size": 2880044,
           "kind": "audio",

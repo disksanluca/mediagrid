@@ -33,7 +33,7 @@
       "start_time": "0.000000",
       "duration_ts": 1080000,
       "duration": "12.000000",
-      "bit_rate": "2742784",
+      "bit_rate": "2742928",
       "bits_per_raw_sample": "8",
       "nb_frames": "360",
       "nb_read_frames": "360",
@@ -125,7 +125,7 @@
     }
   ],
   "format": {
-    "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\final\\sports\\sports-motion.mp4",
+    "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\final-pathfix\\sports\\sports-motion.mp4",
     "nb_streams": 2,
     "nb_programs": 0,
     "nb_stream_groups": 0,
@@ -133,8 +133,8 @@
     "format_long_name": "QuickTime / MOV",
     "start_time": "0.000000",
     "duration": "12.011000",
-    "size": "4414493",
-    "bit_rate": "2940300",
+    "size": "4414709",
+    "bit_rate": "2940443",
     "probe_score": 100,
     "tags": {
       "major_brand": "isom",
