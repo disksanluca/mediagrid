@@ -50,6 +50,8 @@ try {
   $ffmpeg = Get-ChildItem $installDir -Filter "ffmpeg.exe" -Recurse | Select-Object -First 1
   $ffprobe = Get-ChildItem $installDir -Filter "ffprobe.exe" -Recurse | Select-Object -First 1
   if (-not $ffmpeg -or -not $ffprobe) { throw "FFmpeg portátil não encontrado na instalação." }
+  uv run python scripts/smoke_installed_motion.py --port $runtime.api_port --ffmpeg $ffmpeg.FullName
+  if ($LASTEXITCODE -ne 0) { throw "Motion Engine instalado falhou no projeto descartável de CI." }
   $sourceImage = Join-Path $env:RUNNER_TEMP "mediagrid-scene.png"
   $sourceVideo = Join-Path $env:RUNNER_TEMP "mediagrid-scene.mp4"
   & $ffmpeg.FullName -hide_banner -loglevel error -y -f lavfi -i "color=c=red:s=320x180:d=1" -frames:v 1 -update 1 $sourceImage
@@ -458,3 +460,7 @@ foreach ($restored in @("Database\mediagrid.db", "renders\$($project.id).mp4", "
   if (-not (Test-Path (Join-Path $restoredData $restored))) { throw "Restauração sem $restored." }
 }
 Write-Host "Backup e restauração do app instalado preservaram SQLite, MP4 e mídias importadas."
+$motionJob = Get-Content (Join-Path $env:RUNNER_TEMP "m4-installed-proof/job.json") -Raw | ConvertFrom-Json
+if (-not (Test-Path (Join-Path $restoredData "creative-renders/$($motionJob.id).mp4"))) {
+  throw "Restauração sem o artefato M4."
+}

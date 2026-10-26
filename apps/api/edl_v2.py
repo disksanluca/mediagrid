@@ -172,6 +172,15 @@ class CharacterDialogueSpec(OverlaySpec):
 def validate_overlay(
     item: TimelineItem,
 ) -> OverlaySpec | MotionCardSpec | FlowDiagramSpec | CharacterDialogueSpec | SportsCinematicSpec:
+    if item.preset == "motion_scene_v1":
+        from .motion_contracts.render import MotionSceneSpec
+        if (set(item.params) != {"motion"} or item.source_asset_id is not None
+                or item.source_in_ms is not None or item.source_out_ms is not None
+                or item.speed != 1 or item.z_index < 1):
+            raise ValueError("Motion scenes require closed derived graph params")
+        spec = MotionSceneSpec.model_validate(item.params["motion"])
+        # Actual canvas is checked by EDLV2 below.
+        return spec
     if (
         item.preset not in {"kinetic_title_v1", "motion_card_v1", "flow_path_v1",
                             "character_dialogue_v1", "sports_cinematic_v1"}
@@ -276,6 +285,12 @@ class EDLV2(BaseModel):
                     validate_sound(item)
                 if track.kind == "caption":
                     validate_overlay(item)
+                    if item.preset == "motion_scene_v1":
+                        from .motion_contracts.render import MotionSceneSpec
+                        from .motion_contracts.validation import validate_scene_bounds
+                        spec = MotionSceneSpec.model_validate(item.params["motion"])
+                        validate_scene_bounds(spec.graph, item.duration_ms, self.canvas,
+                                              item.start_ms)
                 if track.kind == "video" and track.id != "picture":
                     validate_video_layer(item)
         return self

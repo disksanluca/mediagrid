@@ -1,0 +1,30 @@
+{
+  "label": "geo",
+  "decoded_frames": 450,
+  "black_intervals": [],
+  "mean_frame_delta_8bit": 0.1177,
+  "median_frame_delta_8bit": 0.0477,
+  "longest_run_below_0_1_seconds": 4.3333,
+  "decoded_audio_seconds": 15.018666666666666,
+  "audio_peak_dbfs": -12.665,
+  "audio_rms_dbfs": -21.563,
+  "source_alignment": [
+    {
+      "cue_start_ms": 0,
+      "best_lag_ms": -0.333333,
+      "correlation": 0.996036
+    },
+    {
+      "cue_start_ms": 5000,
+      "best_lag_ms": 0.0,
+      "correlation": 0.996061
+    },
+    {
+      "cue_start_ms": 10000,
+      "best_lag_ms": 0.0,
+      "correlation": 0.996052
+    }
+  ],
+  "human_artistic_review": "PENDING",
+  "limitations": "Motion metrics are not artistic scores. AAC alignment measured at 1/48000 s steps within \u00b110 ms."
+}

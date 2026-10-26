@@ -5,6 +5,7 @@ import {mediaSource} from "./media-source";
 import {CharacterDialogue} from "./character-dialogue";
 import {SportsCinematic, SportsFont} from "./sports-cinematic";
 import {SportsRefinement} from "./sports-refinement";
+import {MotionSceneRenderer} from "./motion-scene";
 
 function KineticTitle({item}: {item: RenderOverlay}) {
   const frame = useCurrentFrame();
@@ -144,7 +145,7 @@ export function MediaGridTimelineV2(input: Partial<RenderProps>) {
   const props: RenderProps = {title:"MediaGrid",format:"vertical",accent:"#dcf769",scenes:[],overlays:[],sounds:[],video_layers:[],...input};
   const {fps} = useVideoConfig();
   return <AbsoluteFill>
-    {props.overlays?.some((item) => item.preset === "sports_cinematic_v1") && <SportsFont/>}
+    {props.overlays?.some((item) => item.preset === "sports_cinematic_v1" || item.preset === "motion_scene_v1") && <SportsFont/>}
     <MediaGridVideo {...props}/>
     {[...(props.video_layers ?? [])].sort((a,b)=>a.z_index-b.z_index).map((item)=><Sequence
       key={item.id}
@@ -154,8 +155,9 @@ export function MediaGridTimelineV2(input: Partial<RenderProps>) {
     {(props.overlays ?? []).map((item) => <Sequence
       key={item.id}
       from={Math.round(item.start_ms * fps / 1000)}
-      durationInFrames={Math.max(1, Math.round(item.duration_ms * fps / 1000))}
-    >{item.preset === "sports_cinematic_v1" ? (item.art_direction && item.art_direction !== "original"
+      durationInFrames={Math.max(1, Math.round((item.start_ms+item.duration_ms)*fps/1000)-Math.round(item.start_ms*fps/1000))}
+    >{item.preset === "motion_scene_v1" ? <MotionSceneRenderer item={item}/>
+      : item.preset === "sports_cinematic_v1" ? (item.art_direction && item.art_direction !== "original"
       ? <SportsRefinement item={item}/> : <SportsCinematic item={item}/>)
       : item.preset === "character_dialogue_v1" ? <CharacterDialogue item={item}/>
       : item.preset === "flow_path_v1" ? <FlowDiagram item={item}/>
@@ -164,7 +166,7 @@ export function MediaGridTimelineV2(input: Partial<RenderProps>) {
     {(props.sounds ?? []).map((item) => <Sequence
       key={item.id}
       from={Math.round(item.start_ms * fps / 1000)}
-      durationInFrames={Math.max(1, Math.round(item.duration_ms * fps / 1000))}
+      durationInFrames={Math.max(1, Math.round((item.start_ms+item.duration_ms)*fps/1000)-Math.round(item.start_ms*fps/1000))}
     ><SoundItem item={item}/></Sequence>)}
     {props.voice_file && <Audio src={mediaSource(props.voice_file)}/>}
   </AbsoluteFill>;

@@ -420,6 +420,36 @@ class Job(TimestampMixin, Base):
 
     project: Mapped[Project | None] = relationship(back_populates="jobs")
 
+    @property
+    def motion_schema(self) -> str | None:
+        plan = (self.payload or {}).get("plan")
+        return plan.get("schema_version") if isinstance(plan, dict) else None
+
+
+class MotionArtifactReview(Base):
+    """Append-only human decisions for an exact derived audiovisual artifact."""
+    __tablename__ = "motion_artifact_reviews"
+    __table_args__ = (
+        UniqueConstraint("job_id", "revision", name="uq_motion_artifact_revision"),
+        UniqueConstraint("job_id", "request_sha256", name="uq_motion_artifact_request"),
+        CheckConstraint("revision >= 1", name="ck_motion_artifact_revision"),
+        CheckConstraint("decision IN ('REQUEST_REVIEW', 'APPROVE', 'REJECT')",
+                        name="ck_motion_artifact_decision"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), index=True)
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id"), index=True)
+    revision: Mapped[int] = mapped_column(Integer)
+    request_sha256: Mapped[str] = mapped_column(String(64))
+    plan_sha256: Mapped[str] = mapped_column(String(64))
+    video_sha256: Mapped[str] = mapped_column(String(64))
+    snapshot_sha256: Mapped[str] = mapped_column(String(64))
+    dependencies_sha256: Mapped[str] = mapped_column(String(64))
+    decision: Mapped[str] = mapped_column(String(24))
+    actor: Mapped[str] = mapped_column(String(120))
+    notes: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
 
 class Event(Base):
     __tablename__ = "events"

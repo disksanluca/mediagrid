@@ -25,7 +25,7 @@ def main() -> None:
 
     from apps.api.database import Base, SessionLocal, engine
     from apps.api.migrate import _config
-    from apps.api.models import Channel, Job, JobStatus, Project
+    from apps.api.models import Channel, Job, JobStatus, MotionArtifactReview, Project
     from apps.api.services import claim_next_job, fence_job_completion, renew_job_lease
 
     if inspect(engine).get_table_names():
@@ -62,7 +62,7 @@ def main() -> None:
     command.upgrade(_config(), "head")
     with engine.connect() as connection:
         assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-            "0012_creative_direction"
+            "0013_motion_artifact_review"
         )
         assert {"lease_owner", "lease_expires_at", "heartbeat_at"} <= {
             column["name"] for column in inspect(connection).get_columns("jobs")
@@ -75,7 +75,7 @@ def main() -> None:
         assert claim_columns["source_checked_at"]["nullable"]
         assert "music_draft_schedules" in inspect(connection).get_table_names()
         assert {"creative_dna_revisions", "creative_briefs", "creative_direction_sets",
-                "creative_storyboard_revisions", "creative_reviews"} <= (
+                "creative_storyboard_revisions", "creative_reviews", "motion_artifact_reviews"} <= (
             set(inspect(connection).get_table_names())
         )
 
@@ -102,8 +102,16 @@ def main() -> None:
         db.refresh(claimed)
         assert claimed.status == JobStatus.SUCCEEDED.value
         assert claimed.lease_owner is None
+        db.add(MotionArtifactReview(
+            project_id=project_id, job_id=job_id, revision=1,
+            request_sha256="a"*64, plan_sha256="b"*64, video_sha256="c"*64,
+            snapshot_sha256="d"*64, dependencies_sha256="e"*64,
+            decision="REQUEST_REVIEW", actor="synthetic-ci",
+            notes="Database persistence fixture; no audiovisual approval",
+        ))
+        db.commit()
 
-    print("PostgreSQL 16: legacy data, Alembic 0001→0012, SKIP LOCKED and lease passed")
+    print("PostgreSQL 16: legacy data, Alembic 0001→0013, SKIP LOCKED and lease passed")
 
 
 if __name__ == "__main__":

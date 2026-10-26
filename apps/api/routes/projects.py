@@ -268,6 +268,9 @@ def read_preview(project_id: str, db: Session = Depends(get_db)) -> dict:
 
 @router.put("/{project_id}/edl-v2")
 def write_edl_v2(project_id: str, payload: RevisionWrite, db: Session = Depends(get_db)) -> dict:
+    if any(item.preset == "motion_scene_v1" for track in payload.edl.tracks
+           for item in track.items):
+        raise HTTPException(422, "Motion scenes are derived from approved Creative Director inputs")
     project = db.get(Project, project_id)
     if project is None:
         raise HTTPException(404, "Project not found")

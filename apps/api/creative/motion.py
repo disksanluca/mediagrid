@@ -1,5 +1,6 @@
 """Approved storyboard -> immutable existing EDL v2 carried by a leased Job."""
 
+from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Literal
@@ -267,6 +268,9 @@ def derive_motion(db: Session, project_id: str, request: MotionRequest) -> dict:
 
 
 def verify_motion(db: Session, project_id: str, payload: dict) -> dict:
+    if payload.get("plan", {}).get("schema_version") == "creative_motion_engine_v1":
+        from .engine import verify_engine
+        return verify_engine(db, project_id, payload)
     if content_sha256(payload.get("plan")) != payload.get("plan_sha256"):
         raise ValueError("Derived motion payload hash mismatch")
     try:
@@ -280,15 +284,20 @@ def verify_motion(db: Session, project_id: str, payload: dict) -> dict:
 
 
 def motion_props(plan: dict) -> dict:
-    edl = EDLV2.model_validate(plan["edl_v2"])
-    base, overlays, sounds, layers = scene_projection(edl, "vertical")
+    edl = EDLV2.model_validate(deepcopy(plan["edl_v2"]))
+    format_ = plan.get("format", "vertical")
+    base, overlays, sounds, layers = scene_projection(edl, format_)
     # Transient projection only: never attach this object to a SQLAlchemy Session.
-    projection = SimpleNamespace(title=plan["title"], format="vertical", plan=None, edl=base)
+    projection = SimpleNamespace(title=plan["title"], format=format_, plan=None, edl=base)
     return render_props(projection, None, base["tracks"]["video"], overlays, sounds, layers)
 
 
 def queue_motion(db: Session, project_id: str, request: MotionRequest) -> Job:
     payload = derive_motion(db, project_id, request)
+    return enqueue_motion_payload(db, project_id, payload)
+
+
+def enqueue_motion_payload(db: Session, project_id: str, payload: dict) -> Job:
     identifier = str(uuid5(NAMESPACE_URL, "mediagrid:creative-motion:" + payload["plan_sha256"]))
     existing = db.get(Job, identifier)
     if existing:

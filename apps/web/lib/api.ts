@@ -65,6 +65,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  motionRecipes: () => request<{recipes:import("./motion-types").MotionRecipeInfo[]}>("/creative/motion/recipes"),
+  motionEnginePreview: (id:string,payload:import("./motion-types").MotionEngineRequest) =>
+    request<import("./types").CreativeMotionPreview>(`/projects/${id}/creative/motion/engine/preview`,{method:"POST",body:JSON.stringify(payload)}),
+  motionEngineRender: (id:string,payload:import("./motion-types").MotionEngineRequest) =>
+    request<Job>(`/projects/${id}/creative/motion/engine/render`,{method:"POST",body:JSON.stringify(payload)}),
+  motionArtifactReview: (id:string,job:string) => request<import("./motion-types").MotionArtifactReview>(
+    `/projects/${id}/creative/motion/jobs/${job}/review`),
+  motionArtifactDecision: (id:string,job:string,payload:{
+    expected_revision:number;expected_plan_sha256:string;expected_video_sha256:string;
+    decision:"REQUEST_REVIEW"|"APPROVE"|"REJECT";notes:string;
+    video_watched:boolean;audio_checked:boolean;rights_checked:boolean;
+  }) => request<import("./motion-types").MotionArtifactReview>(
+    `/projects/${id}/creative/motion/jobs/${job}/review`,{method:"POST",body:JSON.stringify(payload)}),
   creativeMotionPreview: (id:string,payload:import("./types").CreativeMotionRequest) =>
     request<import("./types").CreativeMotionPreview>(`/projects/${id}/creative/motion/preview`,{method:"POST",body:JSON.stringify(payload)}),
   creativeMotionRender: (id:string,payload:import("./types").CreativeMotionRequest) =>

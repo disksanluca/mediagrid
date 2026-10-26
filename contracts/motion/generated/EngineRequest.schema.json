@@ -1,0 +1,107 @@
+{
+  "$comment": "Generated from Pydantic. Graph/temporal/binding/hash semantics require Python validators.",
+  "$defs": {
+    "EngineParameters": {
+      "additionalProperties": false,
+      "properties": {
+        "audio_gain": {
+          "default": 0.8,
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Audio Gain",
+          "type": "number"
+        },
+        "diagnostics": {
+          "default": false,
+          "title": "Diagnostics",
+          "type": "boolean"
+        },
+        "text_scale": {
+          "default": 1,
+          "maximum": 1.15,
+          "minimum": 0.85,
+          "title": "Text Scale",
+          "type": "number"
+        }
+      },
+      "title": "EngineParameters",
+      "type": "object"
+    },
+    "RecipeRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 30,
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "sha256"
+      ],
+      "title": "RecipeRef",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "asset_bindings": {
+      "maxProperties": 32,
+      "patternProperties": {
+        "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$",
+          "type": "string"
+        }
+      },
+      "title": "Asset Bindings",
+      "type": "object"
+    },
+    "expected_snapshot_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Expected Snapshot Sha256",
+      "type": "string"
+    },
+    "expected_storyboard_revision": {
+      "minimum": 1,
+      "title": "Expected Storyboard Revision",
+      "type": "integer"
+    },
+    "parameters": {
+      "$ref": "#/$defs/EngineParameters"
+    },
+    "quality": {
+      "default": "preview",
+      "enum": [
+        "preview",
+        "final"
+      ],
+      "title": "Quality",
+      "type": "string"
+    },
+    "recipe": {
+      "$ref": "#/$defs/RecipeRef"
+    }
+  },
+  "required": [
+    "expected_storyboard_revision",
+    "expected_snapshot_sha256",
+    "recipe",
+    "asset_bindings"
+  ],
+  "title": "EngineRequest",
+  "type": "object"
+}
