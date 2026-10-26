@@ -3,22 +3,22 @@
   "composition": "MediaGridTimelineV2",
   "player": "@remotion/player",
   "scale": 0.5,
-  "fresh_browser_to_ready_seconds": 1.6748407999999908,
+  "fresh_browser_to_ready_seconds": 1.7511892999999983,
   "preview": {
-    "wall_ms": 10000.5,
+    "wall_ms": 10001.59999999404,
     "frame_events": 299,
-    "unique_frames_per_second": 29.89850507474626,
+    "unique_frames_per_second": 29.895216765335363,
     "process_tree": {
       "samples": 18,
-      "observed_cpu_seconds": 3.766,
+      "observed_cpu_seconds": 4.609,
       "observed_processes": 7,
       "logical_cores": 20,
       "interval_ms": 500,
       "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
-      "measured_seconds": 11.585,
+      "measured_seconds": 11.78,
       "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
-      "equivalent_one_core_percent": 32.51,
-      "peak_working_set_mib": 481.62
+      "equivalent_one_core_percent": 39.13,
+      "peak_working_set_mib": 480.05
     }
   },
   "ordered_frames": [

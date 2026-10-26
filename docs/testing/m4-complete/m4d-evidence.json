@@ -1,41 +1,41 @@
 [
   {
     "label": "sports",
-    "project_id": "b9668a98-6874-45a0-86c7-fc2574751a25",
-    "job_id": "97929ee7-fdc3-5241-926b-b6e863b9d29f",
-    "mp4_relative": "data/m4-complete-proof/m4d-final-02/sports/sports-motion.mp4",
-    "sha256": "801e27519ef8974a784546c434733e2c85101c2c27cdaa42a916efea3004e7b9",
-    "plan_sha256": "77a6edb0b503d6038d15b89cd0d92c3d852a54d7949bbde67af85324150159e0",
+    "project_id": "b42bcaa0-163e-4a78-84f5-d2cd6ebb5087",
+    "job_id": "47a6c2a3-b192-5917-94c3-7a006499220c",
+    "mp4_relative": "data/m4-complete-proof/m4d-final-03/sports/sports-motion.mp4",
+    "sha256": "5cfafd87b267b0280b89664a767246bb0df967c268d0db103356a4abf8523f9c",
+    "plan_sha256": "bcf2bbcfea537018b96d6737a74032c11789f83d9c6f179d0c26c34fc920821e",
     "recipe": {
       "id": "sports.depth-impact",
       "version": "1.2.0",
       "sha256": "718bc8a8bfcae4085a99c380dd26f7f0c314a32587f1fbf57a9cf3b3403edb4c"
     },
-    "dependencies_sha256": "88716819bfa57b63a9d884f6e9bebb9ed6dd0c5b391785a801c19c32bb5fd411",
-    "render_seconds": 40.535,
-    "wall_seconds": 42.861,
+    "dependencies_sha256": "936601f60931c14a5f3a5b39cc6262fffcea1079b141309174282d97709c7ece",
+    "render_seconds": 40.554,
+    "wall_seconds": 42.584,
     "runtime_timing": {
-      "fresh_process_to_first_frame_seconds": 3.275,
-      "cli_seconds": 38.03,
+      "fresh_process_to_first_frame_seconds": 3.274,
+      "cli_seconds": 37.972,
       "startup_definition": "fresh CLI/browser; filesystem and bundler cache may be warm"
     },
     "performance": {
-      "logical_cores": 20,
-      "equivalent_one_core_percent": 293.28,
-      "observed_cpu_seconds": 119.688,
-      "observed_processes": 11,
-      "measured_seconds": 40.81,
       "interval_ms": 500,
-      "samples": 59,
+      "logical_cores": 20,
+      "measured_seconds": 40.673,
       "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
-      "peak_working_set_mib": 1838.19,
-      "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice"
+      "peak_working_set_mib": 1805.43,
+      "equivalent_one_core_percent": 257.89,
+      "observed_processes": 11,
+      "samples": 59,
+      "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
+      "observed_cpu_seconds": 104.891
     },
     "qa": {
       "label": "sports",
       "decoded_frames": 360,
       "black_intervals": [],
-      "mean_frame_delta_8bit": 1.7583,
+      "mean_frame_delta_8bit": 1.7582,
       "median_frame_delta_8bit": 1.0252,
       "longest_run_below_0_1_seconds": 0.3,
       "decoded_audio_seconds": 12.010666666666667,
@@ -81,22 +81,22 @@
       "composition": "MediaGridTimelineV2",
       "player": "@remotion/player",
       "scale": 0.5,
-      "fresh_browser_to_ready_seconds": 0.9492814999999998,
+      "fresh_browser_to_ready_seconds": 0.8639726000000001,
       "preview": {
         "wall_ms": 10000.60000000149,
         "frame_events": 299,
         "unique_frames_per_second": 29.898206107629086,
         "process_tree": {
           "samples": 18,
-          "observed_cpu_seconds": 4.031,
+          "observed_cpu_seconds": 4.266,
           "observed_processes": 7,
           "logical_cores": 20,
           "interval_ms": 500,
           "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
-          "measured_seconds": 11.634,
+          "measured_seconds": 11.551,
           "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
-          "equivalent_one_core_percent": 34.65,
-          "peak_working_set_mib": 521.51
+          "equivalent_one_core_percent": 36.93,
+          "peak_working_set_mib": 516.71
         }
       },
       "ordered_frames": [
@@ -267,7 +267,7 @@
         },
         {
           "frame": 359,
-          "ssim": 0.971378,
+          "ssim": 0.971435,
           "passed": true
         }
       ],
@@ -293,7 +293,7 @@
     ],
     "assets": [
       {
-        "id": "36893968-2dc7-4252-b2b1-e79754fee134",
+        "id": "9610d306-6a2f-4b29-bd9e-66f3c7838d77",
         "sha256": "cf48aaa47347497989989ebb7bdc0c5a2b30bba075cc6c68690a68bb88479283",
         "rights_status": "OWNED",
         "license_name": "CC0-1.0",
@@ -302,7 +302,7 @@
         "commercial_use": true,
         "slot": "score",
         "metadata": {
-          "asset_id": "36893968-2dc7-4252-b2b1-e79754fee134",
+          "asset_id": "9610d306-6a2f-4b29-bd9e-66f3c7838d77",
           "sha256": "cf48aaa47347497989989ebb7bdc0c5a2b30bba075cc6c68690a68bb88479283",
           "byte_size": 2304044,
           "kind": "audio",
@@ -347,7 +347,7 @@
           "start_time": "0.000000",
           "duration_ts": 1080000,
           "duration": "12.000000",
-          "bit_rate": "2070766",
+          "bit_rate": "2070077",
           "bits_per_raw_sample": "8",
           "nb_frames": "360",
           "nb_read_frames": "360",
@@ -434,7 +434,7 @@
         }
       ],
       "format": {
-        "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\m4d-final-02\\sports\\sports-motion.mp4",
+        "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\m4d-final-03\\sports\\sports-motion.mp4",
         "nb_streams": 2,
         "nb_programs": 0,
         "nb_stream_groups": 0,
@@ -442,8 +442,8 @@
         "format_long_name": "QuickTime / MOV",
         "start_time": "0.000000",
         "duration": "12.011000",
-        "size": "3406097",
-        "bit_rate": "2268651",
+        "size": "3405063",
+        "bit_rate": "2267963",
         "probe_score": 100,
         "tags": {
           "major_brand": "isom",
@@ -456,44 +456,44 @@
     },
     "human_artistic_review": "PENDING",
     "repeat": {
-      "sha256": "3705c976df0514ec0f3aba5cf35fc118b528540772552cb9d35177dbce4de23d",
-      "render_seconds": 56.847,
-      "decoded_video_psnr_average_db": 57.279389,
-      "decoded_video_psnr_min_db": 52.512246,
+      "sha256": "2645fba47e002fcb15bc1b6172e1c5d496cffc541cc77e891e6d2461457d9563",
+      "render_seconds": 56.881,
+      "decoded_video_psnr_average_db": 61.010467,
+      "decoded_video_psnr_min_db": 53.774813,
       "decoded_audio_identical": true,
       "reproducibility_tolerance": "Decoded video PSNR >= 50 dB; identical decoded audio"
     }
   },
   {
     "label": "music",
-    "project_id": "a9cb27da-06a7-4475-9cbe-18c69d98a143",
-    "job_id": "bc5f6b55-dc36-57c8-98fb-c45d48044374",
-    "mp4_relative": "data/m4-complete-proof/m4d-final-02/music/music-motion.mp4",
+    "project_id": "a4ebbcee-bd56-4ab0-9c58-e37831593c4d",
+    "job_id": "d80da03e-06b8-5d06-9749-9db9a1a7c2c6",
+    "mp4_relative": "data/m4-complete-proof/m4d-final-03/music/music-motion.mp4",
     "sha256": "d377d11f7575b36e135cf8355863e19526e9db5c47232ac356254d4bee297f19",
-    "plan_sha256": "560df17339a3b600ed8fa5f28640aab7037d68b4433c0308b428760733e2c878",
+    "plan_sha256": "a721c413b1dfcdba33019a384eedd33af5e3ef553fbebab74d988f76b661b922",
     "recipe": {
       "id": "music.orbital-sleeve",
       "version": "1.2.0",
       "sha256": "c2504f99ffbc5972f348bf2ea7e0b115153e8c2d41a410a142216818883f0caf"
     },
-    "dependencies_sha256": "f524527a18994d8e5f496d3ec4b5038f84b9a3a9d708ceb9f4d7141dd1977c6b",
-    "render_seconds": 24.707,
-    "wall_seconds": 26.203,
+    "dependencies_sha256": "c3e36f04ed0d09612398712b2c4343c8000cadcbff117468db5126ead17b553a",
+    "render_seconds": 24.678,
+    "wall_seconds": 26.061,
     "runtime_timing": {
-      "fresh_process_to_first_frame_seconds": 3.162,
-      "cli_seconds": 23.422,
+      "fresh_process_to_first_frame_seconds": 3.039,
+      "cli_seconds": 23.391,
       "startup_definition": "fresh CLI/browser; filesystem and bundler cache may be warm"
     },
     "performance": {
-      "equivalent_one_core_percent": 204.28,
-      "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
-      "measured_seconds": 24.638,
-      "samples": 35,
-      "logical_cores": 20,
-      "observed_cpu_seconds": 50.328,
-      "peak_working_set_mib": 1704.18,
-      "interval_ms": 500,
       "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
+      "samples": 35,
+      "measured_seconds": 24.661,
+      "peak_working_set_mib": 1689.7,
+      "equivalent_one_core_percent": 203.01,
+      "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
+      "interval_ms": 500,
+      "observed_cpu_seconds": 50.062,
+      "logical_cores": 20,
       "observed_processes": 11
     },
     "qa": {
@@ -536,22 +536,22 @@
       "composition": "MediaGridTimelineV2",
       "player": "@remotion/player",
       "scale": 0.5,
-      "fresh_browser_to_ready_seconds": 1.6717998999999981,
+      "fresh_browser_to_ready_seconds": 1.7892295000000014,
       "preview": {
-        "wall_ms": 10002,
+        "wall_ms": 10003.5,
         "frame_events": 299,
-        "unique_frames_per_second": 29.894021195760846,
+        "unique_frames_per_second": 29.889538661468485,
         "process_tree": {
           "samples": 18,
-          "observed_cpu_seconds": 4.656,
+          "observed_cpu_seconds": 5.031,
           "observed_processes": 7,
           "logical_cores": 20,
           "interval_ms": 500,
           "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
-          "measured_seconds": 11.461,
+          "measured_seconds": 11.728,
           "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
-          "equivalent_one_core_percent": 40.63,
-          "peak_working_set_mib": 497.63
+          "equivalent_one_core_percent": 42.9,
+          "peak_working_set_mib": 498.31
         }
       },
       "ordered_frames": [
@@ -671,7 +671,7 @@
     ],
     "assets": [
       {
-        "id": "5c77287c-c161-4ef1-8705-570fe494ea11",
+        "id": "0f7fe753-4832-4b5c-bd11-4573e3360899",
         "sha256": "31d698f7cf105726b17ca403a41d85f8112e3a24129402669da77aea57476d33",
         "rights_status": "OWNED",
         "license_name": "CC0-1.0",
@@ -680,7 +680,7 @@
         "commercial_use": true,
         "slot": "score",
         "metadata": {
-          "asset_id": "5c77287c-c161-4ef1-8705-570fe494ea11",
+          "asset_id": "0f7fe753-4832-4b5c-bd11-4573e3360899",
           "sha256": "31d698f7cf105726b17ca403a41d85f8112e3a24129402669da77aea57476d33",
           "byte_size": 1920044,
           "kind": "audio",
@@ -690,7 +690,7 @@
         }
       },
       {
-        "id": "e0ea4903-29fa-45e0-98d6-386b82a7fdb0",
+        "id": "98cd9547-40c6-4c31-bc15-d5be9b6428a9",
         "sha256": "da6c04073eeeec20e3c653693c787595b27425749ec97d90f3cf2b9b15163def",
         "rights_status": "OWNED",
         "license_name": "CC0-1.0",
@@ -699,7 +699,7 @@
         "commercial_use": true,
         "slot": "cover",
         "metadata": {
-          "asset_id": "e0ea4903-29fa-45e0-98d6-386b82a7fdb0",
+          "asset_id": "98cd9547-40c6-4c31-bc15-d5be9b6428a9",
           "sha256": "da6c04073eeeec20e3c653693c787595b27425749ec97d90f3cf2b9b15163def",
           "byte_size": 146744,
           "kind": "image",
@@ -708,7 +708,7 @@
         }
       },
       {
-        "id": "25abae8a-d368-4f82-806f-649b329b893d",
+        "id": "31b890d8-8a98-422e-ac1b-d39438b317fa",
         "sha256": "5d225e5b16ac5c959f2072d2c52e349d1384e5acbfc4601666dde0f09557eef0",
         "rights_status": "OWNED",
         "license_name": "CC0-1.0",
@@ -717,7 +717,7 @@
         "commercial_use": true,
         "slot": "waveform",
         "metadata": {
-          "asset_id": "25abae8a-d368-4f82-806f-649b329b893d",
+          "asset_id": "31b890d8-8a98-422e-ac1b-d39438b317fa",
           "sha256": "5d225e5b16ac5c959f2072d2c52e349d1384e5acbfc4601666dde0f09557eef0",
           "byte_size": 660735,
           "kind": "video",
@@ -851,7 +851,7 @@
         }
       ],
       "format": {
-        "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\m4d-final-02\\music\\music-motion.mp4",
+        "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\m4d-final-03\\music\\music-motion.mp4",
         "nb_streams": 2,
         "nb_programs": 0,
         "nb_stream_groups": 0,
@@ -875,35 +875,35 @@
   },
   {
     "label": "geo",
-    "project_id": "5b2ed02a-abb0-44b7-95c0-e0e7bf78be4f",
-    "job_id": "1ae0a273-e64f-5375-b3a0-0c17d01a3a26",
-    "mp4_relative": "data/m4-complete-proof/m4d-final-02/geo/geo-motion.mp4",
+    "project_id": "b5ac9199-e904-49fd-98f3-c7ce02c07a46",
+    "job_id": "dadf7a4c-18ba-5b94-be6e-e3be589b491e",
+    "mp4_relative": "data/m4-complete-proof/m4d-final-03/geo/geo-motion.mp4",
     "sha256": "c528c00047441b624665aa4e26eb0ebc23e10aae5cde65a85364acca183b94c9",
-    "plan_sha256": "27e77c857c00891e0e136463a5534b64770faa720e4a5891a990276af42e09c7",
+    "plan_sha256": "5c5c7c59615704d1fb5e2f3629b24a3060e922541eb67fa6d08f9cea81232f0a",
     "recipe": {
       "id": "geo.route-explainer",
       "version": "1.2.0",
       "sha256": "795925370900dce5f8cb5428cbad056afb648304bae906227ac776fe5e9161ac"
     },
-    "dependencies_sha256": "91d1f27ba35ebd75e3b6a2ae2d5fb28b3c839913c303c374b0040fcbddc02446",
-    "render_seconds": 41.729,
-    "wall_seconds": 45.046,
+    "dependencies_sha256": "63b4eaa109e9a8c648afb30d607b607139f846e3679057499257d621cfe1341d",
+    "render_seconds": 41.785,
+    "wall_seconds": 44.845,
     "runtime_timing": {
-      "fresh_process_to_first_frame_seconds": 2.939,
-      "cli_seconds": 38.551,
+      "fresh_process_to_first_frame_seconds": 3.01,
+      "cli_seconds": 38.563,
       "startup_definition": "fresh CLI/browser; filesystem and bundler cache may be warm"
     },
     "performance": {
-      "observed_processes": 12,
-      "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
-      "observed_cpu_seconds": 129.078,
-      "measured_seconds": 42.209,
-      "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
-      "interval_ms": 500,
-      "peak_working_set_mib": 1795.62,
+      "samples": 59,
+      "peak_working_set_mib": 1812.23,
       "logical_cores": 20,
-      "equivalent_one_core_percent": 305.81,
-      "samples": 61
+      "measured_seconds": 41.961,
+      "observed_processes": 10,
+      "interval_ms": 500,
+      "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
+      "equivalent_one_core_percent": 357.55,
+      "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
+      "observed_cpu_seconds": 150.031
     },
     "qa": {
       "label": "geo",
@@ -950,22 +950,22 @@
       "composition": "MediaGridTimelineV2",
       "player": "@remotion/player",
       "scale": 0.5,
-      "fresh_browser_to_ready_seconds": 1.6748407999999908,
+      "fresh_browser_to_ready_seconds": 1.7511892999999983,
       "preview": {
-        "wall_ms": 10000.5,
+        "wall_ms": 10001.59999999404,
         "frame_events": 299,
-        "unique_frames_per_second": 29.89850507474626,
+        "unique_frames_per_second": 29.895216765335363,
         "process_tree": {
           "samples": 18,
-          "observed_cpu_seconds": 3.766,
+          "observed_cpu_seconds": 4.609,
           "observed_processes": 7,
           "logical_cores": 20,
           "interval_ms": 500,
           "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
-          "measured_seconds": 11.585,
+          "measured_seconds": 11.78,
           "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
-          "equivalent_one_core_percent": 32.51,
-          "peak_working_set_mib": 481.62
+          "equivalent_one_core_percent": 39.13,
+          "peak_working_set_mib": 480.05
         }
       },
       "ordered_frames": [
@@ -1131,7 +1131,7 @@
     ],
     "assets": [
       {
-        "id": "0ee5028c-1ff9-4db2-8e5e-6a703d3d39b6",
+        "id": "e35a0965-2076-4d87-ab2d-6651ff17a088",
         "sha256": "a38e97c607bb911cc0c8f3d447a23a804b4f7ffee91d4c04cea5aad57f18e626",
         "rights_status": "OWNED",
         "license_name": "CC0-1.0",
@@ -1140,7 +1140,7 @@
         "commercial_use": true,
         "slot": "score",
         "metadata": {
-          "asset_id": "0ee5028c-1ff9-4db2-8e5e-6a703d3d39b6",
+          "asset_id": "e35a0965-2076-4d87-ab2d-6651ff17a088",
           "sha256": "a38e97c607bb911cc0c8f3d447a23a804b4f7ffee91d4c04cea5aad57f18e626",
           "byte_size": 2880044,
           "kind": "audio",
@@ -1272,7 +1272,7 @@
         }
       ],
       "format": {
-        "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\m4d-final-02\\geo\\geo-motion.mp4",
+        "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\m4d-final-03\\geo\\geo-motion.mp4",
         "nb_streams": 2,
         "nb_programs": 0,
         "nb_stream_groups": 0,

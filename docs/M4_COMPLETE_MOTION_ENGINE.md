@@ -7,7 +7,7 @@ desta revisão foi `e47a549633fcbb64f89e936e84db6b04ebeb0b0b`; a cadeia foi pres
 
 **Entrega atual: receitas 1.2.0, três MP4s originais e reais, pelo mesmo compilador,
 interpretador, EDL v2 e worker. Avaliação artística humana pendente.**
-As provas atuais estão em `data/m4-complete-proof/m4d-final-02/`.
+As provas atuais estão em `data/m4-complete-proof/m4d-final-03/`.
 Versões 1.0/1.1, provas anteriores e M3/M3.1/M3.2 permanecem preservados.
 Os quatro hashes anteriores foram novamente conferidos:
 [preservação](testing/m4-complete/preservation.json).
@@ -186,6 +186,7 @@ O utilitário `vendor_motion_fonts.py` é de autoria explícita; não é chamado
 | Comando / gate | Resultado |
 |---|---|
 | `.venv/Scripts/python.exe -m pytest -q tests` | 274 passed, 1 skipped, 156,32 s |
+| `pytest tests/test_render_logging.py tests/test_creative_m3.py tests/test_motion_engine.py -q` após correção Windows | 36 passed, 34,03 s |
 | `.venv/Scripts/python.exe -m ruff check .` | PASS |
 | `python scripts/generate_motion_contracts.py --check` | PASS |
 | `python scripts/build_motion_recipes.py --check` | PASS |
@@ -193,10 +194,10 @@ O utilitário `vendor_motion_fonts.py` é de autoria explícita; não é chamado
 | Mesmo typecheck em apps/renderer e contracts/motion | PASS |
 | `node node_modules/vitest/vitest.mjs run --root apps/web` | 11 passed |
 | `node node_modules/next/dist/bin/next build apps/web` | PASS |
-| `proof_motion_engine.py --run m4d-final-02 --concurrency 2 --approve-synthetic-storyboards` | 3 jobs reais SUCCEEDED; projetos/EDL/aprovação originais preservados |
+| `proof_motion_engine.py --run m4d-final-03 --concurrency 2 --approve-synthetic-storyboards` | 3 jobs reais SUCCEEDED; projetos/EDL/aprovação originais preservados |
 | `qa_motion_engine.py` nas três pastas | Decode integral de 1110 frames + áudio; FFprobe, cor, loudness, sync e blackdetect |
-| `repeat_motion_engine.py .../m4d-final-02/sports` | Mesmo plano, concorrência 1; comparação com concorrência 2 |
-| `node scripts/qa_motion_player.mjs data/m4-complete-proof/m4d-final-02` | Player real, seek reverso, screenshots, SSIM, safe areas e benchmark |
+| `repeat_motion_engine.py .../m4d-final-03/sports` | Mesmo plano, concorrência 1; comparação com concorrência 2 |
+| `node scripts/qa_motion_player.mjs data/m4-complete-proof/m4d-final-03` | Player real, seek reverso, screenshots, SSIM, safe areas e benchmark |
 
 O skip é o runtime Blender 4.5 LTS opcional não configurado; não é necessário a M4.
 `npm` não estava no PATH local; os entrypoints Node instalados foram executados
@@ -217,6 +218,22 @@ o código alterado. Os checks do novo HEAD e seus resultados estão vinculados a
 na entrega final. O smoke instalado no runner agora usa Sports 1.2.0, serviço e
 worker empacotados, MP4 H.264/AAC real e revisão pendente. O smoke PostgreSQL 16
 verifica migrações, lease e dump/restore. Nada disso instala o app no PC principal.
+
+### Falha detectada no Windows instalado e correção
+
+O run [40298038087](https://github.com/disksanluca/mediagrid/actions/runs/40298038087)
+do commit 642a88f passou 274 testes Python (1 skip), compilou e instalou o app,
+mas o render M4 falhou com `'charmap' codec can't encode characters`.
+O novo encaminhamento de logs do CLI escrevia glifos Unicode em stdout cp1252.
+`write_render_log` agora adapta somente o texto do log à codificação do stream;
+comandos, props, mídia e gates permanecem intactos. Processo sem console é suportado.
+Três casos novos verificam cp1252, UTF-8 e stdout ausente; a regressão M3/M4 com
+36 testes passou. O primeiro caso UTF-8 do teste precisou explicitar newline para
+separar codificação da conversão CRLF do Windows.
+
+As provas foram regeneradas em m4d-final-03 com o novo hash de worker, incluindo
+QA e repetição do render. A nova CI do commit de correção deve ser conferida nos
+checks do PR; o run falho permanece registrado e não foi reclassificado como sucesso.
 
 ## Critérios técnicos e limitações de medição
 
@@ -279,17 +296,17 @@ e SSIM não aprovam artisticamente os filmes.
 Zero intervalos pretos e zero overflow observado nas checagens de texto dos 1110 frames.
 Defasagem medida: -0,333 ms no primeiro cue e 0 ms nos demais; correlação mínima 0.999977.
 
-- **sports**: [abrir MP4](<C:/Users/SP0097A/Documents/Codex/2026-10-12/github-plugin-github-openai-curated-remote-2/work/mediagrid/data/m4-complete-proof/m4d-final-02/sports/sports-motion.mp4>)
-  - SHA-256: `801e27519ef8974a784546c434733e2c85101c2c27cdaa42a916efea3004e7b9`
-  - Plano: `77a6edb0b503d6038d15b89cd0d92c3d852a54d7949bbde67af85324150159e0`
+- **sports**: [abrir MP4](<C:/Users/SP0097A/Documents/Codex/2026-10-12/github-plugin-github-openai-curated-remote-2/work/mediagrid/data/m4-complete-proof/m4d-final-03/sports/sports-motion.mp4>)
+  - SHA-256: `5cfafd87b267b0280b89664a767246bb0df967c268d0db103356a4abf8523f9c`
+  - Plano: `bcf2bbcfea537018b96d6737a74032c11789f83d9c6f179d0c26c34fc920821e`
   - Receita: `718bc8a8bfcae4085a99c380dd26f7f0c314a32587f1fbf57a9cf3b3403edb4c`
-- **music**: [abrir MP4](<C:/Users/SP0097A/Documents/Codex/2026-10-12/github-plugin-github-openai-curated-remote-2/work/mediagrid/data/m4-complete-proof/m4d-final-02/music/music-motion.mp4>)
+- **music**: [abrir MP4](<C:/Users/SP0097A/Documents/Codex/2026-10-12/github-plugin-github-openai-curated-remote-2/work/mediagrid/data/m4-complete-proof/m4d-final-03/music/music-motion.mp4>)
   - SHA-256: `d377d11f7575b36e135cf8355863e19526e9db5c47232ac356254d4bee297f19`
-  - Plano: `560df17339a3b600ed8fa5f28640aab7037d68b4433c0308b428760733e2c878`
+  - Plano: `a721c413b1dfcdba33019a384eedd33af5e3ef553fbebab74d988f76b661b922`
   - Receita: `c2504f99ffbc5972f348bf2ea7e0b115153e8c2d41a410a142216818883f0caf`
-- **geo**: [abrir MP4](<C:/Users/SP0097A/Documents/Codex/2026-10-12/github-plugin-github-openai-curated-remote-2/work/mediagrid/data/m4-complete-proof/m4d-final-02/geo/geo-motion.mp4>)
+- **geo**: [abrir MP4](<C:/Users/SP0097A/Documents/Codex/2026-10-12/github-plugin-github-openai-curated-remote-2/work/mediagrid/data/m4-complete-proof/m4d-final-03/geo/geo-motion.mp4>)
   - SHA-256: `c528c00047441b624665aa4e26eb0ebc23e10aae5cde65a85364acca183b94c9`
-  - Plano: `27e77c857c00891e0e136463a5534b64770faa720e4a5891a990276af42e09c7`
+  - Plano: `5c5c7c59615704d1fb5e2f3629b24a3060e922541eb67fa6d08f9cea81232f0a`
   - Receita: `795925370900dce5f8cb5428cbad056afb648304bae906227ac776fe5e9161ac`
 
 Cada pasta contém score, mídia original, preview, plano imutável, prova do job,
@@ -305,9 +322,9 @@ O perfil mínimo de 4 núcleos/8 threads/16 GiB sem GPU dedicada não foi ensaia
 
 | Prova | Render s / duração | CPU observado s | Pico working set MiB | CLI→primeiro frame s | Preview FPS / pico MiB | Browser→Player pronto s |
 |---|---:|---:|---:|---:|---:|---:|
-| sports | 40.53 / 3.38× | 119.69 | 1838.19 | 3.27 | 29.90 / 521.51 | 0.95 |
-| music | 24.71 / 2.47× | 50.33 | 1704.18 | 3.16 | 29.89 / 497.63 | 1.67 |
-| geo | 41.73 / 2.78× | 129.08 | 1795.62 | 2.94 | 29.90 / 481.62 | 1.67 |
+| sports | 40.55 / 3.38× | 104.89 | 1805.43 | 3.27 | 29.90 / 516.71 | 0.86 |
+| music | 24.68 / 2.47× | 50.06 | 1689.70 | 3.04 | 29.89 / 498.31 | 1.79 |
+| geo | 41.78 / 2.79× | 150.03 | 1812.23 | 3.01 | 29.90 / 480.05 | 1.75 |
 
 As três provas atenderam, **neste host**, export ≤10× duração, working set ≤4 GiB
 e preview ≥24 FPS por 10 s após warm-up de 1,5 s. Preview medido em 540×960,
@@ -321,8 +338,8 @@ Cold start aqui significa **novo processo CLI/browser até primeiro frame**, ou
 novo browser até o Player pronto; caches de sistema/bundler podem estar quentes.
 O startup CLI inclui bundle, fontes e preparação. Não é um reboot com cache de disco vazio.
 
-Sports repetido em concurrency=1: 56.85 s; PSNR médio 57.279389 dB,
-mínimo 52.512246 dB e PCM idêntico. SHA diferente, conforme a tolerância documentada.
+Sports repetido em concurrency=1: 56.88 s; PSNR médio 61.010467 dB,
+mínimo 53.774813 dB e PCM idêntico. SHA diferente, conforme a tolerância documentada.
 
 ## Executar e verificar
 
@@ -368,7 +385,7 @@ não se apresenta aquela captura como screenshot da nova execução.
 | Worker | creative_motion.py, remotion_runtime.py |
 | Provas e QA | proof_motion_engine.py, repeat_motion_engine.py, qa_motion_engine.py, qa_motion_player.mjs, motion-player-harness.tsx, motion_engine_media.py, measure-motion-process.ps1 |
 | Desktop / CI | build-desktop-sidecar.ps1, smoke_installed_motion.py, smoke-desktop-windows.ps1, smoke_postgres_migrations.py, verify_postgres_restore.py, motion-contracts.yml |
-| Testes | test_motion_engine.py, test_motion_contracts.py, test_motion_m4d.py, test_motion_migration.py, test_migrations.py, motion-engine.test.tsx |
+| Testes | test_motion_engine.py, test_motion_contracts.py, test_motion_m4d.py, test_render_logging.py, test_motion_migration.py, test_migrations.py, motion-engine.test.tsx |
 | Documentação | este relatório, ADR M4, contracts/motion/README.md, docs/testing/m4-complete |
 
 A tabela cobre a entrega consolidada desde PR #47; nem todos esses arquivos foram

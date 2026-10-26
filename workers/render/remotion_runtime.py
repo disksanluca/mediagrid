@@ -4,11 +4,22 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from time import perf_counter
 
 from apps.api.config import get_settings
 from workers.render.power import keep_system_awake
+
+
+def write_render_log(line: str) -> None:
+    """Progress glyphs must not abort a job in a packaged Windows cp1252 console."""
+    stream = sys.stdout
+    if stream is None:
+        return
+    encoding = getattr(stream, "encoding", None) or "utf-8"
+    stream.write(line.encode(encoding, errors="backslashreplace").decode(encoding))
+    stream.flush()
 
 
 def render_remotion(
@@ -107,7 +118,7 @@ def render_remotion(
             for line in process.stdout:
                 if first_frame is None and re.search(r"Rendered [1-9]\d*/", line):
                     first_frame = round(perf_counter() - started, 3)
-                print(line, end="", flush=True)
+                write_render_log(line)
             result = process.wait()
         if result:
             raise subprocess.CalledProcessError(result, command)
