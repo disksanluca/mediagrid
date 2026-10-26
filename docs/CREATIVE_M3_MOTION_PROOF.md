@@ -2,6 +2,8 @@
 
 Base conferida: PR #44, `4af147f71bc599c3e8b4ac241d9f7650e251671d`, árvore limpa.
 Branch: `codex/creative-m3-motion-proof`. Auditoria iniciada em 26/10/2026.
+Entrega: [PR draft #45](https://github.com/disksanluca/mediagrid/pull/45), baseada
+na branch M2. Nenhum merge.
 
 ## Auditoria e decisão antes da implementação
 
@@ -173,6 +175,8 @@ subpasta local `frames/`.
 | Áudio mono medido | RMS −18,349 dBFS; pico amostral −1,614 dBFS; não é medida LUFS/true peak |
 | Sincronização de envelopes | Deslocamento estimado 0 ms nas quatro entradas; resolução 10 ms, tolerância 30 ms |
 | Migrações | Head único continua `0012_creative_direction`; nenhuma migração nova |
+| [CI PostgreSQL](https://github.com/disksanluca/mediagrid/actions/runs/40264119253) | **SUCCESS**, incluindo smoke de migração e restauração |
+| [CI Windows](https://github.com/disksanluca/mediagrid/actions/runs/40264119295) | Em execução na última consulta; build/smoke ainda sem conclusão |
 
 O teste de mudança durante encoding utiliza stub **somente para exercitar
 orquestração e descarte**. Não é evidência de codec. As três provas acima
