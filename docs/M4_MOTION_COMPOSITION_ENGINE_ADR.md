@@ -1,8 +1,11 @@
-# ADR proposto — M4 Motion Composition Engine v1
+# ADR — M4 Motion Composition Engine v1
 
-**Estado: M4.A IMPLEMENTADO; M4.B/C/D E SCOUT PROPOSTOS.** Data: 26/10/2026.
-O documento nasceu na rodada M3.2. Após autorização explícita, somente contratos,
-validações, registro e fixtures foram entregues no M4.A; o motor visual não foi implementado.
+**Estado: M4.A/B/C/D IMPLEMENTADOS; SCOUT PROPOSTO.** Data: 26/10/2026.
+O documento nasceu na rodada M3.2. A autorização consolidada posterior entregou
+contratos, compilador, interpretador, UI, revisão e três provas reais pelo runtime existente.
+Decisões efetivamente implementadas, diferenças e medições estão no
+[relatório M4](M4_COMPLETE_MOTION_ENGINE.md). As seções de proposta preservam
+o raciocínio arquitetural original; não representam ausência da implementação atual.
 Ver [relatório M4.A](CREATIVE_M4_A_IMPLEMENTATION.md) e
 [contratos executáveis](../contracts/motion/README.md). Os exemplos da seção 7 são
 o estudo original; fixtures/schema atuais prevalecem sobre sua sintaxe abreviada.
@@ -1354,7 +1357,8 @@ Protocolo de benchmark antes de aceitar o M4: Windows 11, CPU com 4 núcleos/8 t
 Comparar concorrência 1 e 2, escolher a mais estável; não presumir que mais é melhor.
 Meta inicial para as três fixtures de até 30 s: export em ≤10× duração e RSS do
 conjunto de processos ≤4 GiB; preview em 540p equivalente ≥24 FPS medidos por 10 s
-após warm-up. São metas de aceite, **ainda não medidas nem garantidas** nesse host.
+após warm-up. Foram medidas no host i7-13650HX/31,7 GiB, conforme relatório M4.
+O perfil mínimo de 4 núcleos/16 GiB/sem GPU dedicada continua sem benchmark próprio.
 Um teste abaixo disso exige reduzir a receita ou rever o orçamento/documentar
 o hardware mínimo, sem baixar silenciosamente resolução/duração do export.
 

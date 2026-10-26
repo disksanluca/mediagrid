@@ -1,0 +1,10 @@
+{
+  "observed_processes": 12,
+  "caveat": "Sampling can miss short-lived children and brief peaks; CPU includes Python setup.",
+  "peak_working_set_mib": 1520.69,
+  "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
+  "interval_ms": 500,
+  "samples": 25,
+  "measured_seconds": 18.257,
+  "observed_cpu_seconds": 49.391
+}

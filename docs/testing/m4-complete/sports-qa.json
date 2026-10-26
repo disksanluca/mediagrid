@@ -1,0 +1,35 @@
+{
+  "label": "sports",
+  "decoded_frames": 360,
+  "black_intervals": [],
+  "mean_frame_delta_8bit": 1.7638,
+  "median_frame_delta_8bit": 1.1002,
+  "longest_run_below_0_1_seconds": 0.1667,
+  "decoded_audio_seconds": 12.010666666666667,
+  "audio_peak_dbfs": -4.444,
+  "audio_rms_dbfs": -21.48,
+  "source_alignment": [
+    {
+      "cue_start_ms": 0,
+      "best_lag_ms": -0.333333,
+      "correlation": 0.999995
+    },
+    {
+      "cue_start_ms": 2000,
+      "best_lag_ms": 0.0,
+      "correlation": 0.999995
+    },
+    {
+      "cue_start_ms": 5000,
+      "best_lag_ms": 0.0,
+      "correlation": 0.999992
+    },
+    {
+      "cue_start_ms": 9000,
+      "best_lag_ms": 0.0,
+      "correlation": 0.999992
+    }
+  ],
+  "human_artistic_review": "PENDING",
+  "limitations": "Motion metrics are not artistic scores. AAC alignment measured at 1/48000 s steps within \u00b110 ms."
+}

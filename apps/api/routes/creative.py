@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from ..auth import auth_configured
+from ..creative.artifacts import ArtifactDecision, decide_artifact, read_artifact_review
 from ..creative.contracts import (
     CreativeBriefWrite,
     CreativeDecisionWrite,
@@ -11,6 +13,7 @@ from ..creative.contracts import (
     CreativeDNAWrite,
     CreativeStoryboardWrite,
 )
+from ..creative.engine import EngineRequest, derive_engine, queue_engine, recipes_read
 from ..creative.motion import (
     MotionRequest,
     derive_motion,
@@ -46,6 +49,40 @@ from ..models import (
 from ..schemas import JobRead
 
 router = APIRouter(tags=["creative"])
+
+
+@router.get("/creative/motion/recipes")
+def motion_recipes():
+    return recipes_read()
+
+
+@router.post("/projects/{project_id}/creative/motion/engine/preview")
+def engine_preview(project_id: str, payload: EngineRequest, db: Session = Depends(get_db)):
+    derived = derive_engine(db, project_id, payload)
+    props = motion_props(derived["plan"])
+    for sound in props.get("sounds", []):
+        sound["media_file"] = sound["source_asset_id"]
+    for item in props.get("overlays", []):
+        item["motion"]["media_files"] = dict(item["motion"]["assets"])
+    return {**derived, "props": props}
+
+
+@router.post("/projects/{project_id}/creative/motion/engine/render",
+            response_model=JobRead, status_code=202)
+def engine_render(project_id: str, payload: EngineRequest, db: Session = Depends(get_db)):
+    return queue_engine(db, project_id, payload)
+
+
+@router.get("/projects/{project_id}/creative/motion/jobs/{job_id}/review")
+def artifact_review(project_id: str, job_id: str, db: Session = Depends(get_db)):
+    return read_artifact_review(db, project_id, job_id)
+
+
+@router.post("/projects/{project_id}/creative/motion/jobs/{job_id}/review")
+def artifact_decision(project_id: str, job_id: str, payload: ArtifactDecision,
+                      db: Session = Depends(get_db)):
+    actor = "authenticated-admin" if auth_configured() else "local-user"
+    return decide_artifact(db, project_id, job_id, payload, actor)
 
 
 @router.get("/channels/{channel_id}/creative-dna")

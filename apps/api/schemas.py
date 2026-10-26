@@ -109,6 +109,7 @@ class JobRead(BaseModel):
     id: str
     project_id: str | None
     job_type: str
+    motion_schema: str | None = None
     status: str
     progress: float
     attempt: int

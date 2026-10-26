@@ -7,6 +7,7 @@ on:
       - "contracts/motion/**"
       - "scripts/generate_motion_contracts.py"
       - "tests/test_motion_contracts.py"
+      - "tests/test_motion_m4d.py"
       - ".github/workflows/motion-contracts.yml"
   workflow_dispatch:
 
@@ -27,6 +28,10 @@ jobs:
       - run: uv sync --frozen
       - run: npm ci
       - run: uv run python scripts/generate_motion_contracts.py --check
-      - run: uv run pytest -q tests/test_motion_contracts.py
+      - run: uv run python scripts/build_motion_recipes.py --check
+      - run: uv run pytest -q tests/test_motion_contracts.py tests/test_motion_engine.py tests/test_motion_m4d.py tests/test_motion_migration.py
       - run: uv run ruff check apps/api/motion_contracts scripts/generate_motion_contracts.py tests/test_motion_contracts.py
       - run: node node_modules/typescript/bin/tsc --noEmit -p contracts/motion/tsconfig.json
+      - run: npm run typecheck --workspace @mediagrid/renderer
+      - run: npm run typecheck --workspace @mediagrid/web
+      - run: npm test

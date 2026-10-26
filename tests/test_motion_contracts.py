@@ -339,13 +339,13 @@ def test_edl_dna_and_shot_bindings_are_assertions_not_overrides():
         validate_binding(comp, **context)
 
 
-def test_render_preset_remains_unsupported_until_m4_b():
+def test_raw_unresolved_graph_is_not_a_renderable_edl_preset():
     data = document("sports", "edl_v2")
     data["tracks"].append({"id": "motion", "kind": "caption", "items": [{
         "id": "not-renderable", "start_ms": 0, "duration_ms": 12000,
         "preset": "motion_scene_v1", "z_index": 1,
         "params": document("sports")["scenes"][0]["graph"]}]})
-    with pytest.raises(ValueError, match="Only local kinetic"):
+    with pytest.raises(ValueError, match="closed derived graph params"):
         EDLV2.model_validate(data)
 
 

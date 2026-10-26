@@ -15,6 +15,36 @@
       "id": "geo.route-explainer",
       "version": "1.0.0",
       "sha256": "9d0f1d3dcf0556b9b89a6a8b47a617a4e85b1e926e2e874839161e6905a2859d"
+    },
+    {
+      "id": "sports.depth-impact",
+      "version": "1.1.0",
+      "sha256": "4257e79042acbc68476843a4dd3da70ebfd20e56f06dc3ef3d04052ce5e94781"
+    },
+    {
+      "id": "music.orbital-sleeve",
+      "version": "1.1.0",
+      "sha256": "e8810ebb1912ff49322d0553485fa21d906c62516304016b52da616e3c917b7c"
+    },
+    {
+      "id": "geo.route-explainer",
+      "version": "1.1.0",
+      "sha256": "a4d2f90db041ef9bc2e6164ca372ba833bb673773886d9f88afdd7489e1e4417"
+    },
+    {
+      "id": "sports.depth-impact",
+      "version": "1.2.0",
+      "sha256": "718bc8a8bfcae4085a99c380dd26f7f0c314a32587f1fbf57a9cf3b3403edb4c"
+    },
+    {
+      "id": "music.orbital-sleeve",
+      "version": "1.2.0",
+      "sha256": "c2504f99ffbc5972f348bf2ea7e0b115153e8c2d41a410a142216818883f0caf"
+    },
+    {
+      "id": "geo.route-explainer",
+      "version": "1.2.0",
+      "sha256": "795925370900dce5f8cb5428cbad056afb648304bae906227ac776fe5e9161ac"
     }
   ]
 }

@@ -1,12 +1,25 @@
 """The shared Remotion CLI invocation for legacy and creative jobs."""
 
 import os
+import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
+from time import perf_counter
 
 from apps.api.config import get_settings
 from workers.render.power import keep_system_awake
+
+
+def write_render_log(line: str) -> None:
+    """Progress glyphs must not abort a job in a packaged Windows cp1252 console."""
+    stream = sys.stdout
+    if stream is None:
+        return
+    encoding = getattr(stream, "encoding", None) or "utf-8"
+    stream.write(line.encode(encoding, errors="backslashreplace").decode(encoding))
+    stream.flush()
 
 
 def render_remotion(
@@ -17,7 +30,8 @@ def render_remotion(
     timeline: bool,
     scale: float = 1,
     explicit_codecs: bool = False,
-) -> None:
+    color_space: str | None = None,
+) -> dict:
     settings = get_settings()
     root = settings.mediagrid_renderer_root.resolve() if settings.mediagrid_renderer_root else None
     node = settings.mediagrid_node_path
@@ -65,6 +79,10 @@ def render_remotion(
         browser = shutil.which("chromium") or shutil.which("google-chrome")
     if browser:
         command.append(f"--browser-executable={browser}")
+    if color_space is not None:
+        if color_space != "bt709":
+            raise ValueError("Unsupported explicit color space")
+        command.extend(["--color-space=bt709", "--image-format=png"])
     command.extend(
         [
             f"--concurrency={min(settings.mediagrid_render_concurrency, os.cpu_count() or 1)}",
@@ -84,4 +102,28 @@ def render_remotion(
             ]
         )
     with keep_system_awake():
-        subprocess.run(command, check=True, cwd=root)
+        started = perf_counter()
+        first_frame = None
+        # A fresh CLI/browser for each invocation. This measures process startup,
+        # bundle and font loading together, not a cold OS filesystem cache.
+        with subprocess.Popen(
+            command,
+            cwd=root,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        ) as process:
+            for line in process.stdout:
+                if first_frame is None and re.search(r"Rendered [1-9]\d*/", line):
+                    first_frame = round(perf_counter() - started, 3)
+                write_render_log(line)
+            result = process.wait()
+        if result:
+            raise subprocess.CalledProcessError(result, command)
+        return {
+            "fresh_process_to_first_frame_seconds": first_frame,
+            "cli_seconds": round(perf_counter() - started, 3),
+            "startup_definition": "fresh CLI/browser; filesystem and bundler cache may be warm",
+        }

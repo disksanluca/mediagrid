@@ -14,12 +14,12 @@ def main() -> None:
     engine = create_engine(database_url, pool_pre_ping=True)
     with engine.connect() as connection:
         assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-            "0012_creative_direction"
+            "0013_motion_artifact_review"
         )
         assert {"channels", "projects", "jobs", "knowledge_claims", "narrative_3d",
                 "music_draft_schedules", "creative_dna_revisions", "creative_briefs",
                 "creative_direction_sets", "creative_storyboard_revisions",
-                "creative_reviews"} <= (
+                "creative_reviews", "motion_artifact_reviews"} <= (
             set(inspect(connection).get_table_names())
         )
         assert connection.scalar(text("SELECT COUNT(*) FROM channels")) == 1
@@ -31,6 +31,9 @@ def main() -> None:
         )).one()
         assert status == "SUCCEEDED" and owner is None
         assert result == {"synthetic": True}
+        assert connection.execute(text(
+            "SELECT revision, decision, video_sha256 FROM motion_artifact_reviews"
+        )).one() == (1, "REQUEST_REVIEW", "c"*64)
     engine.dispose()
     print("PostgreSQL 16: pg_dump/pg_restore kept schema, data and completed job")
 

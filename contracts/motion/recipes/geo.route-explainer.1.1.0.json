@@ -1,0 +1,4760 @@
+{
+  "schema_version": "motion_recipe_v1",
+  "id": "geo.route-explainer",
+  "version": "1.1.0",
+  "sha256": "a4d2f90db041ef9bc2e6164ca372ba833bb673773886d9f88afdd7489e1e4417",
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "fps_num": 30,
+    "fps_den": 1
+  },
+  "asset_slots": {
+    "score": "audio"
+  },
+  "scenes": [
+    {
+      "shot_slot": "shot-1",
+      "required_duration_ms": 5000,
+      "graph": {
+        "schema_version": "motion_scene_v1",
+        "safe_area": {
+          "left": 72,
+          "right": 72,
+          "top": 72,
+          "bottom": 72
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotate_z": 0.0,
+          "focal_length": 1200.0,
+          "animations": [
+            {
+              "property": "position",
+              "keyframes": [
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 0
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    0.0,
+                    0.0,
+                    0.0
+                  ]
+                },
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 5000
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    35.0,
+                    -15.0,
+                    80.0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "nodes": [
+          {
+            "position": [
+              640.0,
+              80.0,
+              280.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "map",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 2,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "group"
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-0",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-1",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    105.0,
+                    0.0
+                  ],
+                  [
+                    105.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-2",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    210.0,
+                    0.0
+                  ],
+                  [
+                    210.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-3",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    315.0,
+                    0.0
+                  ],
+                  [
+                    315.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-4",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    420.0,
+                    0.0
+                  ],
+                  [
+                    420.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-5",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    525.0,
+                    0.0
+                  ],
+                  [
+                    525.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-6",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    630.0,
+                    0.0
+                  ],
+                  [
+                    630.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-7",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    735.0,
+                    0.0
+                  ],
+                  [
+                    735.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-8",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    840.0,
+                    0.0
+                  ],
+                  [
+                    840.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-9",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    945.0,
+                    0.0
+                  ],
+                  [
+                    945.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-10",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    1050.0,
+                    0.0
+                  ],
+                  [
+                    1050.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-11",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    1155.0,
+                    0.0
+                  ],
+                  [
+                    1155.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-0",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    1200.0,
+                    0.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-1",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    110.0
+                  ],
+                  [
+                    1200.0,
+                    110.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-2",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    220.0
+                  ],
+                  [
+                    1200.0,
+                    220.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-3",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    330.0
+                  ],
+                  [
+                    1200.0,
+                    330.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-4",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    440.0
+                  ],
+                  [
+                    1200.0,
+                    440.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-5",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    550.0
+                  ],
+                  [
+                    1200.0,
+                    550.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-6",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    660.0
+                  ],
+                  [
+                    1200.0,
+                    660.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-7",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    770.0
+                  ],
+                  [
+                    1200.0,
+                    770.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-8",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    880.0
+                  ],
+                  [
+                    1200.0,
+                    880.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.7,
+            "animations": [],
+            "id": "region",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polygon",
+                "points": [
+                  [
+                    90.0,
+                    100.0
+                  ],
+                  [
+                    330.0,
+                    40.0
+                  ],
+                  [
+                    500.0,
+                    150.0
+                  ],
+                  [
+                    700.0,
+                    80.0
+                  ],
+                  [
+                    950.0,
+                    180.0
+                  ],
+                  [
+                    1020.0,
+                    400.0
+                  ],
+                  [
+                    920.0,
+                    620.0
+                  ],
+                  [
+                    780.0,
+                    640.0
+                  ],
+                  [
+                    700.0,
+                    850.0
+                  ],
+                  [
+                    480.0,
+                    930.0
+                  ],
+                  [
+                    300.0,
+                    780.0
+                  ],
+                  [
+                    120.0,
+                    800.0
+                  ],
+                  [
+                    30.0,
+                    550.0
+                  ],
+                  [
+                    160.0,
+                    350.0
+                  ]
+                ]
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.65,
+            "animations": [],
+            "id": "river",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    210.0,
+                    130.0
+                  ],
+                  [
+                    320.0,
+                    260.0
+                  ],
+                  [
+                    490.0,
+                    300.0
+                  ],
+                  [
+                    540.0,
+                    470.0
+                  ],
+                  [
+                    430.0,
+                    600.0
+                  ],
+                  [
+                    500.0,
+                    750.0
+                  ],
+                  [
+                    720.0,
+                    840.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "draw_progress",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 5000
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.333333
+                  }
+                ]
+              }
+            ],
+            "id": "route",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    200.0,
+                    750.0
+                  ],
+                  [
+                    340.0,
+                    620.0
+                  ],
+                  [
+                    520.0,
+                    590.0
+                  ],
+                  [
+                    660.0,
+                    440.0
+                  ],
+                  [
+                    720.0,
+                    320.0
+                  ],
+                  [
+                    910.0,
+                    210.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "progress",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 5000
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.333333
+                  }
+                ]
+              }
+            ],
+            "id": "traveller",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.5,
+              0.5
+            ],
+            "active_ms": null,
+            "type": "path_follower",
+            "params": {
+              "path_ref": "route",
+              "progress": 0.0,
+              "marker": {
+                "kind": "ellipse",
+                "width": 24.0,
+                "height": 24.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              }
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.92,
+            "animations": [],
+            "id": "shade",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 9,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 590.0,
+                "height": 1080.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              80.0,
+              220.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "opacity",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 600
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              },
+              {
+                "property": "position",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      80.0,
+                      255.0,
+                      0.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 700
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      80.0,
+                      220.0,
+                      0.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 5000
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      80.0,
+                      220.0,
+                      0.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "headline",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 10,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "text",
+            "params": {
+              "text": {
+                "kind": "shot_field",
+                "field": "on_screen_text"
+              },
+              "font": {
+                "kind": "dna_font",
+                "index": 0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "size": 98.0,
+              "max_width": 510.0,
+              "line_height": 1.03,
+              "max_lines": 4,
+              "align": "left",
+              "method": "fade_slide"
+            }
+          },
+          {
+            "position": [
+              80.0,
+              160.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "scale",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      0.05,
+                      1.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 800
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      1.0,
+                      1.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "rule",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 11,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 310.0,
+                "height": 5.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          }
+        ],
+        "cues": [
+          {
+            "id": "score",
+            "at_ms": 0,
+            "sound": {
+              "asset_binding": "score",
+              "source_in_ms": 0,
+              "duration_ms": 5000,
+              "gain": 0.9,
+              "fade_in_ms": 40,
+              "fade_out_ms": 0
+            }
+          },
+          {
+            "id": "settle",
+            "at_ms": 600,
+            "sound": null
+          }
+        ]
+      }
+    },
+    {
+      "shot_slot": "shot-2",
+      "required_duration_ms": 5000,
+      "graph": {
+        "schema_version": "motion_scene_v1",
+        "safe_area": {
+          "left": 72,
+          "right": 72,
+          "top": 72,
+          "bottom": 72
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotate_z": 0.0,
+          "focal_length": 1200.0,
+          "animations": [
+            {
+              "property": "position",
+              "keyframes": [
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 0
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    35.0,
+                    -15.0,
+                    80.0
+                  ]
+                },
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 5000
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    70.0,
+                    -30.0,
+                    160.0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "nodes": [
+          {
+            "position": [
+              640.0,
+              80.0,
+              280.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "map",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 2,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "group"
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-0",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-1",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    105.0,
+                    0.0
+                  ],
+                  [
+                    105.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-2",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    210.0,
+                    0.0
+                  ],
+                  [
+                    210.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-3",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    315.0,
+                    0.0
+                  ],
+                  [
+                    315.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-4",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    420.0,
+                    0.0
+                  ],
+                  [
+                    420.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-5",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    525.0,
+                    0.0
+                  ],
+                  [
+                    525.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-6",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    630.0,
+                    0.0
+                  ],
+                  [
+                    630.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-7",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    735.0,
+                    0.0
+                  ],
+                  [
+                    735.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-8",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    840.0,
+                    0.0
+                  ],
+                  [
+                    840.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-9",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    945.0,
+                    0.0
+                  ],
+                  [
+                    945.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-10",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    1050.0,
+                    0.0
+                  ],
+                  [
+                    1050.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-11",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    1155.0,
+                    0.0
+                  ],
+                  [
+                    1155.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-0",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    1200.0,
+                    0.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-1",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    110.0
+                  ],
+                  [
+                    1200.0,
+                    110.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-2",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    220.0
+                  ],
+                  [
+                    1200.0,
+                    220.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-3",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    330.0
+                  ],
+                  [
+                    1200.0,
+                    330.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-4",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    440.0
+                  ],
+                  [
+                    1200.0,
+                    440.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-5",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    550.0
+                  ],
+                  [
+                    1200.0,
+                    550.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-6",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    660.0
+                  ],
+                  [
+                    1200.0,
+                    660.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-7",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    770.0
+                  ],
+                  [
+                    1200.0,
+                    770.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-8",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    880.0
+                  ],
+                  [
+                    1200.0,
+                    880.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.7,
+            "animations": [],
+            "id": "region",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polygon",
+                "points": [
+                  [
+                    90.0,
+                    100.0
+                  ],
+                  [
+                    330.0,
+                    40.0
+                  ],
+                  [
+                    500.0,
+                    150.0
+                  ],
+                  [
+                    700.0,
+                    80.0
+                  ],
+                  [
+                    950.0,
+                    180.0
+                  ],
+                  [
+                    1020.0,
+                    400.0
+                  ],
+                  [
+                    920.0,
+                    620.0
+                  ],
+                  [
+                    780.0,
+                    640.0
+                  ],
+                  [
+                    700.0,
+                    850.0
+                  ],
+                  [
+                    480.0,
+                    930.0
+                  ],
+                  [
+                    300.0,
+                    780.0
+                  ],
+                  [
+                    120.0,
+                    800.0
+                  ],
+                  [
+                    30.0,
+                    550.0
+                  ],
+                  [
+                    160.0,
+                    350.0
+                  ]
+                ]
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.65,
+            "animations": [],
+            "id": "river",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    210.0,
+                    130.0
+                  ],
+                  [
+                    320.0,
+                    260.0
+                  ],
+                  [
+                    490.0,
+                    300.0
+                  ],
+                  [
+                    540.0,
+                    470.0
+                  ],
+                  [
+                    430.0,
+                    600.0
+                  ],
+                  [
+                    500.0,
+                    750.0
+                  ],
+                  [
+                    720.0,
+                    840.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "draw_progress",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.333333
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 5000
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.666667
+                  }
+                ]
+              }
+            ],
+            "id": "route",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    200.0,
+                    750.0
+                  ],
+                  [
+                    340.0,
+                    620.0
+                  ],
+                  [
+                    520.0,
+                    590.0
+                  ],
+                  [
+                    660.0,
+                    440.0
+                  ],
+                  [
+                    720.0,
+                    320.0
+                  ],
+                  [
+                    910.0,
+                    210.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "progress",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.333333
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 5000
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.666667
+                  }
+                ]
+              }
+            ],
+            "id": "traveller",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.5,
+              0.5
+            ],
+            "active_ms": null,
+            "type": "path_follower",
+            "params": {
+              "path_ref": "route",
+              "progress": 0.0,
+              "marker": {
+                "kind": "ellipse",
+                "width": 24.0,
+                "height": 24.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              }
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.92,
+            "animations": [],
+            "id": "shade",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 9,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 590.0,
+                "height": 1080.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              80.0,
+              220.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "opacity",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 600
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              },
+              {
+                "property": "position",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      80.0,
+                      255.0,
+                      0.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 700
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      80.0,
+                      220.0,
+                      0.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 5000
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      80.0,
+                      220.0,
+                      0.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "headline",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 10,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "text",
+            "params": {
+              "text": {
+                "kind": "shot_field",
+                "field": "on_screen_text"
+              },
+              "font": {
+                "kind": "dna_font",
+                "index": 0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "size": 98.0,
+              "max_width": 510.0,
+              "line_height": 1.03,
+              "max_lines": 4,
+              "align": "left",
+              "method": "fade_slide"
+            }
+          },
+          {
+            "position": [
+              80.0,
+              160.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "scale",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      0.05,
+                      1.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 800
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      1.0,
+                      1.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "rule",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 11,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 310.0,
+                "height": 5.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          }
+        ],
+        "cues": [
+          {
+            "id": "score",
+            "at_ms": 0,
+            "sound": {
+              "asset_binding": "score",
+              "source_in_ms": 5000,
+              "duration_ms": 5000,
+              "gain": 0.9,
+              "fade_in_ms": 0,
+              "fade_out_ms": 0
+            }
+          },
+          {
+            "id": "settle",
+            "at_ms": 600,
+            "sound": null
+          }
+        ]
+      }
+    },
+    {
+      "shot_slot": "shot-3",
+      "required_duration_ms": 5000,
+      "graph": {
+        "schema_version": "motion_scene_v1",
+        "safe_area": {
+          "left": 72,
+          "right": 72,
+          "top": 72,
+          "bottom": 72
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotate_z": 0.0,
+          "focal_length": 1200.0,
+          "animations": [
+            {
+              "property": "position",
+              "keyframes": [
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 0
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    70.0,
+                    -30.0,
+                    160.0
+                  ]
+                },
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 5000
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    105.0,
+                    -45.0,
+                    240.0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "nodes": [
+          {
+            "position": [
+              640.0,
+              80.0,
+              280.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "map",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 2,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "group"
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-0",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    0.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-1",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    105.0,
+                    0.0
+                  ],
+                  [
+                    105.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-2",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    210.0,
+                    0.0
+                  ],
+                  [
+                    210.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-3",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    315.0,
+                    0.0
+                  ],
+                  [
+                    315.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-4",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    420.0,
+                    0.0
+                  ],
+                  [
+                    420.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-5",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    525.0,
+                    0.0
+                  ],
+                  [
+                    525.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-6",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    630.0,
+                    0.0
+                  ],
+                  [
+                    630.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-7",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    735.0,
+                    0.0
+                  ],
+                  [
+                    735.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-8",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    840.0,
+                    0.0
+                  ],
+                  [
+                    840.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-9",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    945.0,
+                    0.0
+                  ],
+                  [
+                    945.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-10",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    1050.0,
+                    0.0
+                  ],
+                  [
+                    1050.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "longitude-11",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    1155.0,
+                    0.0
+                  ],
+                  [
+                    1155.0,
+                    1000.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-0",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    0.0
+                  ],
+                  [
+                    1200.0,
+                    0.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-1",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    110.0
+                  ],
+                  [
+                    1200.0,
+                    110.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-2",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    220.0
+                  ],
+                  [
+                    1200.0,
+                    220.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-3",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    330.0
+                  ],
+                  [
+                    1200.0,
+                    330.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-4",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    440.0
+                  ],
+                  [
+                    1200.0,
+                    440.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-5",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    550.0
+                  ],
+                  [
+                    1200.0,
+                    550.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-6",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    660.0
+                  ],
+                  [
+                    1200.0,
+                    660.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-7",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    770.0
+                  ],
+                  [
+                    1200.0,
+                    770.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.35,
+            "animations": [],
+            "id": "latitude-8",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    0.0,
+                    880.0
+                  ],
+                  [
+                    1200.0,
+                    880.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.7,
+            "animations": [],
+            "id": "region",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polygon",
+                "points": [
+                  [
+                    90.0,
+                    100.0
+                  ],
+                  [
+                    330.0,
+                    40.0
+                  ],
+                  [
+                    500.0,
+                    150.0
+                  ],
+                  [
+                    700.0,
+                    80.0
+                  ],
+                  [
+                    950.0,
+                    180.0
+                  ],
+                  [
+                    1020.0,
+                    400.0
+                  ],
+                  [
+                    920.0,
+                    620.0
+                  ],
+                  [
+                    780.0,
+                    640.0
+                  ],
+                  [
+                    700.0,
+                    850.0
+                  ],
+                  [
+                    480.0,
+                    930.0
+                  ],
+                  [
+                    300.0,
+                    780.0
+                  ],
+                  [
+                    120.0,
+                    800.0
+                  ],
+                  [
+                    30.0,
+                    550.0
+                  ],
+                  [
+                    160.0,
+                    350.0
+                  ]
+                ]
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 3
+              },
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.65,
+            "animations": [],
+            "id": "river",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    210.0,
+                    130.0
+                  ],
+                  [
+                    320.0,
+                    260.0
+                  ],
+                  [
+                    490.0,
+                    300.0
+                  ],
+                  [
+                    540.0,
+                    470.0
+                  ],
+                  [
+                    430.0,
+                    600.0
+                  ],
+                  [
+                    500.0,
+                    750.0
+                  ],
+                  [
+                    720.0,
+                    840.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "draw_progress",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.666667
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 5000
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              }
+            ],
+            "id": "route",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    200.0,
+                    750.0
+                  ],
+                  [
+                    340.0,
+                    620.0
+                  ],
+                  [
+                    520.0,
+                    590.0
+                  ],
+                  [
+                    660.0,
+                    440.0
+                  ],
+                  [
+                    720.0,
+                    320.0
+                  ],
+                  [
+                    910.0,
+                    210.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "progress",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.666667
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 5000
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              }
+            ],
+            "id": "traveller",
+            "parent_id": "map",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.5,
+              0.5
+            ],
+            "active_ms": null,
+            "type": "path_follower",
+            "params": {
+              "path_ref": "route",
+              "progress": 0.0,
+              "marker": {
+                "kind": "ellipse",
+                "width": 24.0,
+                "height": 24.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              }
+            }
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 0.92,
+            "animations": [],
+            "id": "shade",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 9,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 590.0,
+                "height": 1080.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              80.0,
+              220.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "opacity",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 600
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              },
+              {
+                "property": "position",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      80.0,
+                      255.0,
+                      0.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 700
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      80.0,
+                      220.0,
+                      0.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 5000
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      80.0,
+                      220.0,
+                      0.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "headline",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 10,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "text",
+            "params": {
+              "text": {
+                "kind": "shot_field",
+                "field": "on_screen_text"
+              },
+              "font": {
+                "kind": "dna_font",
+                "index": 0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "size": 98.0,
+              "max_width": 510.0,
+              "line_height": 1.03,
+              "max_lines": 4,
+              "align": "left",
+              "method": "fade_slide"
+            }
+          },
+          {
+            "position": [
+              80.0,
+              160.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "scale",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      0.05,
+                      1.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 800
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      1.0,
+                      1.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "rule",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 11,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 310.0,
+                "height": 5.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 3.0,
+              "draw_progress": 1.0
+            }
+          }
+        ],
+        "cues": [
+          {
+            "id": "score",
+            "at_ms": 0,
+            "sound": {
+              "asset_binding": "score",
+              "source_in_ms": 10000,
+              "duration_ms": 5000,
+              "gain": 0.9,
+              "fade_in_ms": 0,
+              "fade_out_ms": 180
+            }
+          },
+          {
+            "id": "settle",
+            "at_ms": 600,
+            "sound": null
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -269,6 +269,7 @@ export interface Job {
   id: string;
   project_id: string | null;
   job_type: string;
+  motion_schema?: string | null;
   status: string;
   progress: number;
   attempt: number;

@@ -13,7 +13,7 @@ from apps.api.config import get_settings
 from apps.api.creative.motion import motion_output, motion_props, verify_motion
 from apps.api.ingestion import sha256_file
 from apps.api.models import Job
-from apps.api.scene_media import stage_sound_assets
+from apps.api.scene_media import stage_scene_assets, stage_sound_assets
 from workers.render.remotion_runtime import render_remotion
 
 
@@ -40,18 +40,32 @@ def validate_motion_video(output: Path, plan: dict) -> dict:
     audio = next((s for s in metadata["streams"] if s["codec_type"] == "audio"), {})
     config = plan["render"]
     expected = (round(config["width"] * config["scale"]), round(config["height"] * config["scale"]))
+    duration = config.get("duration_ms", 12000) / 1000
+    audio_required = config.get("audio_required", True)
+    if config.get("color_space") == "bt709" and any(
+        video.get(key) != value
+        for key, value in {
+            "color_space": "bt709",
+            "color_transfer": "bt709",
+            "color_primaries": "bt709",
+            "color_range": "tv",
+        }.items()
+    ):
+        raise ValueError("MP4 color metadata differs from explicit BT.709 limited-range plan")
     if (
         video.get("codec_name") != "h264"
-        or audio.get("codec_name") != "aac"
+        or (audio_required and audio.get("codec_name") != "aac")
         or video.get("r_frame_rate") != "30/1"
         or video.get("avg_frame_rate") != "30/1"
-        or int(video.get("nb_read_frames", 0)) != 360
+        or int(video.get("nb_read_frames", 0)) != config.get("frames", 360)
         or (video.get("width"), video.get("height")) != expected
-        or abs(float(video.get("duration", 0)) - 12) > 1 / 30
-        or abs(float(audio.get("duration", 0)) - 12) > 0.06
-        or abs(float(metadata["format"]["duration"]) - 12) > 0.06
+        or abs(float(video.get("duration", 0)) - duration) > 1 / 30
+        or (audio_required and abs(float(audio.get("duration", 0)) - duration) > 0.06)
+        or abs(float(metadata["format"]["duration"]) - duration) > 0.06
     ):
-        raise ValueError("MP4 does not meet M3 H.264/AAC, frame, duration or canvas requirements")
+        raise ValueError(
+            "MP4 does not meet the plan H.264/AAC, frame, duration or canvas requirements"
+        )
     decode = subprocess.run(
         [
             str(settings.mediagrid_ffmpeg_path or "ffmpeg"),
@@ -80,20 +94,46 @@ def render_creative_motion(db: Session, job: Job, attempt_id: str, output: Path)
     props_file = (temp / f"{attempt_id}-creative.json").resolve()
     try:
         props = motion_props(plan)
-        sounds = stage_sound_assets(db, {a["id"] for a in plan["assets"]}, public)
+        sounds = stage_sound_assets(
+            db,
+            {
+                a["id"]
+                for a in plan["assets"]
+                if a.get("metadata", {}).get("kind", "audio") == "audio"
+            },
+            public,
+        )
+        visuals = stage_scene_assets(
+            db,
+            [
+                {"asset_id": a["id"]}
+                for a in plan["assets"]
+                if a.get("metadata", {}).get("kind") in {"image", "video"}
+            ],
+            public,
+        )
         for item in props["sounds"]:
             item["media_file"] = sounds[item["source_asset_id"]]
+        for item in props.get("overlays", []):
+            if item["preset"] == "motion_scene_v1":
+                item["motion"]["media_files"] = {
+                    slot: (
+                        sounds[asset_id] if asset_id in sounds else visuals[asset_id]["media_file"]
+                    )
+                    for slot, asset_id in item["motion"]["assets"].items()
+                }
         props_file.write_text(json.dumps(props, ensure_ascii=False), encoding="utf-8")
         # Fresh database reads plus physical hashes immediately before invoking Remotion.
         db.expire_all()
         verify_motion(db, job.project_id, payload)
-        render_remotion(
+        timing = render_remotion(
             props_file,
             public,
             output.resolve(),
             timeline=True,
             scale=plan["render"]["scale"],
             explicit_codecs=True,
+            color_space=plan["render"].get("color_space"),
         )
         probe = validate_motion_video(output, plan)
         db.expire_all()
@@ -108,9 +148,14 @@ def render_creative_motion(db: Session, job: Job, attempt_id: str, output: Path)
             "storyboard_sha256": plan["storyboard"]["sha256"],
             "ffprobe": probe,
             "render_seconds": round(perf_counter() - started, 3),
+            "runtime_timing": timing,
             "art_direction": plan.get("art_direction", "original"),
             "diagnostics": plan.get("diagnostics", False),
             "artistic_review": "AWAITING_HUMAN_REVIEW",
+            "engine_schema": plan["schema_version"],
+            "recipe": plan.get("request", {}).get("recipe"),
+            "composition_sha256": plan.get("composition_sha256"),
+            "dependencies_sha256": plan.get("dependencies_sha256"),
         }
     except HTTPException as exc:
         raise ValueError(str(exc.detail)) from exc

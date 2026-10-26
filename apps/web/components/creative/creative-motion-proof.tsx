@@ -23,7 +23,7 @@ export function CreativeMotionProof({projectId,revision,review,assets,dirty}:{
   useEffect(()=>{setPreview(null);setError("");},[snapshot,soundtrack,projectId,dirty,direction,soundDesign,diagnostics,quality]);
   useEffect(()=>{
     let active=true;
-    void api.jobs().then((jobs)=>{if(active)setJob(jobs.find((j)=>j.project_id===projectId&&j.job_type==="CREATIVE_MOTION")??null);})
+    void api.jobs().then((jobs)=>{if(active)setJob(jobs.find((j)=>j.project_id===projectId&&j.job_type==="CREATIVE_MOTION"&&j.motion_schema!=="creative_motion_engine_v1")??null);})
       .catch((e:unknown)=>{if(active)setError(String(e));});
     return()=>{active=false;};
   },[projectId]);

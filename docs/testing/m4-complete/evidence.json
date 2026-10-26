@@ -1,0 +1,392 @@
+[
+  {
+    "label": "sports",
+    "project_id": "8d0af428-3ad2-4a42-aa00-af9d80767d90",
+    "job_id": "3b75fa5d-ceae-5b02-93ab-71ca040b16ef",
+    "mp4_relative": "data/m4-complete-proof/final-pathfix/sports/sports-motion.mp4",
+    "sha256": "09cf151390a3f42517d5cff380e659436dba45c2dd452f06404deecc96124b93",
+    "plan_sha256": "2aa476193624b62baabcadd0323a41b2d44c78a3b9972a1ff550a5fe44ad2363",
+    "composition_sha256": "a256b8f4ee4581cc1bdc9177e27a8614f454031ed322e0248b309f87979aa7ad",
+    "recipe": {
+      "id": "sports.depth-impact",
+      "version": "1.1.0",
+      "sha256": "4257e79042acbc68476843a4dd3da70ebfd20e56f06dc3ef3d04052ce5e94781"
+    },
+    "render": {
+      "composition": "MediaGridTimelineV2",
+      "codec": "h264",
+      "audio_codec": "aac",
+      "fps": 30,
+      "frames": 360,
+      "width": 1080,
+      "height": 1920,
+      "duration_ms": 12000,
+      "audio_required": true,
+      "scale": 1,
+      "crf": 18,
+      "audio_bitrate": "192k",
+      "quality": "final"
+    },
+    "render_seconds": 20.9,
+    "wall_seconds": 22.6,
+    "peak_working_set_mib": 1654.84,
+    "node_counts": [
+      21,
+      20,
+      23,
+      21
+    ],
+    "assets": [
+      {
+        "id": "c0bb1c83-4b00-4261-8074-42cf922b9987",
+        "sha256": "240abb38d03ffc80f062205c32658029c21b1b3d4bb521bac08b26c30cfcdcd5",
+        "rights_status": "OWNED",
+        "license_name": "CC0-1.0",
+        "creator": "MediaGrid original procedural study",
+        "source_url": null,
+        "commercial_use": true,
+        "slot": "score",
+        "metadata": {
+          "asset_id": "c0bb1c83-4b00-4261-8074-42cf922b9987",
+          "sha256": "240abb38d03ffc80f062205c32658029c21b1b3d4bb521bac08b26c30cfcdcd5",
+          "byte_size": 2304044,
+          "kind": "audio",
+          "duration_ms": 12000,
+          "sample_rate": 48000,
+          "channels": 2
+        }
+      }
+    ],
+    "text_measurements": {
+      "shot-1/headline": {
+        "font_sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+        "widths": [
+          540.328,
+          707.832
+        ],
+        "lines": 2
+      },
+      "shot-2/headline": {
+        "font_sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+        "widths": [
+          438.29,
+          636.525
+        ],
+        "lines": 2
+      },
+      "shot-3/headline": {
+        "font_sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+        "widths": [
+          434.784,
+          577.024
+        ],
+        "lines": 2
+      },
+      "shot-4/headline": {
+        "font_sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+        "widths": [
+          760.46
+        ],
+        "lines": 1
+      }
+    },
+    "qa": {
+      "label": "sports",
+      "decoded_frames": 360,
+      "black_intervals": [],
+      "mean_frame_delta_8bit": 1.7638,
+      "median_frame_delta_8bit": 1.1002,
+      "longest_run_below_0_1_seconds": 0.1667,
+      "decoded_audio_seconds": 12.010666666666667,
+      "audio_peak_dbfs": -4.444,
+      "audio_rms_dbfs": -21.48,
+      "source_alignment": [
+        {
+          "cue_start_ms": 0,
+          "best_lag_ms": -0.333333,
+          "correlation": 0.999995
+        },
+        {
+          "cue_start_ms": 2000,
+          "best_lag_ms": 0.0,
+          "correlation": 0.999995
+        },
+        {
+          "cue_start_ms": 5000,
+          "best_lag_ms": 0.0,
+          "correlation": 0.999992
+        },
+        {
+          "cue_start_ms": 9000,
+          "best_lag_ms": 0.0,
+          "correlation": 0.999992
+        }
+      ],
+      "human_artistic_review": "PENDING",
+      "limitations": "Motion metrics are not artistic scores. AAC alignment measured at 1/48000 s steps within ±10 ms."
+    },
+    "review": "REQUEST_REVIEW",
+    "original_project_unchanged": true
+  },
+  {
+    "label": "music",
+    "project_id": "426c267a-b715-47de-9954-bc6aed9a9ed6",
+    "job_id": "13b32d4e-850f-546b-a537-c700b51cdccb",
+    "mp4_relative": "data/m4-complete-proof/final-pathfix/music/music-motion.mp4",
+    "sha256": "110c98f722353c4ad7d6088abc0a6cfad733424c3e5817782f11f2a8fe38bfb1",
+    "plan_sha256": "d557ea18992ed84a6e30554878f5c5fe0f32b45586990e78544bd815dd3cad3d",
+    "composition_sha256": "cffa626f630acc5eef1ab22d63d10448f72860677e4cc7c0fc0b3e212d3896a1",
+    "recipe": {
+      "id": "music.orbital-sleeve",
+      "version": "1.1.0",
+      "sha256": "e8810ebb1912ff49322d0553485fa21d906c62516304016b52da616e3c917b7c"
+    },
+    "render": {
+      "composition": "MediaGridTimelineV2",
+      "codec": "h264",
+      "audio_codec": "aac",
+      "fps": 30,
+      "frames": 300,
+      "width": 1080,
+      "height": 1080,
+      "duration_ms": 10000,
+      "audio_required": true,
+      "scale": 1,
+      "crf": 18,
+      "audio_bitrate": "192k",
+      "quality": "final"
+    },
+    "render_seconds": 17.97,
+    "wall_seconds": 19.462,
+    "peak_working_set_mib": 1520.69,
+    "node_counts": [
+      15,
+      15
+    ],
+    "assets": [
+      {
+        "id": "2d5579e0-3a73-440b-b394-ceaa0dc07f6d",
+        "sha256": "1f381522e21ff26595bd2bbe65330e2db592267ebd9e970ec0e14e16b8398966",
+        "rights_status": "OWNED",
+        "license_name": "CC0-1.0",
+        "creator": "MediaGrid original procedural study",
+        "source_url": null,
+        "commercial_use": true,
+        "slot": "score",
+        "metadata": {
+          "asset_id": "2d5579e0-3a73-440b-b394-ceaa0dc07f6d",
+          "sha256": "1f381522e21ff26595bd2bbe65330e2db592267ebd9e970ec0e14e16b8398966",
+          "byte_size": 1920044,
+          "kind": "audio",
+          "duration_ms": 10000,
+          "sample_rate": 48000,
+          "channels": 2
+        }
+      },
+      {
+        "id": "95d8c315-8c2f-460a-b5cb-12c5e366eecb",
+        "sha256": "da6c04073eeeec20e3c653693c787595b27425749ec97d90f3cf2b9b15163def",
+        "rights_status": "OWNED",
+        "license_name": "CC0-1.0",
+        "creator": "MediaGrid original procedural study",
+        "source_url": null,
+        "commercial_use": true,
+        "slot": "cover",
+        "metadata": {
+          "asset_id": "95d8c315-8c2f-460a-b5cb-12c5e366eecb",
+          "sha256": "da6c04073eeeec20e3c653693c787595b27425749ec97d90f3cf2b9b15163def",
+          "byte_size": 146744,
+          "kind": "image",
+          "width": 640,
+          "height": 640
+        }
+      },
+      {
+        "id": "1c53582a-9048-4957-b002-b2f3f5076fe3",
+        "sha256": "93ac75e97aefc6fa54204beffb0da7913ee70450c9c6df69f5e1cb7cf4a3a87f",
+        "rights_status": "OWNED",
+        "license_name": "CC0-1.0",
+        "creator": "MediaGrid original procedural study",
+        "source_url": null,
+        "commercial_use": true,
+        "slot": "waveform",
+        "metadata": {
+          "asset_id": "1c53582a-9048-4957-b002-b2f3f5076fe3",
+          "sha256": "93ac75e97aefc6fa54204beffb0da7913ee70450c9c6df69f5e1cb7cf4a3a87f",
+          "byte_size": 770546,
+          "kind": "video",
+          "width": 1080,
+          "height": 160,
+          "duration_ms": 10000,
+          "fps_num": 30,
+          "fps_den": 1
+        }
+      }
+    ],
+    "text_measurements": {
+      "shot-1/headline": {
+        "font_sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+        "widths": [
+          300.904,
+          424.792
+        ],
+        "lines": 2
+      },
+      "shot-2/headline": {
+        "font_sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+        "widths": [
+          220.168,
+          562.948
+        ],
+        "lines": 2
+      }
+    },
+    "qa": {
+      "label": "music",
+      "decoded_frames": 300,
+      "black_intervals": [],
+      "mean_frame_delta_8bit": 1.0381,
+      "median_frame_delta_8bit": 0.8483,
+      "longest_run_below_0_1_seconds": 0.0,
+      "decoded_audio_seconds": 10.005,
+      "audio_peak_dbfs": -5.259,
+      "audio_rms_dbfs": -19.812,
+      "source_alignment": [
+        {
+          "cue_start_ms": 0,
+          "best_lag_ms": -0.333333,
+          "correlation": 0.999997
+        },
+        {
+          "cue_start_ms": 4000,
+          "best_lag_ms": 0.0,
+          "correlation": 0.999996
+        }
+      ],
+      "human_artistic_review": "PENDING",
+      "limitations": "Motion metrics are not artistic scores. AAC alignment measured at 1/48000 s steps within ±10 ms."
+    },
+    "review": "REQUEST_REVIEW",
+    "original_project_unchanged": true
+  },
+  {
+    "label": "geo",
+    "project_id": "247aa38e-af8a-43d1-a9b1-aa291ad17539",
+    "job_id": "7a98f8ec-c248-5f18-a74e-d7dd90e75a5a",
+    "mp4_relative": "data/m4-complete-proof/final-pathfix/geo/geo-motion.mp4",
+    "sha256": "c2fab2c4c65c6c6071040637ba054c63eb38f7fa7f91fbaec82c727f50992545",
+    "plan_sha256": "4766fcc2d6cd1bbcda940b75f89da073219d95e8d7b60fc109ad5d694c533daa",
+    "composition_sha256": "6da3c2917b0238a38858a3b2664184d081b823b1f5c1d8d78a4e77b8e77bf5fe",
+    "recipe": {
+      "id": "geo.route-explainer",
+      "version": "1.1.0",
+      "sha256": "a4d2f90db041ef9bc2e6164ca372ba833bb673773886d9f88afdd7489e1e4417"
+    },
+    "render": {
+      "composition": "MediaGridTimelineV2",
+      "codec": "h264",
+      "audio_codec": "aac",
+      "fps": 30,
+      "frames": 450,
+      "width": 1920,
+      "height": 1080,
+      "duration_ms": 15000,
+      "audio_required": true,
+      "scale": 1,
+      "crf": 18,
+      "audio_bitrate": "192k",
+      "quality": "final"
+    },
+    "render_seconds": 22.545,
+    "wall_seconds": 23.741,
+    "peak_working_set_mib": 1648.02,
+    "node_counts": [
+      29,
+      29,
+      29
+    ],
+    "assets": [
+      {
+        "id": "4715181c-f916-4365-8523-89c5829e2ff4",
+        "sha256": "4418590185a94c59853cbeac1d82c42e03f8d6da47155a6eae9f38512860e6f6",
+        "rights_status": "OWNED",
+        "license_name": "CC0-1.0",
+        "creator": "MediaGrid original procedural study",
+        "source_url": null,
+        "commercial_use": true,
+        "slot": "score",
+        "metadata": {
+          "asset_id": "4715181c-f916-4365-8523-89c5829e2ff4",
+          "sha256": "4418590185a94c59853cbeac1d82c42e03f8d6da47155a6eae9f38512860e6f6",
+          "byte_size": 2880044,
+          "kind": "audio",
+          "duration_ms": 15000,
+          "sample_rate": 48000,
+          "channels": 2
+        }
+      }
+    ],
+    "text_measurements": {
+      "shot-1/headline": {
+        "font_sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+        "widths": [
+          485.296,
+          385.238,
+          362.992
+        ],
+        "lines": 3
+      },
+      "shot-2/headline": {
+        "font_sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+        "widths": [
+          424.34,
+          193.746,
+          365.442
+        ],
+        "lines": 3
+      },
+      "shot-3/headline": {
+        "font_sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+        "widths": [
+          435.512,
+          231.672,
+          272.244,
+          322.714
+        ],
+        "lines": 4
+      }
+    },
+    "qa": {
+      "label": "geo",
+      "decoded_frames": 450,
+      "black_intervals": [],
+      "mean_frame_delta_8bit": 0.1177,
+      "median_frame_delta_8bit": 0.0477,
+      "longest_run_below_0_1_seconds": 4.3333,
+      "decoded_audio_seconds": 15.018666666666666,
+      "audio_peak_dbfs": -12.665,
+      "audio_rms_dbfs": -21.563,
+      "source_alignment": [
+        {
+          "cue_start_ms": 0,
+          "best_lag_ms": -0.333333,
+          "correlation": 0.996036
+        },
+        {
+          "cue_start_ms": 5000,
+          "best_lag_ms": 0.0,
+          "correlation": 0.996061
+        },
+        {
+          "cue_start_ms": 10000,
+          "best_lag_ms": 0.0,
+          "correlation": 0.996052
+        }
+      ],
+      "human_artistic_review": "PENDING",
+      "limitations": "Motion metrics are not artistic scores. AAC alignment measured at 1/48000 s steps within ±10 ms."
+    },
+    "review": "REQUEST_REVIEW",
+    "original_project_unchanged": true
+  }
+]

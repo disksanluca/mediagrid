@@ -1,0 +1,1297 @@
+[
+  {
+    "label": "sports",
+    "project_id": "b42bcaa0-163e-4a78-84f5-d2cd6ebb5087",
+    "job_id": "47a6c2a3-b192-5917-94c3-7a006499220c",
+    "mp4_relative": "data/m4-complete-proof/m4d-final-03/sports/sports-motion.mp4",
+    "sha256": "5cfafd87b267b0280b89664a767246bb0df967c268d0db103356a4abf8523f9c",
+    "plan_sha256": "bcf2bbcfea537018b96d6737a74032c11789f83d9c6f179d0c26c34fc920821e",
+    "recipe": {
+      "id": "sports.depth-impact",
+      "version": "1.2.0",
+      "sha256": "718bc8a8bfcae4085a99c380dd26f7f0c314a32587f1fbf57a9cf3b3403edb4c"
+    },
+    "dependencies_sha256": "936601f60931c14a5f3a5b39cc6262fffcea1079b141309174282d97709c7ece",
+    "render_seconds": 40.554,
+    "wall_seconds": 42.584,
+    "runtime_timing": {
+      "fresh_process_to_first_frame_seconds": 3.274,
+      "cli_seconds": 37.972,
+      "startup_definition": "fresh CLI/browser; filesystem and bundler cache may be warm"
+    },
+    "performance": {
+      "interval_ms": 500,
+      "logical_cores": 20,
+      "measured_seconds": 40.673,
+      "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
+      "peak_working_set_mib": 1805.43,
+      "equivalent_one_core_percent": 257.89,
+      "observed_processes": 11,
+      "samples": 59,
+      "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
+      "observed_cpu_seconds": 104.891
+    },
+    "qa": {
+      "label": "sports",
+      "decoded_frames": 360,
+      "black_intervals": [],
+      "mean_frame_delta_8bit": 1.7582,
+      "median_frame_delta_8bit": 1.0252,
+      "longest_run_below_0_1_seconds": 0.3,
+      "decoded_audio_seconds": 12.010666666666667,
+      "audio_peak_dbfs": -3.589,
+      "audio_rms_dbfs": -23.451,
+      "integrated_lufs": -23.35,
+      "true_peak_dbtp": -3.59,
+      "loudness_range_lu": 1.6,
+      "color": {
+        "color_space": "bt709",
+        "color_transfer": "bt709",
+        "color_primaries": "bt709",
+        "color_range": "tv",
+        "pix_fmt": "yuv420p"
+      },
+      "source_alignment": [
+        {
+          "cue_start_ms": 0,
+          "best_lag_ms": -0.333333,
+          "correlation": 0.999998
+        },
+        {
+          "cue_start_ms": 2000,
+          "best_lag_ms": 0.0,
+          "correlation": 0.999999
+        },
+        {
+          "cue_start_ms": 5000,
+          "best_lag_ms": 0.0,
+          "correlation": 0.999998
+        },
+        {
+          "cue_start_ms": 9000,
+          "best_lag_ms": 0.0,
+          "correlation": 0.999998
+        }
+      ],
+      "human_artistic_review": "PENDING",
+      "limitations": "Motion metrics are not artistic scores. AAC alignment measured at 1/48000 s steps within \u00b110 ms."
+    },
+    "player": {
+      "label": "sports",
+      "composition": "MediaGridTimelineV2",
+      "player": "@remotion/player",
+      "scale": 0.5,
+      "fresh_browser_to_ready_seconds": 0.8639726000000001,
+      "preview": {
+        "wall_ms": 10000.60000000149,
+        "frame_events": 299,
+        "unique_frames_per_second": 29.898206107629086,
+        "process_tree": {
+          "samples": 18,
+          "observed_cpu_seconds": 4.266,
+          "observed_processes": 7,
+          "logical_cores": 20,
+          "interval_ms": 500,
+          "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
+          "measured_seconds": 11.551,
+          "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
+          "equivalent_one_core_percent": 36.93,
+          "peak_working_set_mib": 516.71
+        }
+      },
+      "ordered_frames": [
+        30,
+        59,
+        90,
+        105,
+        149,
+        180,
+        210,
+        269,
+        300,
+        315,
+        359
+      ],
+      "seek_checks": [
+        {
+          "frame": 359,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 315,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 300,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 269,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 210,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 180,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 149,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 105,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 90,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 59,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 30,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        }
+      ],
+      "overflow": [],
+      "parity": [
+        {
+          "frame": 30,
+          "ssim": 0.968763,
+          "passed": true
+        },
+        {
+          "frame": 59,
+          "ssim": 0.968759,
+          "passed": true
+        },
+        {
+          "frame": 90,
+          "ssim": 0.974569,
+          "passed": true
+        },
+        {
+          "frame": 105,
+          "ssim": 0.974377,
+          "passed": true
+        },
+        {
+          "frame": 149,
+          "ssim": 0.97469,
+          "passed": true
+        },
+        {
+          "frame": 180,
+          "ssim": 0.969597,
+          "passed": true
+        },
+        {
+          "frame": 210,
+          "ssim": 0.968842,
+          "passed": true
+        },
+        {
+          "frame": 269,
+          "ssim": 0.968732,
+          "passed": true
+        },
+        {
+          "frame": 300,
+          "ssim": 0.970677,
+          "passed": true
+        },
+        {
+          "frame": 315,
+          "ssim": 0.970271,
+          "passed": true
+        },
+        {
+          "frame": 359,
+          "ssim": 0.971435,
+          "passed": true
+        }
+      ],
+      "thresholds": {
+        "ssim": 0.96,
+        "preview_fps": 24,
+        "seek_max_8bit_channel_delta": 2,
+        "seek_mean_channel_delta": 0.2
+      },
+      "caveats": [
+        "Fresh headless browser; OS/filesystem/bundler caches may be warm.",
+        "SSIM compares browser PNG with H264/BT709 decoded and Lanczos-scaled PNG; compression and video decoding may differ.",
+        "Seeking requires identical SVG state. Chromium gradient dithering can vary by <=2/255; mean channel error must be <=0.2/255.",
+        "Typography bounds checked every frame at opacity >0.98; intentional reveal masks are excluded from overflow definition.",
+        "Measured headless Chromium; not an artistic approval or a benchmark of all user GPUs."
+      ]
+    },
+    "nodes_per_shot": [
+      34,
+      32,
+      35,
+      35
+    ],
+    "assets": [
+      {
+        "id": "9610d306-6a2f-4b29-bd9e-66f3c7838d77",
+        "sha256": "cf48aaa47347497989989ebb7bdc0c5a2b30bba075cc6c68690a68bb88479283",
+        "rights_status": "OWNED",
+        "license_name": "CC0-1.0",
+        "creator": "MediaGrid original procedural study",
+        "source_url": null,
+        "commercial_use": true,
+        "slot": "score",
+        "metadata": {
+          "asset_id": "9610d306-6a2f-4b29-bd9e-66f3c7838d77",
+          "sha256": "cf48aaa47347497989989ebb7bdc0c5a2b30bba075cc6c68690a68bb88479283",
+          "byte_size": 2304044,
+          "kind": "audio",
+          "duration_ms": 12000,
+          "sample_rate": 48000,
+          "channels": 2
+        }
+      }
+    ],
+    "ffprobe": {
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "h264",
+          "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+          "profile": "High",
+          "codec_type": "video",
+          "codec_tag_string": "avc1",
+          "codec_tag": "0x31637661",
+          "mime_codec_string": "avc1.640028",
+          "width": 1080,
+          "height": 1920,
+          "coded_width": 1088,
+          "coded_height": 1920,
+          "has_b_frames": 2,
+          "pix_fmt": "yuv420p",
+          "level": 40,
+          "color_range": "tv",
+          "color_space": "bt709",
+          "color_transfer": "bt709",
+          "color_primaries": "bt709",
+          "chroma_location": "left",
+          "field_order": "progressive",
+          "refs": 4,
+          "is_avc": "true",
+          "nal_length_size": "4",
+          "id": "0x1",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1",
+          "time_base": "1/90000",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 1080000,
+          "duration": "12.000000",
+          "bit_rate": "2070077",
+          "bits_per_raw_sample": "8",
+          "nb_frames": "360",
+          "nb_read_frames": "360",
+          "extradata_size": 50,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "VideoHandler",
+            "encoder": "Lavc61.19.100 libx264"
+          }
+        },
+        {
+          "index": 1,
+          "codec_name": "aac",
+          "codec_long_name": "AAC (Advanced Audio Coding)",
+          "profile": "LC",
+          "codec_type": "audio",
+          "codec_tag_string": "mp4a",
+          "codec_tag": "0x6134706d",
+          "mime_codec_string": "mp4a.40.2",
+          "sample_fmt": "fltp",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "bits_per_sample": 0,
+          "initial_padding": 2048,
+          "id": "0x2",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "time_base": "1/48000",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 576528,
+          "duration": "12.011000",
+          "bit_rate": "189370",
+          "nb_frames": "565",
+          "nb_read_frames": "563",
+          "extradata_size": 2,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "SoundHandler"
+          }
+        }
+      ],
+      "format": {
+        "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\m4d-final-03\\sports\\sports-motion.mp4",
+        "nb_streams": 2,
+        "nb_programs": 0,
+        "nb_stream_groups": 0,
+        "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "format_long_name": "QuickTime / MOV",
+        "start_time": "0.000000",
+        "duration": "12.011000",
+        "size": "3405063",
+        "bit_rate": "2267963",
+        "probe_score": 100,
+        "tags": {
+          "major_brand": "isom",
+          "minor_version": "512",
+          "compatible_brands": "isomiso2avc1mp41",
+          "encoder": "Lavf61.7.100",
+          "comment": "Made with Remotion 4.0.532"
+        }
+      }
+    },
+    "human_artistic_review": "PENDING",
+    "repeat": {
+      "sha256": "2645fba47e002fcb15bc1b6172e1c5d496cffc541cc77e891e6d2461457d9563",
+      "render_seconds": 56.881,
+      "decoded_video_psnr_average_db": 61.010467,
+      "decoded_video_psnr_min_db": 53.774813,
+      "decoded_audio_identical": true,
+      "reproducibility_tolerance": "Decoded video PSNR >= 50 dB; identical decoded audio"
+    }
+  },
+  {
+    "label": "music",
+    "project_id": "a4ebbcee-bd56-4ab0-9c58-e37831593c4d",
+    "job_id": "d80da03e-06b8-5d06-9749-9db9a1a7c2c6",
+    "mp4_relative": "data/m4-complete-proof/m4d-final-03/music/music-motion.mp4",
+    "sha256": "d377d11f7575b36e135cf8355863e19526e9db5c47232ac356254d4bee297f19",
+    "plan_sha256": "a721c413b1dfcdba33019a384eedd33af5e3ef553fbebab74d988f76b661b922",
+    "recipe": {
+      "id": "music.orbital-sleeve",
+      "version": "1.2.0",
+      "sha256": "c2504f99ffbc5972f348bf2ea7e0b115153e8c2d41a410a142216818883f0caf"
+    },
+    "dependencies_sha256": "c3e36f04ed0d09612398712b2c4343c8000cadcbff117468db5126ead17b553a",
+    "render_seconds": 24.678,
+    "wall_seconds": 26.061,
+    "runtime_timing": {
+      "fresh_process_to_first_frame_seconds": 3.039,
+      "cli_seconds": 23.391,
+      "startup_definition": "fresh CLI/browser; filesystem and bundler cache may be warm"
+    },
+    "performance": {
+      "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
+      "samples": 35,
+      "measured_seconds": 24.661,
+      "peak_working_set_mib": 1689.7,
+      "equivalent_one_core_percent": 203.01,
+      "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
+      "interval_ms": 500,
+      "observed_cpu_seconds": 50.062,
+      "logical_cores": 20,
+      "observed_processes": 11
+    },
+    "qa": {
+      "label": "music",
+      "decoded_frames": 300,
+      "black_intervals": [],
+      "mean_frame_delta_8bit": 0.3799,
+      "median_frame_delta_8bit": 0.2758,
+      "longest_run_below_0_1_seconds": 0.5333,
+      "decoded_audio_seconds": 10.005,
+      "audio_peak_dbfs": -8.148,
+      "audio_rms_dbfs": -23.321,
+      "integrated_lufs": -21.25,
+      "true_peak_dbtp": -8.15,
+      "loudness_range_lu": 0.8,
+      "color": {
+        "color_space": "bt709",
+        "color_transfer": "bt709",
+        "color_primaries": "bt709",
+        "color_range": "tv",
+        "pix_fmt": "yuv420p"
+      },
+      "source_alignment": [
+        {
+          "cue_start_ms": 0,
+          "best_lag_ms": -0.333333,
+          "correlation": 0.999993
+        },
+        {
+          "cue_start_ms": 4000,
+          "best_lag_ms": 0.0,
+          "correlation": 0.999992
+        }
+      ],
+      "human_artistic_review": "PENDING",
+      "limitations": "Motion metrics are not artistic scores. AAC alignment measured at 1/48000 s steps within \u00b110 ms."
+    },
+    "player": {
+      "label": "music",
+      "composition": "MediaGridTimelineV2",
+      "player": "@remotion/player",
+      "scale": 0.5,
+      "fresh_browser_to_ready_seconds": 1.7892295000000014,
+      "preview": {
+        "wall_ms": 10003.5,
+        "frame_events": 299,
+        "unique_frames_per_second": 29.889538661468485,
+        "process_tree": {
+          "samples": 18,
+          "observed_cpu_seconds": 5.031,
+          "observed_processes": 7,
+          "logical_cores": 20,
+          "interval_ms": 500,
+          "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
+          "measured_seconds": 11.728,
+          "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
+          "equivalent_one_core_percent": 42.9,
+          "peak_working_set_mib": 498.31
+        }
+      },
+      "ordered_frames": [
+        30,
+        60,
+        119,
+        150,
+        210,
+        299
+      ],
+      "seek_checks": [
+        {
+          "frame": 299,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 210,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 150,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 119,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 60,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 30,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        }
+      ],
+      "overflow": [],
+      "parity": [
+        {
+          "frame": 30,
+          "ssim": 0.983487,
+          "passed": true
+        },
+        {
+          "frame": 60,
+          "ssim": 0.984948,
+          "passed": true
+        },
+        {
+          "frame": 119,
+          "ssim": 0.981974,
+          "passed": true
+        },
+        {
+          "frame": 150,
+          "ssim": 0.981709,
+          "passed": true
+        },
+        {
+          "frame": 210,
+          "ssim": 0.981745,
+          "passed": true
+        },
+        {
+          "frame": 299,
+          "ssim": 0.982721,
+          "passed": true
+        }
+      ],
+      "thresholds": {
+        "ssim": 0.96,
+        "preview_fps": 24,
+        "seek_max_8bit_channel_delta": 2,
+        "seek_mean_channel_delta": 0.2
+      },
+      "caveats": [
+        "Fresh headless browser; OS/filesystem/bundler caches may be warm.",
+        "SSIM compares browser PNG with H264/BT709 decoded and Lanczos-scaled PNG; compression and video decoding may differ.",
+        "Seeking requires identical SVG state. Chromium gradient dithering can vary by <=2/255; mean channel error must be <=0.2/255.",
+        "Typography bounds checked every frame at opacity >0.98; intentional reveal masks are excluded from overflow definition.",
+        "Measured headless Chromium; not an artistic approval or a benchmark of all user GPUs."
+      ]
+    },
+    "nodes_per_shot": [
+      17,
+      17
+    ],
+    "assets": [
+      {
+        "id": "0f7fe753-4832-4b5c-bd11-4573e3360899",
+        "sha256": "31d698f7cf105726b17ca403a41d85f8112e3a24129402669da77aea57476d33",
+        "rights_status": "OWNED",
+        "license_name": "CC0-1.0",
+        "creator": "MediaGrid original procedural study",
+        "source_url": null,
+        "commercial_use": true,
+        "slot": "score",
+        "metadata": {
+          "asset_id": "0f7fe753-4832-4b5c-bd11-4573e3360899",
+          "sha256": "31d698f7cf105726b17ca403a41d85f8112e3a24129402669da77aea57476d33",
+          "byte_size": 1920044,
+          "kind": "audio",
+          "duration_ms": 10000,
+          "sample_rate": 48000,
+          "channels": 2
+        }
+      },
+      {
+        "id": "98cd9547-40c6-4c31-bc15-d5be9b6428a9",
+        "sha256": "da6c04073eeeec20e3c653693c787595b27425749ec97d90f3cf2b9b15163def",
+        "rights_status": "OWNED",
+        "license_name": "CC0-1.0",
+        "creator": "MediaGrid original procedural study",
+        "source_url": null,
+        "commercial_use": true,
+        "slot": "cover",
+        "metadata": {
+          "asset_id": "98cd9547-40c6-4c31-bc15-d5be9b6428a9",
+          "sha256": "da6c04073eeeec20e3c653693c787595b27425749ec97d90f3cf2b9b15163def",
+          "byte_size": 146744,
+          "kind": "image",
+          "width": 640,
+          "height": 640
+        }
+      },
+      {
+        "id": "31b890d8-8a98-422e-ac1b-d39438b317fa",
+        "sha256": "5d225e5b16ac5c959f2072d2c52e349d1384e5acbfc4601666dde0f09557eef0",
+        "rights_status": "OWNED",
+        "license_name": "CC0-1.0",
+        "creator": "MediaGrid original procedural study",
+        "source_url": null,
+        "commercial_use": true,
+        "slot": "waveform",
+        "metadata": {
+          "asset_id": "31b890d8-8a98-422e-ac1b-d39438b317fa",
+          "sha256": "5d225e5b16ac5c959f2072d2c52e349d1384e5acbfc4601666dde0f09557eef0",
+          "byte_size": 660735,
+          "kind": "video",
+          "width": 1080,
+          "height": 160,
+          "duration_ms": 10000,
+          "fps_num": 30,
+          "fps_den": 1
+        }
+      }
+    ],
+    "ffprobe": {
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "h264",
+          "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+          "profile": "High",
+          "codec_type": "video",
+          "codec_tag_string": "avc1",
+          "codec_tag": "0x31637661",
+          "mime_codec_string": "avc1.640020",
+          "width": 1080,
+          "height": 1080,
+          "coded_width": 1088,
+          "coded_height": 1088,
+          "has_b_frames": 2,
+          "pix_fmt": "yuv420p",
+          "level": 32,
+          "color_range": "tv",
+          "color_space": "bt709",
+          "color_transfer": "bt709",
+          "color_primaries": "bt709",
+          "chroma_location": "left",
+          "field_order": "progressive",
+          "refs": 4,
+          "is_avc": "true",
+          "nal_length_size": "4",
+          "id": "0x1",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1",
+          "time_base": "1/90000",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 900000,
+          "duration": "10.000000",
+          "bit_rate": "791544",
+          "bits_per_raw_sample": "8",
+          "nb_frames": "300",
+          "nb_read_frames": "300",
+          "extradata_size": 51,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "VideoHandler",
+            "encoder": "Lavc61.19.100 libx264"
+          }
+        },
+        {
+          "index": 1,
+          "codec_name": "aac",
+          "codec_long_name": "AAC (Advanced Audio Coding)",
+          "profile": "LC",
+          "codec_type": "audio",
+          "codec_tag_string": "mp4a",
+          "codec_tag": "0x6134706d",
+          "mime_codec_string": "mp4a.40.2",
+          "sample_fmt": "fltp",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "bits_per_sample": 0,
+          "initial_padding": 2048,
+          "id": "0x2",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "time_base": "1/48000",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 480240,
+          "duration": "10.005000",
+          "bit_rate": "189382",
+          "nb_frames": "471",
+          "nb_read_frames": "469",
+          "extradata_size": 2,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "SoundHandler"
+          }
+        }
+      ],
+      "format": {
+        "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\m4d-final-03\\music\\music-motion.mp4",
+        "nb_streams": 2,
+        "nb_programs": 0,
+        "nb_stream_groups": 0,
+        "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "format_long_name": "QuickTime / MOV",
+        "start_time": "0.000000",
+        "duration": "10.005000",
+        "size": "1239777",
+        "bit_rate": "991325",
+        "probe_score": 100,
+        "tags": {
+          "major_brand": "isom",
+          "minor_version": "512",
+          "compatible_brands": "isomiso2avc1mp41",
+          "encoder": "Lavf61.7.100",
+          "comment": "Made with Remotion 4.0.532"
+        }
+      }
+    },
+    "human_artistic_review": "PENDING"
+  },
+  {
+    "label": "geo",
+    "project_id": "b5ac9199-e904-49fd-98f3-c7ce02c07a46",
+    "job_id": "dadf7a4c-18ba-5b94-be6e-e3be589b491e",
+    "mp4_relative": "data/m4-complete-proof/m4d-final-03/geo/geo-motion.mp4",
+    "sha256": "c528c00047441b624665aa4e26eb0ebc23e10aae5cde65a85364acca183b94c9",
+    "plan_sha256": "5c5c7c59615704d1fb5e2f3629b24a3060e922541eb67fa6d08f9cea81232f0a",
+    "recipe": {
+      "id": "geo.route-explainer",
+      "version": "1.2.0",
+      "sha256": "795925370900dce5f8cb5428cbad056afb648304bae906227ac776fe5e9161ac"
+    },
+    "dependencies_sha256": "63b4eaa109e9a8c648afb30d607b607139f846e3679057499257d621cfe1341d",
+    "render_seconds": 41.785,
+    "wall_seconds": 44.845,
+    "runtime_timing": {
+      "fresh_process_to_first_frame_seconds": 3.01,
+      "cli_seconds": 38.563,
+      "startup_definition": "fresh CLI/browser; filesystem and bundler cache may be warm"
+    },
+    "performance": {
+      "samples": 59,
+      "peak_working_set_mib": 1812.23,
+      "logical_cores": 20,
+      "measured_seconds": 41.961,
+      "observed_processes": 10,
+      "interval_ms": 500,
+      "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
+      "equivalent_one_core_percent": 357.55,
+      "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
+      "observed_cpu_seconds": 150.031
+    },
+    "qa": {
+      "label": "geo",
+      "decoded_frames": 450,
+      "black_intervals": [],
+      "mean_frame_delta_8bit": 0.1536,
+      "median_frame_delta_8bit": 0.1479,
+      "longest_run_below_0_1_seconds": 0.0,
+      "decoded_audio_seconds": 15.018666666666666,
+      "audio_peak_dbfs": -10.633,
+      "audio_rms_dbfs": -23.635,
+      "integrated_lufs": -22.32,
+      "true_peak_dbtp": -10.63,
+      "loudness_range_lu": 2.4,
+      "color": {
+        "color_space": "bt709",
+        "color_transfer": "bt709",
+        "color_primaries": "bt709",
+        "color_range": "tv",
+        "pix_fmt": "yuv420p"
+      },
+      "source_alignment": [
+        {
+          "cue_start_ms": 0,
+          "best_lag_ms": -0.333333,
+          "correlation": 0.999977
+        },
+        {
+          "cue_start_ms": 5000,
+          "best_lag_ms": 0.0,
+          "correlation": 0.999992
+        },
+        {
+          "cue_start_ms": 10000,
+          "best_lag_ms": 0.0,
+          "correlation": 0.999992
+        }
+      ],
+      "human_artistic_review": "PENDING",
+      "limitations": "Motion metrics are not artistic scores. AAC alignment measured at 1/48000 s steps within \u00b110 ms."
+    },
+    "player": {
+      "label": "geo",
+      "composition": "MediaGridTimelineV2",
+      "player": "@remotion/player",
+      "scale": 0.5,
+      "fresh_browser_to_ready_seconds": 1.7511892999999983,
+      "preview": {
+        "wall_ms": 10001.59999999404,
+        "frame_events": 299,
+        "unique_frames_per_second": 29.895216765335363,
+        "process_tree": {
+          "samples": 18,
+          "observed_cpu_seconds": 4.609,
+          "observed_processes": 7,
+          "logical_cores": 20,
+          "interval_ms": 500,
+          "caveat": "CPU deltas from first to last observed sample; excludes startup before first sample and missed short-lived children. RSS sums Windows working sets, not private bytes.",
+          "measured_seconds": 11.78,
+          "measurement": "sampled Windows process-tree working sets; shared pages may be counted twice",
+          "equivalent_one_core_percent": 39.13,
+          "peak_working_set_mib": 480.05
+        }
+      },
+      "ordered_frames": [
+        30,
+        75,
+        149,
+        180,
+        225,
+        299,
+        330,
+        375,
+        449
+      ],
+      "seek_checks": [
+        {
+          "frame": 449,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 375,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 330,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 299,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 225,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 180,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 149,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 75,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        },
+        {
+          "frame": 30,
+          "identical_png": true,
+          "identical_svg": true,
+          "max_channel_delta": 0,
+          "mean_channel_delta": 0,
+          "changed_channel_fraction": 0,
+          "passed": true
+        }
+      ],
+      "overflow": [],
+      "parity": [
+        {
+          "frame": 30,
+          "ssim": 0.984776,
+          "passed": true
+        },
+        {
+          "frame": 75,
+          "ssim": 0.984659,
+          "passed": true
+        },
+        {
+          "frame": 149,
+          "ssim": 0.984711,
+          "passed": true
+        },
+        {
+          "frame": 180,
+          "ssim": 0.985004,
+          "passed": true
+        },
+        {
+          "frame": 225,
+          "ssim": 0.984838,
+          "passed": true
+        },
+        {
+          "frame": 299,
+          "ssim": 0.985561,
+          "passed": true
+        },
+        {
+          "frame": 330,
+          "ssim": 0.985643,
+          "passed": true
+        },
+        {
+          "frame": 375,
+          "ssim": 0.985912,
+          "passed": true
+        },
+        {
+          "frame": 449,
+          "ssim": 0.98668,
+          "passed": true
+        }
+      ],
+      "thresholds": {
+        "ssim": 0.96,
+        "preview_fps": 24,
+        "seek_max_8bit_channel_delta": 2,
+        "seek_mean_channel_delta": 0.2
+      },
+      "caveats": [
+        "Fresh headless browser; OS/filesystem/bundler caches may be warm.",
+        "SSIM compares browser PNG with H264/BT709 decoded and Lanczos-scaled PNG; compression and video decoding may differ.",
+        "Seeking requires identical SVG state. Chromium gradient dithering can vary by <=2/255; mean channel error must be <=0.2/255.",
+        "Typography bounds checked every frame at opacity >0.98; intentional reveal masks are excluded from overflow definition.",
+        "Measured headless Chromium; not an artistic approval or a benchmark of all user GPUs."
+      ]
+    },
+    "nodes_per_shot": [
+      92,
+      92,
+      92
+    ],
+    "assets": [
+      {
+        "id": "e35a0965-2076-4d87-ab2d-6651ff17a088",
+        "sha256": "a38e97c607bb911cc0c8f3d447a23a804b4f7ffee91d4c04cea5aad57f18e626",
+        "rights_status": "OWNED",
+        "license_name": "CC0-1.0",
+        "creator": "MediaGrid original procedural study",
+        "source_url": null,
+        "commercial_use": true,
+        "slot": "score",
+        "metadata": {
+          "asset_id": "e35a0965-2076-4d87-ab2d-6651ff17a088",
+          "sha256": "a38e97c607bb911cc0c8f3d447a23a804b4f7ffee91d4c04cea5aad57f18e626",
+          "byte_size": 2880044,
+          "kind": "audio",
+          "duration_ms": 15000,
+          "sample_rate": 48000,
+          "channels": 2
+        }
+      }
+    ],
+    "ffprobe": {
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "h264",
+          "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+          "profile": "High",
+          "codec_type": "video",
+          "codec_tag_string": "avc1",
+          "codec_tag": "0x31637661",
+          "mime_codec_string": "avc1.640028",
+          "width": 1920,
+          "height": 1080,
+          "coded_width": 1920,
+          "coded_height": 1088,
+          "has_b_frames": 2,
+          "pix_fmt": "yuv420p",
+          "level": 40,
+          "color_range": "tv",
+          "color_space": "bt709",
+          "color_transfer": "bt709",
+          "color_primaries": "bt709",
+          "chroma_location": "left",
+          "field_order": "progressive",
+          "refs": 4,
+          "is_avc": "true",
+          "nal_length_size": "4",
+          "id": "0x1",
+          "r_frame_rate": "30/1",
+          "avg_frame_rate": "30/1",
+          "time_base": "1/90000",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 1350000,
+          "duration": "15.000000",
+          "bit_rate": "1278622",
+          "bits_per_raw_sample": "8",
+          "nb_frames": "450",
+          "nb_read_frames": "450",
+          "extradata_size": 50,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "VideoHandler",
+            "encoder": "Lavc61.19.100 libx264"
+          }
+        },
+        {
+          "index": 1,
+          "codec_name": "aac",
+          "codec_long_name": "AAC (Advanced Audio Coding)",
+          "profile": "LC",
+          "codec_type": "audio",
+          "codec_tag_string": "mp4a",
+          "codec_tag": "0x6134706d",
+          "mime_codec_string": "mp4a.40.2",
+          "sample_fmt": "fltp",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "bits_per_sample": 0,
+          "initial_padding": 2048,
+          "id": "0x2",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "time_base": "1/48000",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 720912,
+          "duration": "15.019000",
+          "bit_rate": "189370",
+          "nb_frames": "706",
+          "nb_read_frames": "704",
+          "extradata_size": 2,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "SoundHandler"
+          }
+        }
+      ],
+      "format": {
+        "filename": "C:\\Users\\SP0097A\\Documents\\Codex\\2026-10-12\\github-plugin-github-openai-curated-remote-2\\work\\mediagrid\\data\\m4-complete-proof\\m4d-final-03\\geo\\geo-motion.mp4",
+        "nb_streams": 2,
+        "nb_programs": 0,
+        "nb_stream_groups": 0,
+        "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "format_long_name": "QuickTime / MOV",
+        "start_time": "0.000000",
+        "duration": "15.019000",
+        "size": "2769128",
+        "bit_rate": "1474999",
+        "probe_score": 100,
+        "tags": {
+          "major_brand": "isom",
+          "minor_version": "512",
+          "compatible_brands": "isomiso2avc1mp41",
+          "encoder": "Lavf61.7.100",
+          "comment": "Made with Remotion 4.0.532"
+        }
+      }
+    },
+    "human_artistic_review": "PENDING"
+  }
+]

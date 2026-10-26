@@ -1,0 +1,25 @@
+{
+  "label": "music",
+  "decoded_frames": 300,
+  "black_intervals": [],
+  "mean_frame_delta_8bit": 1.0381,
+  "median_frame_delta_8bit": 0.8483,
+  "longest_run_below_0_1_seconds": 0.0,
+  "decoded_audio_seconds": 10.005,
+  "audio_peak_dbfs": -5.259,
+  "audio_rms_dbfs": -19.812,
+  "source_alignment": [
+    {
+      "cue_start_ms": 0,
+      "best_lag_ms": -0.333333,
+      "correlation": 0.999997
+    },
+    {
+      "cue_start_ms": 4000,
+      "best_lag_ms": 0.0,
+      "correlation": 0.999996
+    }
+  ],
+  "human_artistic_review": "PENDING",
+  "limitations": "Motion metrics are not artistic scores. AAC alignment measured at 1/48000 s steps within \u00b110 ms."
+}

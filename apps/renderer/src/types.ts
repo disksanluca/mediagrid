@@ -30,7 +30,7 @@ export interface RenderProps {
   music_first_release_date?: string;
   music_record_id?: string;
   scenes: RenderScene[];
-  overlays?: RenderOverlay[];
+  overlays?: (RenderOverlay | MotionRenderOverlay)[];
   sounds?: RenderSound[];
   video_layers?: RenderVideoLayer[];
   voice_file?: string;
@@ -72,6 +72,10 @@ export interface RenderOverlay {
     opacity: number;
     scale: number;
   }>;
+}
+
+export type MotionRenderOverlay = import("./motion-scene").MotionOverlay & {
+  preset: "motion_scene_v1";
 }
 
 export interface RenderSound {
