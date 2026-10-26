@@ -1,0 +1,11 @@
+{
+  "project_id": "fixture-geo",
+  "storyboard_revision": 1,
+  "snapshot_sha256": "207f44d954f8ec124aefd084baf6a1e50ba381bb2b820b5955a5c2abba0b98f5",
+  "approved_claims": {
+    "fixture-geo-claim": {
+      "text": "Geometria demonstrativa original.",
+      "source_label": "Geometria ficcional; sem dados geográficos reais."
+    }
+  }
+}

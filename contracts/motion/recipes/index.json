@@ -1,0 +1,20 @@
+{
+  "schema_version": "motion_registry_v1",
+  "recipes": [
+    {
+      "id": "sports.depth-impact",
+      "version": "1.0.0",
+      "sha256": "9b4a5dd40111743d9561e2b92bfb77ecee777c61444fed1f035a64cfc381b061"
+    },
+    {
+      "id": "music.orbital-sleeve",
+      "version": "1.0.0",
+      "sha256": "c36e17f249d0fb343ec6f79b2f8ee1b29190aac6824a9f50f373572dcad47d2f"
+    },
+    {
+      "id": "geo.route-explainer",
+      "version": "1.0.0",
+      "sha256": "9d0f1d3dcf0556b9b89a6a8b47a617a4e85b1e926e2e874839161e6905a2859d"
+    }
+  ]
+}

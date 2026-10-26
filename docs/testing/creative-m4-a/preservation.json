@@ -1,0 +1,22 @@
+[
+  {
+    "proof": "data/creative-m3-proof/final-01",
+    "sha256": "146246344c51e00674df6463a13a37721b5138865f7bfb55e41eeff340fe8f14",
+    "unchanged": true
+  },
+  {
+    "proof": "data/creative-m3-1-proof/final-02/v1",
+    "sha256": "22d19aeb8f0727c99100e28b8c58f6d5c9828b7938b3f010ff7ec6f5f987c7bc",
+    "unchanged": true
+  },
+  {
+    "proof": "data/creative-m3-1-proof/final-02/v2",
+    "sha256": "1108873f2df345e27e5f6de7fb1ce12bc6e51ed82afb9898929b9202ec04dcbb",
+    "unchanged": true
+  },
+  {
+    "proof": "data/creative-m3-2-proof/final-01/v2",
+    "sha256": "01148fca7efcb273059797b06437f8e4d553fe832165e6f940b4952270f661ec",
+    "unchanged": true
+  }
+]

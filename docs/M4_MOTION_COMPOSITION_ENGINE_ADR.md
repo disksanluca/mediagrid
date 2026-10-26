@@ -1,10 +1,13 @@
 # ADR proposto — M4 Motion Composition Engine v1
 
-**Estado: PROPOSTO, NÃO IMPLEMENTADO.** Data: 26/10/2026.
-Esta entrega implementa somente o polimento M3.2 e documenta o M4.
-A implementação do motor depende de avaliação humana posterior.
+**Estado: M4.A IMPLEMENTADO; M4.B/C/D E SCOUT PROPOSTOS.** Data: 26/10/2026.
+O documento nasceu na rodada M3.2. Após autorização explícita, somente contratos,
+validações, registro e fixtures foram entregues no M4.A; o motor visual não foi implementado.
+Ver [relatório M4.A](CREATIVE_M4_A_IMPLEMENTATION.md) e
+[contratos executáveis](../contracts/motion/README.md). Os exemplos da seção 7 são
+o estudo original; fixtures/schema atuais prevalecem sobre sua sintaxe abreviada.
 
-Adendo de 26/10/2026: [Visual Reference Scout, seção 16](#16-adendo--visual-reference-scout-subsistema-futuro),
+Adendo de 26/10/2026: [Autonomous Visual Reference Scout, seção 16](#16-adendo--autonomous-visual-reference-scout-subsistema-futuro),
 subsistema futuro opcional; interfaces, fontes candidatas, riscos e fases apenas documentados.
 
 ## 1. Contexto e decisão proposta
@@ -1365,16 +1368,18 @@ de GPU, VPS, serviço pago ou mudança no instalador é proposta para o v1.
 
 | Etapa futura | Entrega vertical e gate |
 |---|---|
-| M4.A Contrato | Schema fechado + tipos gerados + três receitas/fixtures + validadores/limites; snapshot e compatibilidade M3 preservados |
+| M4.A Contrato — implementado | Schema fechado + tipos gerados + três receitas/fixtures + validadores/limites; sem render de receitas; ver relatório M4.A |
 | M4.B Interpretador | Primitivas mínimas, renderer atual/Player, medição de texto, staging de mídia; paridade de frames e busca determinística |
 | M4.C Fluxo Creative | Seleção de receita/slots na UI existente, API, compilador, fila, revisão de artefato, migration isolada e docs/env somente se necessário |
 | M4.D Generalização/QA | Três MP4 distintos em Sports/Music/Geo, provas/hash/áudio, benchmark Windows, regressões e avaliação humana |
+| Autonomous Visual Reference Scout — futuro | Descoberta automática e análise opcional local; depende de políticas, adapters autorizados e manifesto congelado; bridge depende do motor validado; seção 16, apenas roadmap |
 
 Cada etapa deve ter teste automatizado e evidência concreta; M4.A/B podem usar
 harness local, mas M4 só é entregue quando o fluxo completo C/D funcionar.
 Não marcar um exemplo JSON como render pronto. Não implementar todas as primitivas
 se os três casos já forem expressos por um subconjunto; qualquer ausência deve ser
-declarada em capabilities. Nada dessas etapas é iniciado neste PR.
+declarada em capabilities. Somente M4.A foi autorizado nesta entrega; nenhum avanço
+para M4.B/C/D ou para o Scout ocorre automaticamente.
 
 ## 12. Estratégia de testes
 
@@ -1449,15 +1454,21 @@ Cavalry/Jitter, pesquisa de fatos ao renderizar, mapas/tiles remotos ao renderiz
 postagem automática, serviço pago, deploy VPS, atualização da instalação principal,
 redesign Lovable, suporte a FPS/formatos arbitrários e migração geral do projeto.
 
-**Entrega desta rodada:** somente este ADR. Implementar o M4 exige avaliação humana
-da prova M3.2 e autorização posterior; nenhum motor genérico foi criado.
+**Registro da rodada M3.2:** este ADR foi uma entrega documental. A autorização
+posterior cobre somente M4.A; nenhum interpretador/renderizador genérico foi criado.
 
-## 16. Adendo — Visual Reference Scout (subsistema futuro)
+## 16. Adendo — Autonomous Visual Reference Scout (subsistema futuro)
 
 **Estado: PROPOSTO / PAPER; nenhuma integração ou implementação nesta rodada.**
 Adendo solicitado em 26/10/2026. O Visual Reference Scout será integrado ao Creative
 Director para pesquisar referências a partir de briefing, tema, nicho e Creative DNA,
-sem exigir moodboard ou links fornecidos pelo usuário.
+sem exigir moodboard ou links fornecidos pelo usuário. O nome da fase futura no
+roadmap é **Autonomous Visual Reference Scout**; Visual Reference Scout é o subsistema.
+
+A pesquisa web pertence exclusivamente à descoberta. Compilador e renderer recebem
+o manifesto/spec/receita congelados e não fazem consultas durante compile/render.
+Se uma dependência faltar ou estiver obsoleta, bloquear ou pedir nova descoberta
+explícita antes de outra aprovação; nunca pesquisar silenciosamente no render.
 
 Este adendo não altera os gates M4.A–D nem o escopo aprovado do M3.2. É uma extensão
 futura opcional, com fases próprias e autorização de implementação posterior.
@@ -1575,7 +1586,7 @@ Estatísticas/resultados esportivos, lugares e contexto político continuam no f
 de claims e verificação já existente.
 
 As features incluem hierarquia/escala tipográfica, densidade, alinhamento, espaço
-negativo, paleta, contraste, profundidade aparente e relações de composição.
+negativo, paleta, contraste, iluminação aparente, profundidade e relações de composição.
 Família tipográfica exata deve ser UNKNOWN sem evidência; não inferir sua licença.
 Ritmo/movimento/transições requerem frames de vídeo autorizados com timestamps;
 uma imagem permite apenas hipótese estática. Registrar amostragem, cobertura temporal
