@@ -151,7 +151,7 @@ export function CreativeMotionEngine({projectId,revision,review,assets,dirty}:{
     </div>
     {error&&<p role="alert" className="creative-warning">{error}</p>}
     {props&&config&&approved&&<><div style={{maxWidth:720,maxHeight:640,margin:"24px auto",
-      width:config.height>config.width?320:"100%",aspectRatio:config.width+"/"+config.height}}>
+      width:config.height>config.width?"min(100%, 320px)":"100%",aspectRatio:config.width+"/"+config.height}}>
       <Player component={MediaGridTimelineV2} inputProps={props} controls
         compositionWidth={config.width} compositionHeight={config.height}
         durationInFrames={config.frames} fps={config.fps} key={preview.plan_sha256}

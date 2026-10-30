@@ -1,5 +1,11 @@
 # MediaGrid
 
+O [ensaio de acesso privado pelo navegador móvel](docs/MOBILE_COMPANION_VALIDATION.md)
+usa o PC como API, banco e worker, sem VPS. A prova em tela de celular no
+navegador de desenvolvimento passou; o teste em telefone físico ainda depende
+do cliente Tailscale na mesma rede privada. A instalação principal não foi
+atualizada por esse ensaio.
+
 The [REA implementation record](docs/REA-IMPLEMENTATION.md) tracks the six-mode
 studio work, baseline evidence, migration status and remaining acceptance gates.
 

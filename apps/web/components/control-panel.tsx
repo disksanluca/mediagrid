@@ -20,6 +20,7 @@ import {Narrative3DEditor} from "@/components/narrative-3d-editor";
 import {MotionCardEditor} from "@/components/motion-card-editor";
 import {TimedTranscriptEditor} from "@/components/timed-transcript-editor";
 import {api} from "@/lib/api";
+import type {MotionRecipeInfo} from "@/lib/motion-types";
 import {uploadLongVideo} from "@/lib/resumable-upload";
 import {desktopChooseDataDir, desktopCreateBackup, desktopOpenLogs, desktopRestart, desktopRestoreBackup, desktopServices, desktopStart, desktopStop, runningInDesktop} from "@/lib/desktop";
 import type {DesktopServices} from "@/lib/desktop";
@@ -206,21 +207,71 @@ function AtelierStudio({channels,projects,jobs,onPilots,onCreate,onProject,onNav
   const worlds: Array<[Engine,string]> = [["football","Futebol"],["music","Música"],["politics","Política"],["geo","Geografia"],["trends","Virais"],["clips","Cortes"]];
   const channelIds = new Set(channels.filter((item)=>item.default_engine===engine).map((item)=>item.id));
   const active = projects.find((item)=>channelIds.has(item.channel_id));
+  const [validMotionJob,setValidMotionJob]=useState<Job|null>(null);
+  const motionCandidate=jobs.filter((job)=>job.project_id===active?.id&&job.job_type==="CREATIVE_MOTION"&&job.status==="SUCCEEDED"&&!!job.result?.sha256)
+    .sort((a,b)=>b.created_at.localeCompare(a.created_at))[0];
+  useEffect(()=>{
+    let current=true;
+    setValidMotionJob((previous)=>previous?.id===motionCandidate?.id?previous:null);
+    if(active&&motionCandidate){
+      void api.motionArtifactReview(active.id,motionCandidate.id).then((review)=>{
+        if(current&&!review.blockers.length&&review.video_sha256===motionCandidate.result?.sha256)
+          setValidMotionJob(motionCandidate);
+        else if(current)setValidMotionJob(null);
+      }).catch(()=>{if(current)setValidMotionJob(null);});
+    }
+    return()=>{current=false;};
+  },[active?.id,motionCandidate?.id,motionCandidate?.result?.sha256,jobs]);
+  const currentMotionJob=validMotionJob?.project_id===active?.id?validMotionJob:null;
   const channel = channels.find((item)=>item.id===active?.channel_id);
   const scenes = active?.plan?.scenes??[];
   const sceneIndex = Math.min(selectedSceneIndex, Math.max(0,scenes.length-1));
   const scene = scenes[sceneIndex];
-  const activeStatus = active?.plan?.origin==="OUTLINE"?"Estrutura a completar":active?stateLabels[active.status]??active.status:"Sem projeto";
+  const activeStatus = currentMotionJob?"Motion gerado":active?.plan?.origin==="OUTLINE"?"Estrutura a completar":active?stateLabels[active.status]??active.status:"Sem projeto";
+  const outputLabel=active?.status==="QC"||active?.status==="APPROVED"?"MP4 local":currentMotionJob?"MP4 motion local":"Ainda não renderizado";
   return <>
     <div className="premium-page-heading"><div><div className="eyebrow">01 / CREATIVE WORKSPACE</div><h2>Uma ideia. Infinitas narrativas.</h2><p>Onde pesquisa, direção criativa e produção se encontram.</p></div><div className="premium-heading-actions"><span className="badge green">LOCAL</span><span className="badge">{activeStatus}</span>{active&&<span className="badge">{active.format.toUpperCase()}</span>}<button className="button primary" onClick={channels.length?onCreate:onPilots} disabled={busy}><Plus size={16}/>{channels.length?"Novo projeto":"Criar canais piloto"}</button></div></div>
-    <div className="premium-studio-grid"><section className="premium-studio-main"><AtelierMediaStage project={active} channel={channel} engine={engine} scene={scene} sceneIndex={sceneIndex}/></section><aside className="premium-inspector"><div className="premium-inspector-title">DIRECTOR'S DESK <span>PROJETO LOCAL</span></div><div className="premium-property"><span>CANAL</span><strong>{channel?.name??"Selecione um canal"}</strong></div><div className="premium-property"><span>MOTOR</span><strong>{engine.toUpperCase()}</strong></div><div className="premium-property"><span>FORMATO</span><strong>{active?.format.toUpperCase()??"—"}</strong></div><div className="premium-property"><span>MOTION / CENA</span><strong>{scene?.transition??"—"}</strong></div><div className="premium-property"><span>ETAPA</span><strong>{activeStatus}</strong></div><div className="premium-property"><span>OUTPUT</span><strong>{active?.status==="QC"||active?.status==="APPROVED"?"MP4 local":"Ainda não renderizado"}</strong></div>{active?<button className="button primary" onClick={()=>onProject(active.id)}>Abrir no Editor <ArrowRight size={15}/></button>:channels.length?<button className="button primary" onClick={onCreate}>Criar pauta <ArrowRight size={15}/></button>:<button className="button primary" onClick={onPilots} disabled={busy}>Criar canais piloto <ArrowRight size={15}/></button>}<button className="button" onClick={()=>onNavigate("network")}>Configurar canais</button></aside></div>
-    <div className="premium-scene-heading"><span>CENAS <small>{String(scenes.length).padStart(2,"0")}</small></span><span>{active?.plan?.target_duration_seconds??0}s PLANEJADOS / {scenes.length} CENAS</span></div><div className="premium-scenes" role="group" aria-label="Cenas do projeto">{scenes.length?scenes.map((item,index)=><button key={item.id} className={index===sceneIndex?"selected":""} onClick={()=>setSelectedSceneIndex(index)} aria-pressed={index===sceneIndex}><span>{String(index+1).padStart(2,"0")} / {item.visual_type}</span><strong>{item.on_screen_text||"Cena sem título"}</strong><small>{item.duration_seconds}s · {item.transition}</small></button>):<div className="premium-scenes-empty">Nenhuma cena neste motor. Crie uma pauta ou selecione outro motor.</div>}<button className="premium-scene-edit" onClick={()=>active?onProject(active.id):onCreate()} disabled={!active&&!channels.length}><Plus size={20}/>{active?"Editar cenas":"Nova pauta"}</button></div>
+    <div className="premium-studio-grid"><section className="premium-studio-main"><AtelierMediaStage project={active} channel={channel} engine={engine} scene={scene} sceneIndex={sceneIndex} motionJob={currentMotionJob}/></section><aside className="premium-inspector"><div className="premium-inspector-title">DIRECTOR'S DESK <span>PROJETO LOCAL</span></div><div className="premium-property"><span>CANAL</span><strong>{channel?.name??"Selecione um canal"}</strong></div><div className="premium-property"><span>MOTOR</span><strong>{engine.toUpperCase()}</strong></div><div className="premium-property"><span>FORMATO</span><strong>{active?.format.toUpperCase()??"—"}</strong></div><div className="premium-property"><span>MOTION / CENA</span><strong>{scene?.transition??"—"}</strong></div><div className="premium-property"><span>ETAPA</span><strong>{activeStatus}</strong></div><div className="premium-property"><span>OUTPUT</span><strong>{outputLabel}</strong></div>{active?<button className="button primary" onClick={()=>onProject(active.id)}>Abrir no Editor <ArrowRight size={15}/></button>:channels.length?<button className="button primary" onClick={onCreate}>Criar pauta <ArrowRight size={15}/></button>:<button className="button primary" onClick={onPilots} disabled={busy}>Criar canais piloto <ArrowRight size={15}/></button>}<button className="button" onClick={()=>onNavigate("network")}>Configurar canais</button></aside></div>
+    <div className="premium-scene-heading"><span>{currentMotionJob&&scenes.length===0?"STORYBOARD CRIATIVO":"CENAS"} <small>{currentMotionJob&&scenes.length===0?"NO EDITOR":String(scenes.length).padStart(2,"0")}</small></span><span>{currentMotionJob&&scenes.length===0?"MP4 gerado · revisão no Editor":`${active?.plan?.target_duration_seconds??0}s PLANEJADOS / ${scenes.length} CENAS`}</span></div><div className="premium-scenes" role="group" aria-label="Cenas do projeto">{scenes.length?scenes.map((item,index)=><button key={item.id} className={index===sceneIndex?"selected":""} onClick={()=>setSelectedSceneIndex(index)} aria-pressed={index===sceneIndex}><span>{String(index+1).padStart(2,"0")} / {item.visual_type}</span><strong>{item.on_screen_text||"Cena sem título"}</strong><small>{item.duration_seconds}s · {item.transition}</small></button>):<div className="premium-scenes-empty">{currentMotionJob?"O storyboard criativo está no Editor; este MP4 usa os planos aprovados.":"Nenhuma cena neste motor. Crie uma pauta ou selecione outro motor."}</div>}<button className="premium-scene-edit" onClick={()=>active?onProject(active.id):onCreate()} disabled={!active&&!channels.length}><Plus size={20}/>{currentMotionJob?"Abrir storyboard":active?"Editar cenas":"Nova pauta"}</button></div>
     <div className="world-picker"><span>MOTORES EDITORIAIS</span><div role="group" aria-label="Motor editorial">{worlds.map(([id,label])=><button key={id} className={engine===id?"active":""} onClick={()=>{setSelectedEngine(id);setSelectedSceneIndex(0);}} aria-pressed={engine===id}>{label}</button>)}</div></div>
     <div className="atelier-links"><button onClick={()=>onNavigate("editor")}><span>01 — EDITOR</span><strong>{projects.length} projetos locais</strong>↗</button><button onClick={()=>onNavigate("radar")}><span>02 — RADAR</span><strong>Pautas com revisão</strong>↗</button><button onClick={()=>onNavigate("network")}><span>03 — NETWORK</span><strong>{channels.length} canais configurados</strong>↗</button><button onClick={()=>onNavigate("control")}><span>04 — CONTROL</span><strong>{jobs.filter((job)=>job.status==="RUNNING").length} trabalhos ativos</strong>↗</button></div>
   </>;
 }
 
-function MotionLibrary({projects,onProject}:{projects:Project[];onProject:(id:string)=>void}) {const motions=[["Impacto","Entrada com escala e mola"],["Deslize","Entrada lateral com mola"],["Corte","Troca imediata de cena"],["Zoom","Ampliação progressiva"],["Fade","Entrada por opacidade"]];return <><div className="atelier-intro compact"><h2>Motion <span>Library.</span></h2><p>Cinco movimentos paramétricos são renderizados em Remotion. Escolha o movimento de cada cena no Editor.</p></div><div className="motion-grid">{motions.map(([name,description],index)=><div key={name}><span>{String(index+1).padStart(2,"0")} / REMOTION</span><strong>{name}</strong><p>{description}</p></div>)}</div><div className="atelier-note">PRESETS POR CANAL, DUPLICAÇÃO E VERSIONAMENTO AINDA NÃO IMPLEMENTADOS</div><div className="section-heading"><div><h2>Projetos para editar</h2><p>Abra um plano persistido, escolha os movimentos e renderize.</p></div></div><div className="atelier-list">{projects.length?projects.map((project)=><button key={project.id} onClick={()=>onProject(project.id)}><span>{project.format.toUpperCase()}</span><strong>{project.title}</strong><Badge value={project.status}/><ArrowRight size={16}/></button>):<p>Nenhum projeto ainda. Crie uma pauta no Studio.</p>}</div></>}
+function MotionLibrary({projects,onProject}:{projects:Project[];onProject:(id:string)=>void}) {
+  const [recipes,setRecipes]=useState<MotionRecipeInfo[]>([]);
+  const [recipeError,setRecipeError]=useState("");
+  useEffect(()=>{
+    let current=true;
+    void api.motionRecipes().then((value)=>{if(current)setRecipes(value.recipes.filter((recipe)=>recipe.status==="SUPPORTED"));})
+      .catch((reason)=>{if(current)setRecipeError(message(reason));});
+    return()=>{current=false;};
+  },[]);
+  const motions=[["Impacto","Entrada com escala e mola"],["Deslize","Entrada lateral com mola"],["Corte","Troca imediata de cena"],["Zoom","Ampliação progressiva"],["Fade","Entrada por opacidade"]];
+  return <>
+    <div className="atelier-intro compact"><h2>Motion <span>Library.</span></h2>
+      <p>Receitas audiovisuais versionadas e movimentos de cena do renderizador Remotion.</p></div>
+    <div className="section-heading"><div><h2>Receitas disponíveis</h2>
+      <p>O Creative Director prepara a composição a partir de um storyboard aprovado.</p></div></div>
+    {recipeError&&<Alert text={recipeError}/>}
+    <div className="motion-grid">{recipes.map((recipe)=><div key={recipe.id+recipe.version}>
+      <span>{recipe.status} / V{recipe.version}</span><strong>{recipe.id}</strong>
+      <p>{recipe.canvas.width} × {recipe.canvas.height} · {recipe.shots.length} planos · {Object.keys(recipe.asset_slots).length} {Object.keys(recipe.asset_slots).length===1?"slot":"slots"} de mídia</p>
+    </div>)}</div>
+    <div className="section-heading"><div><h2>Movimentos de cena</h2>
+      <p>Aplicados a cenas da EDL no Editor.</p></div></div>
+    <div className="motion-grid">{motions.map(([name,description],index)=><div key={name}>
+      <span>{String(index+1).padStart(2,"0")} / REMOTION</span><strong>{name}</strong><p>{description}</p>
+    </div>)}</div>
+    <div className="atelier-note">Selecione um projeto e abra Creative Director → Revisão para preparar e renderizar uma receita.</div>
+    <div className="section-heading"><div><h2>Projetos para editar</h2>
+      <p>Abra um projeto persistido e revise o storyboard antes de renderizar.</p></div></div>
+    <div className="atelier-list">{projects.length?projects.map((project)=><button key={project.id}
+      onClick={()=>onProject(project.id)}><span>{project.format.toUpperCase()}</span><strong>{project.title}</strong>
+      <Badge value={project.status}/><ArrowRight size={16}/></button>)
+      :<p>Nenhum projeto ainda. Crie uma pauta no Studio.</p>}</div>
+  </>;
+}
 
 function Radar({projects,channels,busy,onProject,onRun}:{projects:Project[];channels:Channel[];busy:boolean;onProject:(id:string)=>void;onRun:(action:()=>Promise<unknown>)=>Promise<void>}) {
   const politicsChannels=channels.filter((channel)=>channel.default_engine==="politics");
