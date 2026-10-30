@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     app_name: str = "MediaGrid Core"
     mediagrid_mode: str = "LOCAL"
+    mediagrid_local_web_port: int = Field(default=3000, ge=1, le=65535)
     mediagrid_server_experimental: bool = False
     allow_paid_ai: bool = False
     database_url: str = "sqlite:///./data/mediagrid.db"

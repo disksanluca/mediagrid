@@ -34,6 +34,23 @@ def test_local_api_rejects_foreign_browser_origin(client: TestClient) -> None:
     )
 
 
+def test_local_panel_origin_uses_configured_web_port(client: TestClient, monkeypatch) -> None:
+    monkeypatch.setattr(get_settings(), "mediagrid_local_web_port", 3180)
+    response = client.post(
+        "/api/v1/channels",
+        headers={"origin": "http://127.0.0.1:3180"},
+        json={
+            "name": "Canal de prova", "slug": "canal-de-prova", "niche": "Ficcao",
+            "default_engine": "football",
+        },
+    )
+    assert response.status_code == 201, response.text
+    assert client.post(
+        "/api/v1/channels", headers={"origin": "http://127.0.0.1:3000"},
+        json={},
+    ).status_code == 403
+
+
 def test_voice_job_is_queued_and_failed_cleanly_without_windows(
     client: TestClient, monkeypatch
 ) -> None:

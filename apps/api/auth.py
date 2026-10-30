@@ -53,10 +53,14 @@ def login(payload: LoginRequest, request: Request, response: Response) -> dict[s
     settings = get_settings()
     if not auth_configured():
         raise HTTPException(status_code=503, detail="Administrator login is not configured")
-    forwarded = request.headers.get("x-forwarded-for", "")
-    address = forwarded.split(",", maxsplit=1)[0].strip() or (
-        request.client.host if request.client else "unknown"
-    )
+    peer = request.client.host if request.client else "unknown"
+    if settings.mediagrid_mode == "LOCAL" and settings.mediagrid_public_url:
+        # The Next proxy is loopback; a browser-supplied X-Forwarded-For cannot
+        # create unlimited rate-limit buckets for the private companion login.
+        address = peer
+    else:
+        forwarded = request.headers.get("x-forwarded-for", "")
+        address = forwarded.split(",", maxsplit=1)[0].strip() or peer
     now = time.time()
     attempts = [stamp for stamp in _failed_attempts[address] if now - stamp < 900]
     _failed_attempts[address] = attempts
