@@ -16,6 +16,12 @@ Provas reais, API, UI e limites: [entrega M4](../../docs/M4_COMPLETE_MOTION_ENGI
 - recipes/: índice e versões 1.0 (referência), 1.1 e 1.2 (suportadas). Nenhum script em receitas.
 - fixtures/{sports,music,geo}/: composition, storyboard, DNA, EDL v2 e contexto de teste.
 
+A integração de agentes locais acrescenta a receita original `pov.first-sale@1.2.0`:
+seis cenas verticais vetoriais de 5 s com score original. Ela usa os mesmos
+contratos, índice, compilador e renderer M4. `scripts/build_pov_recipe.py` é a
+ferramenta de autoria da receita versionada; não roda ao compilar ou renderizar.
+Prova e limites criativos: [agentes locais](../../docs/LOCAL_AGENT_PROOF.md).
+
 O nome de cada schema gerado corresponde à classe Python:
 MotionScene.schema.json (motion_scene_v1), MotionComposition.schema.json
 (motion_composition_v1), MotionRecipe.schema.json e RegistryIndex.schema.json.

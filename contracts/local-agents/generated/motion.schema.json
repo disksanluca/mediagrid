@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "rationale": {
+      "maxLength": 400,
+      "minLength": 12,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "recipe_id": {
+      "enum": [
+        "sports.depth-impact",
+        "music.orbital-sleeve",
+        "geo.route-explainer",
+        "pov.first-sale"
+      ],
+      "title": "Recipe Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "local_motion_suggestion_v1",
+      "default": "local_motion_suggestion_v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "timing_notes": {
+      "maxLength": 400,
+      "minLength": 5,
+      "title": "Timing Notes",
+      "type": "string"
+    }
+  },
+  "required": [
+    "recipe_id",
+    "rationale",
+    "timing_notes"
+  ],
+  "title": "MotionSuggestion",
+  "type": "object"
+}

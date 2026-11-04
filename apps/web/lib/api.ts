@@ -100,6 +100,14 @@ export const api = {
   saveCreativeStoryboard: (projectId:string, expected_revision:number, expected_direction_revision:number, content:CreativeStoryboard) =>
     request<CreativeStoryboardRevision>(`/projects/${projectId}/creative/storyboard`,{method:"PUT",body:JSON.stringify({expected_revision,expected_direction_revision,content})}),
   creativeReview: (projectId:string) => request<CreativeReview>(`/projects/${projectId}/creative/review`),
+  localAgentStatus: () => request<{state:string;model:string;models:string[];loaded_models:string[];tasks:string[]}>("/creative/agents/status"),
+  localAgentJobs: (projectId:string) => request<Job[]>(`/projects/${projectId}/creative/agents/jobs`),
+  startLocalAgent: (projectId:string, task:string, expected_brief_revision:number, expected_dna_revision:number,direction_id?:string) =>
+    request<Job>(`/projects/${projectId}/creative/agents/jobs`,{method:"POST",body:JSON.stringify({task,expected_brief_revision,expected_dna_revision,direction_id})}),
+  adoptLocalDirections: (projectId:string, jobId:string, body:Record<string,number>) =>
+    request<CreativeDirections>(`/projects/${projectId}/creative/agents/jobs/${jobId}/adopt-directions`,{method:"POST",body:JSON.stringify(body)}),
+  adoptLocalStoryboard: (projectId:string, jobId:string, body:Record<string,number>) =>
+    request<CreativeStoryboardRevision>(`/projects/${projectId}/creative/agents/jobs/${jobId}/adopt-storyboard`,{method:"POST",body:JSON.stringify(body)}),
   decideCreative: (projectId:string, body:CreativeDecision) =>
     request<CreativeReview>(`/projects/${projectId}/creative/decision`,{method:"POST",body:JSON.stringify(body)}),
   projects: () => request<Project[]>("/projects"),

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "human_review_required": {
+      "const": true,
+      "default": true,
+      "title": "Human Review Required",
+      "type": "boolean"
+    },
+    "issues": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Issues",
+      "type": "array"
+    },
+    "revisions": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Revisions",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "local_qa_notes_v1",
+      "default": "local_qa_notes_v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "title": "QualityNotes",
+  "type": "object"
+}

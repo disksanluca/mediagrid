@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     mediagrid_data_dir: Path = Path("./data")
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_model: str = "llama3.2"
+    mediagrid_agents_enabled: bool = False
+    mediagrid_agents_model: str = "qwen3:4b-instruct"
     whisper_model_path: Path | None = None
     mediagrid_asr_model_dir: Path | None = None
     whisper_cli_path: str = "whisper-cli"

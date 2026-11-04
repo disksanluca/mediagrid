@@ -202,6 +202,18 @@ Open the web app at `http://localhost:3000`. The API documentation is available 
 The default database is SQLite. A future server migration may use PostgreSQL, but no VPS,
 cloud service or account is required for V1. Paid AI and cloud integrations are off by default.
 
+## Local Creative Director agents
+
+The optional Creative Director panel can draft a POV script, three art directions,
+storyboard ideas, continuity notes, text-only inspiration notes, M4 motion suggestions,
+and QA notes through a locally installed Ollama model. Set
+`MEDIAGRID_AGENTS_ENABLED=true`, `MEDIAGRID_AGENTS_MODEL=qwen3:4b-instruct`, and
+`OLLAMA_BASE_URL=http://127.0.0.1:11434` for the MediaGrid API and media worker.
+It is off by default. Jobs persist in SQLite; adopting directions or a storyboard
+requires an explicit action, and publishing still requires human review. See
+[local agent architecture](docs/LOCAL_AI_CREATIVE_AGENTS.md) and
+[the original six-scene MP4 proof](docs/LOCAL_AGENT_PROOF.md).
+
 ## Principles
 
 - Local services are the default; paid AI is disabled by default.
