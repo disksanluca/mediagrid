@@ -8,6 +8,7 @@ import {blankShot,moveShot,removeShot,resizeShot,sequence,splitShot,syncDuration
 import "./creative-workspace.css";
 import {CreativeMotionProof} from "./creative-motion-proof";
 import {CreativeMotionEngine} from "./creative-motion-engine";
+import {CreativeLocalAgents} from "./creative-local-agents";
 
 type Step="brief"|"dna"|"directions"|"storyboard"|"review";
 const steps: {id:Step;label:string}[]=[{id:"brief",label:"Brief"},{id:"dna",label:"DNA"},{id:"directions",label:"Direções"},{id:"storyboard",label:"Storyboard"},{id:"review",label:"Revisão"}];
@@ -150,6 +151,10 @@ export function CreativeWorkspace({project,channel,assets}:{project:Project;chan
   if(loading)return <section className="creative-shell" aria-busy="true"><p role="status">Carregando revisões criativas…</p></section>;
   return <section className="creative-shell" aria-label="Creative Director">
     <div className="creative-hero"><div><span className="creative-kicker">ATELIER OS / CREATIVE DIRECTOR</span><h2>Da intenção ao quadro.</h2><p>Direção visual e revisão editorial persistidas para <strong>{project.title}</strong>.</p><button type="button" className="creative-refresh" disabled={!!busy} onClick={()=>void refreshRevision()}><RefreshCw size={14}/> Atualizar estado salvo</button></div><span className="creative-project-mark">{channel.name}<small>{project.format.toUpperCase()} · {project.content_type.toUpperCase()}</small></span></div>
+    <CreativeLocalAgents projectId={project.id} briefRevision={briefRow?.revision??0}
+      dnaRevision={dnaRow?.revision??0} directions={directions}
+      boardRevision={boardRow?.revision??0} blocked={dirty||conflict||!!busy}
+      onChanged={load}/>
     <nav className="creative-steps" aria-label="Etapas criativas">{steps.map((item,index)=><button key={item.id} type="button" className={step===item.id?"active":""} aria-current={step===item.id?"step":undefined} onClick={()=>setStep(item.id)}><span>{String(index+1).padStart(2,"0")}</span>{item.label}</button>)}</nav>
     {dirty&&<p className="creative-dirty">Há alterações locais não salvas{briefDirty?" · brief":""}{dnaDirty?" · DNA":""}{boardDirty?" · storyboard":""}.</p>}
     {error&&<div className="creative-error" role="alert"><AlertTriangle size={17}/><span>{error}</span>{conflict&&!conflictLoaded&&<button type="button" onClick={()=>void refreshRevision()} disabled={!!busy}><RefreshCw size={15}/> Atualizar revisões sem perder o rascunho</button>}</div>}

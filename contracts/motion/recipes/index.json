@@ -45,6 +45,11 @@
       "id": "geo.route-explainer",
       "version": "1.2.0",
       "sha256": "795925370900dce5f8cb5428cbad056afb648304bae906227ac776fe5e9161ac"
+    },
+    {
+      "id": "pov.first-sale",
+      "version": "1.2.0",
+      "sha256": "5614b79ee9b93e147e6d488fe8bcdeab8bb54a1cf1f467a42847fde0543d34e9"
     }
   ]
 }

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "appearance": {
+      "maxLength": 400,
+      "minLength": 12,
+      "title": "Appearance",
+      "type": "string"
+    },
+    "character_id": {
+      "maxLength": 40,
+      "minLength": 2,
+      "title": "Character Id",
+      "type": "string"
+    },
+    "conflicts": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Conflicts",
+      "type": "array"
+    },
+    "locations": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 12,
+      "minItems": 1,
+      "title": "Locations",
+      "type": "array"
+    },
+    "props": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Props",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "local_continuity_v1",
+      "default": "local_continuity_v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "wardrobe": {
+      "maxLength": 240,
+      "minLength": 3,
+      "title": "Wardrobe",
+      "type": "string"
+    }
+  },
+  "required": [
+    "character_id",
+    "appearance",
+    "wardrobe",
+    "locations"
+  ],
+  "title": "ContinuityDraft",
+  "type": "object"
+}

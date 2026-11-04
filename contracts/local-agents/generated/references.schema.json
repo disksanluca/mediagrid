@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "composition": {
+      "maxLength": 400,
+      "minLength": 5,
+      "title": "Composition",
+      "type": "string"
+    },
+    "motion": {
+      "maxLength": 400,
+      "minLength": 5,
+      "title": "Motion",
+      "type": "string"
+    },
+    "palette": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 8,
+      "minItems": 2,
+      "title": "Palette",
+      "type": "array"
+    },
+    "provenance_warning": {
+      "maxLength": 400,
+      "minLength": 10,
+      "title": "Provenance Warning",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "local_reference_notes_v1",
+      "default": "local_reference_notes_v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "typography": {
+      "maxLength": 400,
+      "minLength": 5,
+      "title": "Typography",
+      "type": "string"
+    }
+  },
+  "required": [
+    "composition",
+    "typography",
+    "palette",
+    "motion",
+    "provenance_warning"
+  ],
+  "title": "ReferenceNotes",
+  "type": "object"
+}

@@ -274,7 +274,9 @@ export interface Job {
   progress: number;
   attempt: number;
   max_attempts: number;
-  result: {output?: string; sha256?:string; approved_snapshot_sha256?:string;
+  result: {output?: string; sha256?:string; task?:string; content?:unknown;
+    content_sha256?:string;model?:string;prompt_version?:string;latency_ms?:number;
+    prompt_tokens?:number;response_tokens?:number; approved_snapshot_sha256?:string;
     plan_sha256?:string; artistic_review?:string; art_direction?:string; diagnostics?:boolean} | null;
   error: string | null;
   created_at: string;

@@ -1,0 +1,2785 @@
+{
+  "schema_version": "motion_recipe_v1",
+  "id": "pov.first-sale",
+  "version": "1.2.0",
+  "sha256": "5614b79ee9b93e147e6d488fe8bcdeab8bb54a1cf1f467a42847fde0543d34e9",
+  "canvas": {
+    "width": 1080,
+    "height": 1920,
+    "fps_num": 30,
+    "fps_den": 1
+  },
+  "asset_slots": {
+    "score": "audio"
+  },
+  "scenes": [
+    {
+      "shot_slot": "shot-1",
+      "required_duration_ms": 5000,
+      "graph": {
+        "schema_version": "motion_scene_v1",
+        "safe_area": {
+          "left": 72,
+          "right": 72,
+          "top": 120,
+          "bottom": 180
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            -80.0
+          ],
+          "rotate_z": 0.0,
+          "focal_length": 1500.0,
+          "animations": [
+            {
+              "property": "position",
+              "keyframes": [
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 0
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    0.0,
+                    0.0,
+                    -80.0
+                  ]
+                },
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 4500
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    75.0,
+                    -25.0,
+                    50.0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "nodes": [
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "background",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 1080.0,
+                "height": 1920.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              94.0,
+              150.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "rule",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 112.0,
+                "height": 8.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              94.0,
+              260.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "opacity",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 650
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              }
+            ],
+            "id": "heading",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "text",
+            "params": {
+              "text": {
+                "kind": "shot_field",
+                "field": "on_screen_text"
+              },
+              "font": {
+                "kind": "dna_font",
+                "index": 0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "size": 82.0,
+              "max_width": 875.0,
+              "line_height": 1.12,
+              "max_lines": 3,
+              "align": "left",
+              "method": "fade_slide"
+            }
+          },
+          {
+            "position": [
+              278.0,
+              730.0,
+              160.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "position",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      353.0,
+                      730.0,
+                      120.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 4500
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      203.0,
+                      700.0,
+                      240.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "device",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "group"
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "body",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 510.0,
+                "height": 810.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              28.0,
+              32.0,
+              10.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "display",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 454.0,
+                "height": 690.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              239.0,
+              754.0,
+              12.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "camera",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "ellipse",
+                "width": 32.0,
+                "height": 32.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              84.0,
+              125.0,
+              20.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "alert",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 342.0,
+                "height": 128.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              112.0,
+              168.0,
+              22.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "alert-line",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 255.0,
+                "height": 12.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          }
+        ],
+        "cues": [
+          {
+            "id": "score",
+            "at_ms": 0,
+            "sound": {
+              "asset_binding": "score",
+              "source_in_ms": 0,
+              "duration_ms": 5000,
+              "gain": 0.65,
+              "fade_in_ms": 120,
+              "fade_out_ms": 120
+            }
+          }
+        ]
+      }
+    },
+    {
+      "shot_slot": "shot-2",
+      "required_duration_ms": 5000,
+      "graph": {
+        "schema_version": "motion_scene_v1",
+        "safe_area": {
+          "left": 72,
+          "right": 72,
+          "top": 120,
+          "bottom": 180
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            -80.0
+          ],
+          "rotate_z": 0.0,
+          "focal_length": 1500.0,
+          "animations": [
+            {
+              "property": "position",
+              "keyframes": [
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 0
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    0.0,
+                    0.0,
+                    -80.0
+                  ]
+                },
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 4500
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    -75.0,
+                    -25.0,
+                    50.0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "nodes": [
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "background",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 1080.0,
+                "height": 1920.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              94.0,
+              150.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "rule",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 112.0,
+                "height": 8.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              94.0,
+              260.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "opacity",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 650
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              }
+            ],
+            "id": "heading",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "text",
+            "params": {
+              "text": {
+                "kind": "shot_field",
+                "field": "on_screen_text"
+              },
+              "font": {
+                "kind": "dna_font",
+                "index": 0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "size": 82.0,
+              "max_width": 875.0,
+              "line_height": 1.12,
+              "max_lines": 3,
+              "align": "left",
+              "method": "fade_slide"
+            }
+          },
+          {
+            "position": [
+              278.0,
+              730.0,
+              160.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "position",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      203.0,
+                      730.0,
+                      120.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 4500
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      353.0,
+                      700.0,
+                      240.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "device",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "group"
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "body",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 510.0,
+                "height": 810.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              28.0,
+              32.0,
+              10.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "display",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 454.0,
+                "height": 690.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              239.0,
+              754.0,
+              12.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "camera",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "ellipse",
+                "width": 32.0,
+                "height": 32.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              40.0,
+              1500.0,
+              10.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "table",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 1000.0,
+                "height": 80.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              50.0,
+              1150.0,
+              180.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "cup",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "ellipse",
+                "width": 230.0,
+                "height": 230.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              82.0,
+              1182.0,
+              185.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "coffee",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "ellipse",
+                "width": 166.0,
+                "height": 166.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          }
+        ],
+        "cues": [
+          {
+            "id": "score",
+            "at_ms": 0,
+            "sound": {
+              "asset_binding": "score",
+              "source_in_ms": 5000,
+              "duration_ms": 5000,
+              "gain": 0.65,
+              "fade_in_ms": 120,
+              "fade_out_ms": 120
+            }
+          }
+        ]
+      }
+    },
+    {
+      "shot_slot": "shot-3",
+      "required_duration_ms": 5000,
+      "graph": {
+        "schema_version": "motion_scene_v1",
+        "safe_area": {
+          "left": 72,
+          "right": 72,
+          "top": 120,
+          "bottom": 180
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            -80.0
+          ],
+          "rotate_z": 0.0,
+          "focal_length": 1500.0,
+          "animations": [
+            {
+              "property": "position",
+              "keyframes": [
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 0
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    0.0,
+                    0.0,
+                    -80.0
+                  ]
+                },
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 4500
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    75.0,
+                    -25.0,
+                    50.0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "nodes": [
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "background",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 1080.0,
+                "height": 1920.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              94.0,
+              150.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "rule",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 112.0,
+                "height": 8.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              94.0,
+              260.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "opacity",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 650
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              }
+            ],
+            "id": "heading",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "text",
+            "params": {
+              "text": {
+                "kind": "shot_field",
+                "field": "on_screen_text"
+              },
+              "font": {
+                "kind": "dna_font",
+                "index": 0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "size": 82.0,
+              "max_width": 875.0,
+              "line_height": 1.12,
+              "max_lines": 3,
+              "align": "left",
+              "method": "fade_slide"
+            }
+          },
+          {
+            "position": [
+              278.0,
+              730.0,
+              160.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "position",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      353.0,
+                      730.0,
+                      120.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 4500
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      203.0,
+                      700.0,
+                      240.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "device",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "group"
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "body",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 510.0,
+                "height": 810.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              28.0,
+              32.0,
+              10.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "display",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 454.0,
+                "height": 690.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              239.0,
+              754.0,
+              12.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "camera",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "ellipse",
+                "width": 32.0,
+                "height": 32.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              85.0,
+              115.0,
+              20.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "viewfinder",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 330.0,
+                "height": 330.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              180.0,
+              195.0,
+              25.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "subject",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 140.0,
+                "height": 180.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          }
+        ],
+        "cues": [
+          {
+            "id": "score",
+            "at_ms": 0,
+            "sound": {
+              "asset_binding": "score",
+              "source_in_ms": 10000,
+              "duration_ms": 5000,
+              "gain": 0.65,
+              "fade_in_ms": 120,
+              "fade_out_ms": 120
+            }
+          }
+        ]
+      }
+    },
+    {
+      "shot_slot": "shot-4",
+      "required_duration_ms": 5000,
+      "graph": {
+        "schema_version": "motion_scene_v1",
+        "safe_area": {
+          "left": 72,
+          "right": 72,
+          "top": 120,
+          "bottom": 180
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            -80.0
+          ],
+          "rotate_z": 0.0,
+          "focal_length": 1500.0,
+          "animations": [
+            {
+              "property": "position",
+              "keyframes": [
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 0
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    0.0,
+                    0.0,
+                    -80.0
+                  ]
+                },
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 4500
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    -75.0,
+                    -25.0,
+                    50.0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "nodes": [
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "background",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 1080.0,
+                "height": 1920.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              94.0,
+              150.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "rule",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 112.0,
+                "height": 8.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              94.0,
+              260.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "opacity",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 650
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              }
+            ],
+            "id": "heading",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "text",
+            "params": {
+              "text": {
+                "kind": "shot_field",
+                "field": "on_screen_text"
+              },
+              "font": {
+                "kind": "dna_font",
+                "index": 0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "size": 82.0,
+              "max_width": 875.0,
+              "line_height": 1.12,
+              "max_lines": 3,
+              "align": "left",
+              "method": "fade_slide"
+            }
+          },
+          {
+            "position": [
+              278.0,
+              730.0,
+              160.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "position",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      203.0,
+                      730.0,
+                      120.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 4500
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      353.0,
+                      700.0,
+                      240.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "device",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "group"
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "body",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 510.0,
+                "height": 810.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              28.0,
+              32.0,
+              10.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "display",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 454.0,
+                "height": 690.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              239.0,
+              754.0,
+              12.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "camera",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "ellipse",
+                "width": 32.0,
+                "height": 32.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              78.0,
+              160.0,
+              20.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "reply",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 350.0,
+                "height": 160.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              106.0,
+              215.0,
+              22.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "reply-line",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 260.0,
+                "height": 14.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          }
+        ],
+        "cues": [
+          {
+            "id": "score",
+            "at_ms": 0,
+            "sound": {
+              "asset_binding": "score",
+              "source_in_ms": 15000,
+              "duration_ms": 5000,
+              "gain": 0.65,
+              "fade_in_ms": 120,
+              "fade_out_ms": 120
+            }
+          }
+        ]
+      }
+    },
+    {
+      "shot_slot": "shot-5",
+      "required_duration_ms": 5000,
+      "graph": {
+        "schema_version": "motion_scene_v1",
+        "safe_area": {
+          "left": 72,
+          "right": 72,
+          "top": 120,
+          "bottom": 180
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            -80.0
+          ],
+          "rotate_z": 0.0,
+          "focal_length": 1500.0,
+          "animations": [
+            {
+              "property": "position",
+              "keyframes": [
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 0
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    0.0,
+                    0.0,
+                    -80.0
+                  ]
+                },
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 4500
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    75.0,
+                    -25.0,
+                    50.0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "nodes": [
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "background",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 1080.0,
+                "height": 1920.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              94.0,
+              150.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "rule",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 112.0,
+                "height": 8.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              94.0,
+              260.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "opacity",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 650
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              }
+            ],
+            "id": "heading",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "text",
+            "params": {
+              "text": {
+                "kind": "shot_field",
+                "field": "on_screen_text"
+              },
+              "font": {
+                "kind": "dna_font",
+                "index": 0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "size": 82.0,
+              "max_width": 875.0,
+              "line_height": 1.12,
+              "max_lines": 3,
+              "align": "left",
+              "method": "fade_slide"
+            }
+          },
+          {
+            "position": [
+              278.0,
+              730.0,
+              160.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "position",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      353.0,
+                      730.0,
+                      120.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 4500
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      203.0,
+                      700.0,
+                      240.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "device",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "group"
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "body",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 510.0,
+                "height": 810.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              28.0,
+              32.0,
+              10.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "display",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 454.0,
+                "height": 690.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              239.0,
+              754.0,
+              12.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "camera",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "ellipse",
+                "width": 32.0,
+                "height": 32.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              82.0,
+              80.0,
+              20.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "crack",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "polyline",
+                "points": [
+                  [
+                    10.0,
+                    10.0
+                  ],
+                  [
+                    120.0,
+                    180.0
+                  ],
+                  [
+                    80.0,
+                    310.0
+                  ],
+                  [
+                    270.0,
+                    470.0
+                  ]
+                ]
+              },
+              "fill": null,
+              "stroke": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke_width": 8.0,
+              "draw_progress": 1.0
+            }
+          }
+        ],
+        "cues": [
+          {
+            "id": "score",
+            "at_ms": 0,
+            "sound": {
+              "asset_binding": "score",
+              "source_in_ms": 20000,
+              "duration_ms": 5000,
+              "gain": 0.65,
+              "fade_in_ms": 120,
+              "fade_out_ms": 120
+            }
+          }
+        ]
+      }
+    },
+    {
+      "shot_slot": "shot-6",
+      "required_duration_ms": 5000,
+      "graph": {
+        "schema_version": "motion_scene_v1",
+        "safe_area": {
+          "left": 72,
+          "right": 72,
+          "top": 120,
+          "bottom": 180
+        },
+        "camera": {
+          "position": [
+            0.0,
+            0.0,
+            -80.0
+          ],
+          "rotate_z": 0.0,
+          "focal_length": 1500.0,
+          "animations": [
+            {
+              "property": "position",
+              "keyframes": [
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 0
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    0.0,
+                    0.0,
+                    -80.0
+                  ]
+                },
+                {
+                  "time": {
+                    "kind": "ms",
+                    "at_ms": 4500
+                  },
+                  "easing": "cubic_in_out",
+                  "value": [
+                    -75.0,
+                    -25.0,
+                    50.0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "nodes": [
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "background",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 1080.0,
+                "height": 1920.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              94.0,
+              150.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "rule",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 112.0,
+                "height": 8.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              94.0,
+              260.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "opacity",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.0
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 650
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              }
+            ],
+            "id": "heading",
+            "parent_id": null,
+            "space": "screen",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "text",
+            "params": {
+              "text": {
+                "kind": "shot_field",
+                "field": "on_screen_text"
+              },
+              "font": {
+                "kind": "dna_font",
+                "index": 0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "size": 82.0,
+              "max_width": 875.0,
+              "line_height": 1.12,
+              "max_lines": 3,
+              "align": "left",
+              "method": "fade_slide"
+            }
+          },
+          {
+            "position": [
+              278.0,
+              730.0,
+              160.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "position",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      203.0,
+                      730.0,
+                      120.0
+                    ]
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 4500
+                    },
+                    "easing": "cubic_in_out",
+                    "value": [
+                      353.0,
+                      700.0,
+                      240.0
+                    ]
+                  }
+                ]
+              }
+            ],
+            "id": "device",
+            "parent_id": null,
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "group"
+          },
+          {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "body",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 510.0,
+                "height": 810.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              28.0,
+              32.0,
+              10.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "display",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "rect",
+                "width": 454.0,
+                "height": 690.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 0
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              239.0,
+              754.0,
+              12.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "camera",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "ellipse",
+                "width": 32.0,
+                "height": 32.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              128.0,
+              195.0,
+              25.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [
+              {
+                "property": "opacity",
+                "keyframes": [
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 0
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 0.15
+                  },
+                  {
+                    "time": {
+                      "kind": "ms",
+                      "at_ms": 4500
+                    },
+                    "easing": "cubic_in_out",
+                    "value": 1.0
+                  }
+                ]
+              }
+            ],
+            "id": "resolve-ring",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "ellipse",
+                "width": 250.0,
+                "height": 250.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 2
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          },
+          {
+            "position": [
+              221.0,
+              288.0,
+              28.0
+            ],
+            "scale": [
+              1.0,
+              1.0
+            ],
+            "rotate_z": 0.0,
+            "opacity": 1.0,
+            "animations": [],
+            "id": "resolve-dot",
+            "parent_id": "device",
+            "space": "world",
+            "z_index": 0,
+            "anchor": [
+              0.0,
+              0.0
+            ],
+            "active_ms": null,
+            "type": "shape",
+            "params": {
+              "geometry": {
+                "kind": "ellipse",
+                "width": 64.0,
+                "height": 64.0
+              },
+              "fill": {
+                "kind": "dna_palette",
+                "index": 1
+              },
+              "stroke": null,
+              "stroke_width": 1.0,
+              "draw_progress": 1.0
+            }
+          }
+        ],
+        "cues": [
+          {
+            "id": "score",
+            "at_ms": 0,
+            "sound": {
+              "asset_binding": "score",
+              "source_in_ms": 25000,
+              "duration_ms": 5000,
+              "gain": 0.65,
+              "fade_in_ms": 120,
+              "fade_out_ms": 120
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -11,12 +11,14 @@ from contextlib import closing
 from pathlib import Path
 from uuid import uuid4
 
+import httpx
 from fastapi import HTTPException
 from sqlalchemy import or_, select
 
 from apps.api.asr_words import transcribe_words
 from apps.api.captions import group_words, probe_media, validate_timing
 from apps.api.config import get_settings
+from apps.api.creative.local_agents import exclusive_ai_slot, run_agent
 from apps.api.creative.motion import motion_output
 from apps.api.database import SessionLocal
 from apps.api.edl_v2 import EDLV2, scene_projection
@@ -121,7 +123,7 @@ def recover_interrupted_jobs() -> None:
                 Job.job_type.in_([
                     "RENDER", "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
                     "CLIP_ANALYSIS", "CLIP_RENDER", "FOOTBALL_RENDER",
-                    "NARRATIVE_3D_RENDER", "CREATIVE_MOTION",
+                    "NARRATIVE_3D_RENDER", "CREATIVE_MOTION", "CREATIVE_AI",
                 ]),
                 Job.status == JobStatus.RUNNING.value,
                 or_(Job.lease_expires_at.is_(None), Job.lease_expires_at <= now()),
@@ -135,7 +137,7 @@ def recover_interrupted_jobs() -> None:
             if job.attempt < job.max_attempts:
                 job.status = JobStatus.QUEUED.value
                 job.progress = 0
-                if project and job.job_type != "CREATIVE_MOTION":
+                if project and job.job_type not in {"CREATIVE_MOTION", "CREATIVE_AI"}:
                     project.status = ProjectStatus.SCRIPTED.value
             else:
                 job.status = JobStatus.FAILED.value
@@ -359,7 +361,7 @@ def media_one() -> bool:
         job = claim_next_job(db, [
             "VOICE", "TRANSCRIBE", "PROXY", "ASR_WORDS", "CAPTION_RENDER",
             "CLIP_ANALYSIS", "CLIP_RENDER", "FOOTBALL_RENDER",
-            "NARRATIVE_3D_RENDER", "CREATIVE_MOTION",
+            "NARRATIVE_3D_RENDER", "CREATIVE_MOTION", "CREATIVE_AI",
         ])
         if job is None:
             return False
@@ -496,6 +498,9 @@ def media_one() -> bool:
             elif job.job_type == "CREATIVE_MOTION":
                 staged_artifact = (staged_output, motion_output(job.id))
                 job.result = render_creative_motion(db, job, attempt_id, staged_output)
+            elif job.job_type == "CREATIVE_AI":
+                with exclusive_ai_slot():
+                    job.result = run_agent(db, job)
             elif job.job_type == "NARRATIVE_3D_RENDER":
                 sequence = db.get(Narrative3D, job.payload.get("sequence_id"))
                 if (sequence is None or sequence.revision != job.payload.get("revision")
@@ -537,7 +542,7 @@ def media_one() -> bool:
             if staged_artifact is None and staged_voice is None and staged_proxy is None:
                 record_event(db, f"{job.job_type}_FINISHED", "job", job.id,
                              after=job.result)
-        except (OSError, ValueError, RuntimeError, ImportError,
+        except (OSError, ValueError, RuntimeError, ImportError, KeyError, httpx.HTTPError,
                 subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             job.status = JobStatus.FAILED.value
             job.error = str(exc)

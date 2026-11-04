@@ -21,7 +21,8 @@ def write(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def seed_project(client, label, files, recipe_version="1.1.0"):
+def seed_project(client, label, files, recipe_version="1.1.0", *, source_beats=None,
+                 topic_override=None):
     from scripts.motion_recipes_v12 import PRODUCTIONS_V12
 
     p = (PRODUCTIONS_V12 if recipe_version == "1.2.0" else PRODUCTIONS)[label]
@@ -42,7 +43,7 @@ def seed_project(client, label, files, recipe_version="1.1.0"):
             json={
                 "channel_id": channel["id"],
                 "title": f"M4 {label} — original",
-                "topic": "Original fictional audiovisual study",
+                "topic": topic_override or "Original fictional audiovisual study",
                 "format": p["format"],
             },
         )
@@ -112,9 +113,14 @@ def seed_project(client, label, files, recipe_version="1.1.0"):
                 "id": f"shot-{i + 1}",
                 "start_ms": start,
                 "duration_ms": duration,
-                "beat": f"Original {label} act {i + 1}",
-                "on_screen_text": p["titles"][i],
-                "visual_description": f"Original {label} composition using shared primitives",
+                "beat": (source_beats[i]["beat"] if source_beats
+                         else f"Original {label} act {i + 1}"),
+                "on_screen_text": (source_beats[i]["on_screen_text"] if source_beats
+                                   else p["titles"][i]),
+                "visual_description": (
+                    source_beats[i]["visual_description"] if source_beats
+                    else f"Original {label} composition using shared primitives"
+                ),
                 "camera_intent": "Layered parallax",
                 "motion_intent": "Intentional keyframes",
                 "audio_cue": "Original score with authored transients",

@@ -1,0 +1,123 @@
+{
+  "$defs": {
+    "CreativeDirection": {
+      "additionalProperties": false,
+      "properties": {
+        "composition": {
+          "maxLength": 240,
+          "minLength": 5,
+          "title": "Composition",
+          "type": "string"
+        },
+        "emotional_arc": {
+          "maxLength": 240,
+          "minLength": 5,
+          "title": "Emotional Arc",
+          "type": "string"
+        },
+        "estimated_complexity": {
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ],
+          "title": "Estimated Complexity",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 60,
+          "minLength": 2,
+          "title": "Id",
+          "type": "string"
+        },
+        "motion_language": {
+          "maxLength": 240,
+          "minLength": 5,
+          "title": "Motion Language",
+          "type": "string"
+        },
+        "palette": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 2,
+          "title": "Palette",
+          "type": "array"
+        },
+        "rationale": {
+          "maxLength": 2000,
+          "minLength": 10,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "rhythm": {
+          "enum": [
+            "slow",
+            "dynamic",
+            "hybrid"
+          ],
+          "title": "Rhythm",
+          "type": "string"
+        },
+        "thesis": {
+          "maxLength": 600,
+          "minLength": 10,
+          "title": "Thesis",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 3,
+          "title": "Title",
+          "type": "string"
+        },
+        "typography": {
+          "maxLength": 120,
+          "minLength": 2,
+          "title": "Typography",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "thesis",
+        "rationale",
+        "emotional_arc",
+        "rhythm",
+        "typography",
+        "composition",
+        "motion_language",
+        "palette",
+        "estimated_complexity"
+      ],
+      "title": "CreativeDirection",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "directions": {
+      "items": {
+        "$ref": "#/$defs/CreativeDirection"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "title": "Directions",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "directions_v1",
+      "default": "directions_v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "directions"
+  ],
+  "title": "AgentDirections",
+  "type": "object"
+}

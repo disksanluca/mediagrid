@@ -1,0 +1,111 @@
+{
+  "$defs": {
+    "ScriptBeat": {
+      "additionalProperties": false,
+      "properties": {
+        "character_id": {
+          "maxLength": 40,
+          "minLength": 2,
+          "title": "Character Id",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 40,
+          "minLength": 2,
+          "title": "Id",
+          "type": "string"
+        },
+        "location_id": {
+          "maxLength": 40,
+          "minLength": 2,
+          "title": "Location Id",
+          "type": "string"
+        },
+        "narration": {
+          "maxLength": 240,
+          "minLength": 12,
+          "title": "Narration",
+          "type": "string"
+        },
+        "visual": {
+          "maxLength": 360,
+          "minLength": 8,
+          "title": "Visual",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "narration",
+        "visual",
+        "location_id",
+        "character_id"
+      ],
+      "title": "ScriptBeat",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "beats": {
+      "items": {
+        "$ref": "#/$defs/ScriptBeat"
+      },
+      "maxItems": 12,
+      "minItems": 6,
+      "title": "Beats",
+      "type": "array"
+    },
+    "character_description": {
+      "maxLength": 360,
+      "minLength": 12,
+      "title": "Character Description",
+      "type": "string"
+    },
+    "character_id": {
+      "maxLength": 40,
+      "minLength": 2,
+      "title": "Character Id",
+      "type": "string"
+    },
+    "claims_to_verify": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Claims To Verify",
+      "type": "array"
+    },
+    "fictional": {
+      "title": "Fictional",
+      "type": "boolean"
+    },
+    "pov_second_person": {
+      "title": "Pov Second Person",
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "local_script_v1",
+      "default": "local_script_v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 120,
+      "minLength": 3,
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "pov_second_person",
+    "fictional",
+    "character_id",
+    "character_description",
+    "beats"
+  ],
+  "title": "ScriptDraft",
+  "type": "object"
+}
