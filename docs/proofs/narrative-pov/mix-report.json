@@ -1,0 +1,56 @@
+{
+  "schema_version": "narrative_mix_report_v1",
+  "duration_ms": 56000,
+  "sample_rate": 48000,
+  "channels": 2,
+  "voice_sha256": "6b48b1ffd18425896967527e32a6fa0a1575c8ba522287fbb77e36012af71295",
+  "mix_sha256": "1f7441c8a3c4d0d25531e48a603d2ad180b8667e055e88bc5bf7b8c1626a30a4",
+  "music": "MediaGrid deterministic sine-pad v1",
+  "sfx": [
+    {
+      "at_ms": 900,
+      "kind": "message",
+      "origin": "procedural"
+    },
+    {
+      "at_ms": 7100,
+      "kind": "whoosh",
+      "origin": "procedural"
+    },
+    {
+      "at_ms": 14300,
+      "kind": "tap",
+      "origin": "procedural"
+    },
+    {
+      "at_ms": 22100,
+      "kind": "error",
+      "origin": "procedural"
+    },
+    {
+      "at_ms": 29000,
+      "kind": "rain",
+      "origin": "procedural"
+    },
+    {
+      "at_ms": 36000,
+      "kind": "message",
+      "origin": "procedural"
+    },
+    {
+      "at_ms": 43000,
+      "kind": "tool",
+      "origin": "procedural"
+    },
+    {
+      "at_ms": 50000,
+      "kind": "check",
+      "origin": "procedural"
+    }
+  ],
+  "peaks": {
+    "voice": 0.494385,
+    "music": 0.053223,
+    "sfx": 0.26319
+  }
+}

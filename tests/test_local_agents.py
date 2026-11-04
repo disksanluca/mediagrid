@@ -53,13 +53,21 @@ def foundation(client, monkeypatch, tmp_path):
 
 
 def script_response():
+    locations = ["room", "bus", "cafe", "room", "repair", "cafe"]
+    stages = ["setup", "inspection", "purchase", "discovery", "evidence", "lesson"]
     return {"schema_version": "local_script_v1", "title": "Your first sale",
             "pov_second_person": True, "fictional": True, "character_id": "person-1",
             "character_description": "A cautious young adult with a blue jacket",
             "beats": [{"id": f"beat-{i}",
-                       "narration": f"Você observa a cena fictícia {i} com cuidado.",
+                       "narration": (
+                           f"Você observa a cena fictícia {i} com bastante cuidado e atenção."
+                       ),
                        "visual": f"A mesa e o telefone aparecem na cena {i}.",
-                       "location_id": "room", "character_id": "person-1"}
+                       "location_id": locations[i-1], "character_id": "person-1",
+                       "character_action": f"Examina o aparelho no passo {i}.",
+                       "prop_state": [f"telefone no estado {i}"],
+                       "narration_target_ms": 5000,
+                       "arc_stage": stages[i-1]}
                       for i in range(1, 7)], "claims_to_verify": []}
 
 
@@ -74,9 +82,9 @@ def mock_ollama(monkeypatch, content):
             return httpx.Response(200, json={"models": []})
         body = json.loads(request.content)
         assert request.url.path == "/api/chat"
-        assert body["stream"] is False and "tools" not in body
+        assert body["stream"] is True and "tools" not in body
         assert body["format"]["type"] == "object"
-        return httpx.Response(200, json={"model": "qwen3:4b-instruct",
+        return httpx.Response(200, json={"model": "qwen3:4b-instruct", "done": True,
                                          "message": {"content": json.dumps(content)},
                                          "prompt_eval_count": 180, "eval_count": 310})
     original = httpx.Client
@@ -171,6 +179,15 @@ def test_script_rejects_wrong_pov(client, monkeypatch, tmp_path):
     with SessionLocal() as db:
         job = db.get(Job, queued["id"])
         assert job.status == "FAILED" and job.result is None
+
+
+def test_fictional_script_rejects_unfounded_percentage():
+    draft = script_response()
+    draft["beats"][5]["narration"] = (
+        "Você pede um desconto de 30% ao vendedor e conclui a negociação fictícia."
+    )
+    with pytest.raises(ValueError, match="30%"):
+        ScriptDraft.model_validate(draft)
 
 
 def test_motion_suggestion_cannot_claim_six_shot_storyboard_ready():

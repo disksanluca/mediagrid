@@ -417,6 +417,7 @@ class Job(TimestampMixin, Base):
         DateTime(timezone=True), nullable=True
     )
     heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    cancel_requested: Mapped[bool] = mapped_column(Boolean, default=False)
 
     project: Mapped[Project | None] = relationship(back_populates="jobs")
 

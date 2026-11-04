@@ -5,7 +5,7 @@
       "additionalProperties": false,
       "properties": {
         "at_ms": {
-          "maximum": 30000,
+          "maximum": 60000,
           "minimum": 0,
           "title": "At Ms",
           "type": "integer"
@@ -303,7 +303,7 @@
       "additionalProperties": false,
       "properties": {
         "at_ms": {
-          "maximum": 30000,
+          "maximum": 60000,
           "minimum": 0,
           "title": "At Ms",
           "type": "integer"
@@ -347,8 +347,8 @@
         },
         "offset_ms": {
           "default": 0,
-          "maximum": 30000,
-          "minimum": -30000,
+          "maximum": 60000,
+          "minimum": -60000,
           "title": "Offset Ms",
           "type": "integer"
         }
@@ -367,7 +367,7 @@
           "$ref": "#/$defs/MotionCanvas"
         },
         "duration_ms": {
-          "maximum": 30000,
+          "maximum": 60000,
           "minimum": 3000,
           "title": "Duration Ms",
           "type": "integer"
@@ -535,7 +535,7 @@
           "anyOf": [
             {
               "items": {
-                "maximum": 30000,
+                "maximum": 60000,
                 "minimum": 0,
                 "type": "integer"
               },
@@ -731,7 +731,7 @@
           "anyOf": [
             {
               "items": {
-                "maximum": 30000,
+                "maximum": 60000,
                 "minimum": 0,
                 "type": "integer"
               },
@@ -921,7 +921,7 @@
           "anyOf": [
             {
               "items": {
-                "maximum": 30000,
+                "maximum": 60000,
                 "minimum": 0,
                 "type": "integer"
               },
@@ -1066,6 +1066,28 @@
       "title": "LightSweepNode",
       "type": "object"
     },
+    "LiteralText": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "literal",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "LiteralText",
+      "type": "object"
+    },
     "MaskNode": {
       "additionalProperties": false,
       "properties": {
@@ -1073,7 +1095,7 @@
           "anyOf": [
             {
               "items": {
-                "maximum": 30000,
+                "maximum": 60000,
                 "minimum": 0,
                 "type": "integer"
               },
@@ -1408,7 +1430,7 @@
           "anyOf": [
             {
               "items": {
-                "maximum": 30000,
+                "maximum": 60000,
                 "minimum": 0,
                 "type": "integer"
               },
@@ -1606,7 +1628,7 @@
           "anyOf": [
             {
               "items": {
-                "maximum": 30000,
+                "maximum": 60000,
                 "minimum": 0,
                 "type": "integer"
               },
@@ -2041,7 +2063,7 @@
           "anyOf": [
             {
               "items": {
-                "maximum": 30000,
+                "maximum": 60000,
                 "minimum": 0,
                 "type": "integer"
               },
@@ -2285,7 +2307,10 @@
       "additionalProperties": false,
       "properties": {
         "field": {
-          "const": "on_screen_text",
+          "enum": [
+            "on_screen_text",
+            "beat"
+          ],
           "title": "Field",
           "type": "string"
         },
@@ -2326,20 +2351,20 @@
         },
         "duration_ms": {
           "exclusiveMinimum": 0,
-          "maximum": 30000,
+          "maximum": 60000,
           "title": "Duration Ms",
           "type": "integer"
         },
         "fade_in_ms": {
           "default": 0,
-          "maximum": 30000,
+          "maximum": 60000,
           "minimum": 0,
           "title": "Fade In Ms",
           "type": "integer"
         },
         "fade_out_ms": {
           "default": 0,
-          "maximum": 30000,
+          "maximum": 60000,
           "minimum": 0,
           "title": "Fade Out Ms",
           "type": "integer"
@@ -2414,7 +2439,7 @@
           "anyOf": [
             {
               "items": {
-                "maximum": 30000,
+                "maximum": 60000,
                 "minimum": 0,
                 "type": "integer"
               },
@@ -2621,6 +2646,7 @@
           "discriminator": {
             "mapping": {
               "approved_claim_field": "#/$defs/ClaimText",
+              "literal": "#/$defs/LiteralText",
               "shot_field": "#/$defs/ShotText"
             },
             "propertyName": "kind"
@@ -2631,6 +2657,9 @@
             },
             {
               "$ref": "#/$defs/ClaimText"
+            },
+            {
+              "$ref": "#/$defs/LiteralText"
             }
           ],
           "title": "Text"
@@ -2804,7 +2833,7 @@
           "anyOf": [
             {
               "items": {
-                "maximum": 30000,
+                "maximum": 60000,
                 "minimum": 0,
                 "type": "integer"
               },

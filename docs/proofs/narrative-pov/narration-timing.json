@@ -1,0 +1,67 @@
+{
+  "segments": [
+    {
+      "id": "pov-shot-01",
+      "start_ms": 350,
+      "duration_ms": 5100,
+      "slot_ms": 6650,
+      "text_sha256": "9036dd40b905d581c4120fe3db96ca62a670c1ae1a50d1b9054e74a8951c8bbe"
+    },
+    {
+      "id": "pov-shot-02",
+      "start_ms": 7350,
+      "duration_ms": 5025,
+      "slot_ms": 6650,
+      "text_sha256": "63c85b6096b536e880d837f9a9e856d4346ac06e1e40aab04388bcb12277019a"
+    },
+    {
+      "id": "pov-shot-03",
+      "start_ms": 14350,
+      "duration_ms": 4500,
+      "slot_ms": 6650,
+      "text_sha256": "284d5a1fdd0946bc95df0d3936ce647238a6f7e4d842406f2e8d9a79f730803f"
+    },
+    {
+      "id": "pov-shot-04",
+      "start_ms": 21350,
+      "duration_ms": 5150,
+      "slot_ms": 6650,
+      "text_sha256": "8f0d54ced9b5e4f474a160917f9e2244c0bfd06b5158ede560bae0f5f0677bde"
+    },
+    {
+      "id": "pov-shot-05",
+      "start_ms": 28350,
+      "duration_ms": 5575,
+      "slot_ms": 6650,
+      "text_sha256": "d1188be4945d38cd070c9ee9bac429f49cea3155ae61944c16dd6bdf4ec8eea6"
+    },
+    {
+      "id": "pov-shot-06",
+      "start_ms": 35350,
+      "duration_ms": 5200,
+      "slot_ms": 6650,
+      "text_sha256": "53576bccb3784217b849a0dedca570b2e25a1574faef0e5c94fee2e649f199dd"
+    },
+    {
+      "id": "pov-shot-07",
+      "start_ms": 42350,
+      "duration_ms": 5425,
+      "slot_ms": 6650,
+      "text_sha256": "9554bda2873451f12f33ed4025aa2019db32e6791c0e12de66a66d72deeb611f"
+    },
+    {
+      "id": "pov-shot-08",
+      "start_ms": 49350,
+      "duration_ms": 5925,
+      "slot_ms": 6650,
+      "text_sha256": "097a61482ae92867409a79d1164f03685b09461e262ef149e3ed48e0c80f0b32"
+    }
+  ],
+  "duration_ms": 56000,
+  "provider": "kokoro_local",
+  "model": "hexgrad/Kokoro-82M",
+  "voice": "pm_alex",
+  "speed": 1.08,
+  "sample_rate": 24000,
+  "output_sha256": "6b48b1ffd18425896967527e32a6fa0a1575c8ba522287fbb77e36012af71295"
+}

@@ -3,6 +3,26 @@
     "ScriptBeat": {
       "additionalProperties": false,
       "properties": {
+        "arc_stage": {
+          "enum": [
+            "setup",
+            "inspection",
+            "purchase",
+            "discovery",
+            "evidence",
+            "negotiation",
+            "resolution",
+            "lesson"
+          ],
+          "title": "Arc Stage",
+          "type": "string"
+        },
+        "character_action": {
+          "maxLength": 220,
+          "minLength": 5,
+          "title": "Character Action",
+          "type": "string"
+        },
         "character_id": {
           "maxLength": 40,
           "minLength": 2,
@@ -27,6 +47,21 @@
           "title": "Narration",
           "type": "string"
         },
+        "narration_target_ms": {
+          "maximum": 6500,
+          "minimum": 2500,
+          "title": "Narration Target Ms",
+          "type": "integer"
+        },
+        "prop_state": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Prop State",
+          "type": "array"
+        },
         "visual": {
           "maxLength": 360,
           "minLength": 8,
@@ -39,7 +74,11 @@
         "narration",
         "visual",
         "location_id",
-        "character_id"
+        "character_id",
+        "character_action",
+        "prop_state",
+        "narration_target_ms",
+        "arc_stage"
       ],
       "title": "ScriptBeat",
       "type": "object"

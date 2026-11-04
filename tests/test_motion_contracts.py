@@ -16,6 +16,7 @@ from apps.api.motion_contracts.canonical import (
     read_json,
 )
 from apps.api.motion_contracts.models import (
+    LiteralText,
     MotionComposition,
     MotionRecipe,
     MotionScene,
@@ -28,7 +29,12 @@ from apps.api.motion_contracts.registry import (
     recipe_digest,
     verify_recipe_binding,
 )
-from apps.api.motion_contracts.validation import frame_at, validate_binding, validate_scene_bounds
+from apps.api.motion_contracts.validation import (
+    frame_at,
+    shot_text,
+    validate_binding,
+    validate_scene_bounds,
+)
 from scripts.generate_motion_contracts import OUTPUT, artifacts, ts_type
 
 FIXTURES = REGISTRY_ROOT.parent / "fixtures"
@@ -93,11 +99,16 @@ def test_examples_have_distinct_structure_not_only_text_or_palette():
     assert "path_follower" in signatures[2]
 
 
+def test_literal_text_binding_is_preserved_without_reading_a_storyboard_field():
+    binding = LiteralText(kind="literal", value="BATERIA INSTÁVEL")
+    assert shot_text(binding, "storyboard text must not replace the literal") == binding.value
+
+
 @pytest.mark.parametrize("path,value", [
     (("schema_version",), "motion_composition_v2"),
     (("expected", "storyboard_revision"), True),
     (("expected", "duration_ms"), "12000"),
-    (("expected", "duration_ms"), 30001),
+    (("expected", "duration_ms"), 60001),
     (("expected", "canvas", "fps_num"), 60),
     (("expected", "canvas", "fps_den"), True),
     (("expected", "canvas", "width"), 720),
@@ -189,7 +200,7 @@ def test_camera_near_plane_considers_animated_ancestors():
         graph(nodes, camera={"position": [0, 0, 300]})
 
 
-@pytest.mark.parametrize("times", [(100, 0), (0, 0), (-1, 100), (0, 30001)])
+@pytest.mark.parametrize("times", [(100, 0), (0, 0), (-1, 100), (0, 60001)])
 def test_keyframe_order_and_bounds(times):
     with pytest.raises(ValueError):
         graph([{"id": "g", "type": "group", "animations": [animation(times)]}])

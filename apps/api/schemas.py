@@ -116,6 +116,7 @@ class JobRead(BaseModel):
     max_attempts: int
     result: dict[str, Any] | None
     error: str | None
+    cancel_requested: bool = False
     created_at: datetime
 
 

@@ -13,7 +13,8 @@
         "sports.depth-impact",
         "music.orbital-sleeve",
         "geo.route-explainer",
-        "pov.first-sale"
+        "pov.first-sale",
+        "pov.webtoon-cutout"
       ],
       "title": "Recipe Id",
       "type": "string"

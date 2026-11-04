@@ -4,7 +4,7 @@ import {useEffect, useState} from "react";
 import {Mic, Save} from "lucide-react";
 import {api} from "@/lib/api";
 
-type VoiceStatus = {available:boolean;voices:string[];voice_name:string|null;rate:number};
+type VoiceStatus = {available:boolean;provider:"windows"|"kokoro";voices:string[];voice_name:string|null;rate:number};
 
 export function VoiceSettingsPanel({mode}:{mode:string}) {
   const [status,setStatus]=useState<VoiceStatus|null>(null);
@@ -30,8 +30,8 @@ export function VoiceSettingsPanel({mode}:{mode:string}) {
     } catch(reason) {setMessage(reason instanceof Error?reason.message:"Não foi possível salvar a voz.");}
     finally {setBusy(false);}
   };
-  return <section className="panel"><div className="panel-head"><div><h3>Voz do estúdio</h3><p>Escolha uma voz pt-BR instalada no Windows e ajuste a velocidade da próxima narração.</p></div><Mic size={19}/></div><div className="panel-body">
-    {!status?(!message&&<p className="small-note">Consultando vozes locais…</p>):status.voices.length===0?<p className="small-note">Nenhuma voz pt-BR compatível encontrada. Instale uma voz no Windows para gerar narrações.</p>:<>{!status.available&&<p className="small-note">A voz salva não está mais instalada. Escolha outra voz pt-BR.</p>}<div className="field-grid"><label className="field">Voz<select value={voice} onChange={(event)=>setVoice(event.target.value)}>{status.voices.map((name)=><option key={name} value={name}>{name}</option>)}</select></label><label className="field">Velocidade (-5 a 5)<input type="number" min="-5" max="5" step="1" value={rate} onChange={(event)=>setRate(Number(event.target.value))}/></label></div><p className="small-note">A escolha afeta apenas novas gerações. Ouça o WAV e o MP4 inteiro antes de aprovar; a qualidade depende da voz instalada.</p><button className="button" disabled={busy||!voice||!Number.isInteger(rate)||rate<-5||rate>5} onClick={()=>void save()}><Save size={15}/> Salvar voz</button></>}
+  return <section className="panel"><div className="panel-head"><div><h3>Voz do estúdio</h3><p>Narração local em português brasileiro, sem serviço pago.</p></div><Mic size={19}/></div><div className="panel-body">
+    {!status?(!message&&<p className="small-note">Consultando vozes locais…</p>):status.provider==="kokoro"?<><p className="small-note">Kokoro local · {status.voice_name??"voz não configurada"} · {status.available?"disponível":"runtime indisponível"}. O runtime isolado é configurado no ambiente do serviço.</p><p className="small-note">Ouça o WAV e o MP4 inteiro antes de aprovar; uma voz sintética não substitui revisão humana.</p></>:status.voices.length===0?<p className="small-note">Nenhuma voz pt-BR compatível encontrada. Instale uma voz no Windows para gerar narrações.</p>:<>{!status.available&&<p className="small-note">A voz salva não está mais instalada. Escolha outra voz pt-BR.</p>}<div className="field-grid"><label className="field">Voz<select value={voice} onChange={(event)=>setVoice(event.target.value)}>{status.voices.map((name)=><option key={name} value={name}>{name}</option>)}</select></label><label className="field">Velocidade (-5 a 5)<input type="number" min="-5" max="5" step="1" value={rate} onChange={(event)=>setRate(Number(event.target.value))}/></label></div><p className="small-note">A escolha afeta apenas novas gerações. Ouça o WAV e o MP4 inteiro antes de aprovar; a qualidade depende da voz instalada.</p><button className="button" disabled={busy||!voice||!Number.isInteger(rate)||rate<-5||rate>5} onClick={()=>void save()}><Save size={15}/> Salvar voz</button></>}
     {message&&<p className="small-note">{message}</p>}
   </div></section>;
 }

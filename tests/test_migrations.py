@@ -50,10 +50,11 @@ def test_legacy_database_upgrade_and_downgrade(tmp_path: Path) -> None:
     )
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == (
-            "0013_motion_artifact_review",
+            "0014_creative_ai_cancellation",
         )
         columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)")}
-        assert {"lease_owner", "lease_expires_at", "heartbeat_at"} <= columns
+        assert {"lease_owner", "lease_expires_at", "heartbeat_at",
+                "cancel_requested"} <= columns
         saved_edl = connection.execute(
             "SELECT edl FROM projects WHERE id=?", (project_id,)
         ).fetchone()[0]
@@ -105,10 +106,11 @@ def test_fresh_database_starts_at_current_schema(tmp_path: Path) -> None:
     )
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == (
-            "0013_motion_artifact_review",
+            "0014_creative_ai_cancellation",
         )
         columns = {row[1] for row in connection.execute("PRAGMA table_info(jobs)")}
-        assert {"lease_owner", "lease_expires_at", "heartbeat_at"} <= columns
+        assert {"lease_owner", "lease_expires_at", "heartbeat_at",
+                "cancel_requested"} <= columns
         assert connection.execute("SELECT COUNT(*) FROM narrative_3d").fetchone() == (0,)
         assert connection.execute("SELECT COUNT(*) FROM music_draft_schedules").fetchone() == (0,)
 

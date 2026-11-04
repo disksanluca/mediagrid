@@ -142,7 +142,8 @@ def enqueue(project_id: str, payload: GenerateRequest, db: Session = Depends(get
         context["storyboard_scene_count"] = len(board.payload["shots"])
         context["storyboard_duration_ms"] = board.payload["duration_ms"]
         context["recipe_catalog"] = [
-            {"id": recipe["id"], "scene_count": len(recipe["shots"]),
+            {"id": recipe["id"], "version": recipe["version"],
+             "scene_count": len(recipe["shots"]),
              "canvas_format": ("vertical" if recipe["canvas"]["height"]
                                > recipe["canvas"]["width"] else
                                "square" if recipe["canvas"]["height"]
@@ -153,7 +154,7 @@ def enqueue(project_id: str, payload: GenerateRequest, db: Session = Depends(get
             recipe["id"] for recipe in context["recipe_catalog"]
             if recipe["scene_count"] == context["storyboard_scene_count"]
             and recipe["canvas_format"] == brief_content.format
-            and context["storyboard_duration_ms"] <= 30000
+            and context["storyboard_duration_ms"] <= 60000
         })
         if not context["compatible_recipe_ids"]:
             raise HTTPException(409, "No compatible M4 recipe for this approved storyboard")

@@ -3,6 +3,10 @@
 The [REA implementation record](docs/REA-IMPLEMENTATION.md) tracks the six-mode
 studio work, baseline evidence, migration status and remaining acceptance gates.
 
+The [Narrative POV Studio report](docs/NARRATIVE_POV_STUDIO.md) records the isolated
+Ollama/Kokoro/M4 implementation, a 56-second illustrated proof, hashes, performance,
+license decisions and the remaining human artistic review.
+
 O [plano e a auditoria do Atelier Premium v3](docs/ATELIER-PREMIUM-V3.md)
 documentam a branch visual atual e seus limites funcionais.
 

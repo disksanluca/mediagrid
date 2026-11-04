@@ -1,0 +1,187 @@
+{
+  "provenance": {
+    "kind": "EDITORIAL_FIXTURE",
+    "creator": "MediaGrid Narrative POV Studio",
+    "rights": "Original fictional copy authored for the isolated technical proof",
+    "human_review_required": true
+  },
+  "script": {
+    "schema_version": "local_script_v1",
+    "title": "O celular usado e a negociação sem pressa",
+    "pov_second_person": true,
+    "fictional": true,
+    "character_id": "caio",
+    "character_description": "Caio é um jovem de cabelo preto ondulado, moletom mostarda, olhar atento e gestos contidos.",
+    "beats": [
+      {
+        "id": "beat-01",
+        "arc_stage": "setup",
+        "narration": "Você encontra um celular usado que parece bem cuidado e combina de vê-lo pessoalmente.",
+        "visual": "Quarto em camadas; Caio compara o anúncio ficcional na tela.",
+        "location_id": "quarto-anuncio",
+        "character_id": "caio",
+        "character_action": "Caio se inclina para a tela e observa o anúncio com curiosidade.",
+        "prop_state": ["celular anunciado: aparência externa limpa", "moletom: mostarda"],
+        "narration_target_ms": 5200
+      },
+      {
+        "id": "beat-02",
+        "arc_stage": "inspection",
+        "narration": "No caminho, a pressa fala mais alto, e você pensa em terminar o encontro rapidamente.",
+        "visual": "Ônibus em movimento; cidade passa em três planos pela janela.",
+        "location_id": "onibus-cidade",
+        "character_id": "caio",
+        "character_action": "Caio segura o próprio celular e confirma o encontro por uma interface fictícia.",
+        "prop_state": ["celular anunciado: ainda não examinado", "mensagem: encontro confirmado"],
+        "narration_target_ms": 5000
+      },
+      {
+        "id": "beat-03",
+        "arc_stage": "purchase",
+        "narration": "Você olha a câmera e a carcaça, mas deixa o toque e a bateria para depois.",
+        "visual": "Café; plano sobre o ombro alterna Caio, vendedor e aparelho.",
+        "location_id": "cafe-encontro",
+        "character_id": "caio",
+        "character_action": "Caio verifica a lente e a carcaça antes de concluir a compra fictícia.",
+        "prop_state": ["celular comprado: carcaça limpa", "tela e bateria: ainda não testadas"],
+        "narration_target_ms": 4900
+      },
+      {
+        "id": "beat-04",
+        "arc_stage": "discovery",
+        "narration": "Em casa, o toque começa a falhar e a carga cai rápido. O bom negócio vira preocupação.",
+        "visual": "POV das mãos; falha de toque e alerta de bateria aparecem na interface.",
+        "location_id": "quarto-inspecao",
+        "character_id": "caio",
+        "character_action": "Caio testa a tela com as duas mãos e reconhece a falha.",
+        "prop_state": ["celular comprado: toque falhando", "bateria: comportamento instável"],
+        "narration_target_ms": 5300
+      },
+      {
+        "id": "beat-05",
+        "arc_stage": "evidence",
+        "narration": "Você grava o defeito, fotografa o aparelho e reúne as mensagens que descreviam seu estado.",
+        "visual": "Quarto chuvoso; close alterna expressão frustrada e registros do defeito.",
+        "location_id": "quarto-chuva",
+        "character_id": "caio",
+        "character_action": "Caio respira, apoia o aparelho e registra a falha sem alterar o estado dele.",
+        "prop_state": ["celular comprado: falha documentada", "evidências: vídeo, fotos e mensagens"],
+        "narration_target_ms": 5300
+      },
+      {
+        "id": "beat-06",
+        "arc_stage": "negotiation",
+        "narration": "Em vez de discutir, você explica o problema com calma e mostra cada registro ao vendedor.",
+        "visual": "Tela dividida; Caio e mensagens fictícias reagem às provas anexadas.",
+        "location_id": "conversa-remota",
+        "character_id": "caio",
+        "character_action": "Caio envia os registros e espera a resposta antes de propor uma solução.",
+        "prop_state": ["celular comprado: guardado durante a conversa", "evidências: enviadas ao vendedor"],
+        "narration_target_ms": 5200
+      },
+      {
+        "id": "beat-07",
+        "arc_stage": "resolution",
+        "narration": "Vocês combinam o reparo por escrito, e uma assistência confirma o que precisa ser corrigido.",
+        "visual": "Assistência; técnico testa tela, bateria e câmeras diante de Caio.",
+        "location_id": "assistencia",
+        "character_id": "caio",
+        "character_action": "Caio acompanha os testes e confere a solução registrada na conversa.",
+        "prop_state": ["celular comprado: em diagnóstico", "acordo: registrado por escrito"],
+        "narration_target_ms": 5200
+      },
+      {
+        "id": "beat-08",
+        "arc_stage": "lesson",
+        "narration": "Da próxima vez, você testa, registra e negocia antes de pagar. A pressa dá lugar ao cuidado.",
+        "visual": "Composição final; Caio apresenta uma lista simples de verificação.",
+        "location_id": "estudio-licao",
+        "character_id": "caio",
+        "character_action": "Caio guarda a lista e encara a câmera com segurança tranquila.",
+        "prop_state": ["celular comprado: solução encaminhada", "lista: testar, registrar e negociar"],
+        "narration_target_ms": 5400
+      }
+    ],
+    "claims_to_verify": []
+  },
+  "storyboard": {
+    "schema_version": "storyboard_v1",
+    "direction_id": "runtime-direction",
+    "duration_ms": 56000,
+    "fps": 30,
+    "shots": [
+      {
+        "id": "pov-shot-01", "start_ms": 0, "duration_ms": 7000,
+        "beat": "Você encontra um celular usado que parece bem cuidado e combina de vê-lo pessoalmente.",
+        "on_screen_text": "PARECIA PERFEITO", "visual_description": "Plano geral do quarto com Caio em primeiro plano, anúncio ficcional no celular e objetos em parallax.",
+        "camera_intent": "aproximação motivada pelo anúncio", "motion_intent": "camadas do quarto derivam em velocidades diferentes", "audio_cue": "notificação suave",
+        "environment_id": "quarto-anuncio", "shot_size": "establishing", "camera_move": "push_in",
+        "character_pose": "sentado e inclinado para o celular", "expression": "curiosidade contida", "interface_action": "anúncio fictício abre e destaca o aparelho",
+        "narration_start_ms": 350, "narration_duration_ms": 5200, "sfx_cues": ["notification"], "asset_ids": [], "claim_ids": []
+      },
+      {
+        "id": "pov-shot-02", "start_ms": 7000, "duration_ms": 7000,
+        "beat": "No caminho, a pressa fala mais alto, e você pensa em terminar o encontro rapidamente.",
+        "on_screen_text": "A PRESSA", "visual_description": "Plano médio no ônibus; prédios, postes e interior deslizam em três planos enquanto Caio confirma o encontro.",
+        "camera_intent": "acompanhar o balanço do ônibus", "motion_intent": "parallax lateral contínuo e reação secundária do personagem", "audio_cue": "ônibus e mensagem",
+        "environment_id": "onibus-cidade", "shot_size": "medium", "camera_move": "track",
+        "character_pose": "em pé segurando apoio e celular", "expression": "ansiedade leve", "interface_action": "mensagem fictícia de encontro confirmado",
+        "narration_start_ms": 350, "narration_duration_ms": 5000, "sfx_cues": ["bus", "message"], "asset_ids": [], "claim_ids": []
+      },
+      {
+        "id": "pov-shot-03", "start_ms": 14000, "duration_ms": 7000,
+        "beat": "Você olha a câmera e a carcaça, mas deixa o toque e a bateria para depois.",
+        "on_screen_text": "TESTE INCOMPLETO", "visual_description": "Sobre o ombro no café; vendedor, Caio e celular formam um triângulo, com mudança de foco para a compra.",
+        "camera_intent": "orbitar a negociação sem glorificar a pressa", "motion_intent": "rack focus entre carcaça, câmera e mãos", "audio_cue": "ambiente de café",
+        "environment_id": "cafe-encontro", "shot_size": "over_shoulder", "camera_move": "rack_focus",
+        "character_pose": "segurando o aparelho entre os dois", "expression": "confiança apressada", "interface_action": "câmera abre por um instante",
+        "narration_start_ms": 350, "narration_duration_ms": 4900, "sfx_cues": ["cafe", "tap"], "asset_ids": [], "claim_ids": []
+      },
+      {
+        "id": "pov-shot-04", "start_ms": 21000, "duration_ms": 7000,
+        "beat": "Em casa, o toque começa a falhar e a carga cai rápido. O bom negócio vira preocupação.",
+        "on_screen_text": "O DEFEITO", "visual_description": "POV das duas mãos; a tela deixa um rastro, a bateria alerta e uma rachadura gráfica guia o olhar.",
+        "camera_intent": "mergulhar no defeito percebido", "motion_intent": "gestos de teste, alerta e desenho progressivo da falha", "audio_cue": "falha digital e impacto",
+        "environment_id": "quarto-inspecao", "shot_size": "pov", "camera_move": "handheld",
+        "character_pose": "mãos testando pontos diferentes da tela", "expression": "não visível em POV", "interface_action": "toque falha e alerta de bateria aparece",
+        "narration_start_ms": 350, "narration_duration_ms": 5300, "sfx_cues": ["glitch", "impact"], "asset_ids": [], "claim_ids": []
+      },
+      {
+        "id": "pov-shot-05", "start_ms": 28000, "duration_ms": 7000,
+        "beat": "Você grava o defeito, fotografa o aparelho e reúne as mensagens que descreviam seu estado.",
+        "on_screen_text": "REGISTRE TUDO", "visual_description": "Close no quarto sob chuva; Caio muda de frustração para foco enquanto cartões de prova surgem ao lado.",
+        "camera_intent": "aproximar da reação e depois revelar as provas", "motion_intent": "chuva no fundo, expressão em dois tempos e cartões escalonados", "audio_cue": "chuva e obturador",
+        "environment_id": "quarto-chuva", "shot_size": "close_up", "camera_move": "pull_out",
+        "character_pose": "apoiado na mesa registrando o aparelho", "expression": "frustração que vira concentração", "interface_action": "gravação e fotos são salvas",
+        "narration_start_ms": 350, "narration_duration_ms": 5300, "sfx_cues": ["rain", "shutter"], "asset_ids": [], "claim_ids": []
+      },
+      {
+        "id": "pov-shot-06", "start_ms": 35000, "duration_ms": 7000,
+        "beat": "Em vez de discutir, você explica o problema com calma e mostra cada registro ao vendedor.",
+        "on_screen_text": "FATOS, NÃO BRIGA", "visual_description": "Tela dividida; Caio em um lado, conversa e anexos no outro, com respostas encadeadas e legíveis.",
+        "camera_intent": "manter a conversa equilibrada", "motion_intent": "provas entram antes da resposta e o divisor reage ao envio", "audio_cue": "mensagens e confirmação",
+        "environment_id": "conversa-remota", "shot_size": "medium", "camera_move": "pan",
+        "character_pose": "sentado, digitando e respirando antes de enviar", "expression": "calma determinada", "interface_action": "fotos são anexadas e a resposta aparece",
+        "narration_start_ms": 350, "narration_duration_ms": 5200, "sfx_cues": ["message", "confirm"], "asset_ids": [], "claim_ids": []
+      },
+      {
+        "id": "pov-shot-07", "start_ms": 42000, "duration_ms": 7000,
+        "beat": "Vocês combinam o reparo por escrito, e uma assistência confirma o que precisa ser corrigido.",
+        "on_screen_text": "CHEQUE A SOLUÇÃO", "visual_description": "Plano aberto na assistência; técnico testa o aparelho enquanto Caio confere uma lista de itens.",
+        "camera_intent": "percorrer bancada, técnico e lista", "motion_intent": "travelling curto e marcações aparecem após cada teste", "audio_cue": "ferramentas e checks",
+        "environment_id": "assistencia", "shot_size": "wide", "camera_move": "track",
+        "character_pose": "em pé ao lado da bancada acompanhando o teste", "expression": "atenção e alívio moderado", "interface_action": "lista marca tela, bateria e câmeras",
+        "narration_start_ms": 350, "narration_duration_ms": 5200, "sfx_cues": ["tool", "check"], "asset_ids": [], "claim_ids": []
+      },
+      {
+        "id": "pov-shot-08", "start_ms": 49000, "duration_ms": 7000,
+        "beat": "Da próxima vez, você testa, registra e negocia antes de pagar. A pressa dá lugar ao cuidado.",
+        "on_screen_text": "TESTE. REGISTRE. NEGOCIE.", "visual_description": "Plano médio final; Caio encara a câmera, enquanto três regras surgem em profundidade ao seu lado.",
+        "camera_intent": "afastar e revelar a síntese", "motion_intent": "halo discreto, pose final e regras entram uma a uma", "audio_cue": "clímax e resolução",
+        "environment_id": "estudio-licao", "shot_size": "medium", "camera_move": "pull_out",
+        "character_pose": "em pé com o celular guardado e a lista na mão", "expression": "confiança tranquila", "interface_action": "três regras aparecem em sequência",
+        "narration_start_ms": 350, "narration_duration_ms": 5400, "sfx_cues": ["rise", "resolve"], "asset_ids": [], "claim_ids": []
+      }
+    ]
+  }
+}
