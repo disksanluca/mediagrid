@@ -14,7 +14,7 @@ def main() -> None:
     engine = create_engine(database_url, pool_pre_ping=True)
     with engine.connect() as connection:
         assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-            "0013_motion_artifact_review"
+            "0014_creative_ai_cancellation"
         )
         assert {"channels", "projects", "jobs", "knowledge_claims", "narrative_3d",
                 "music_draft_schedules", "creative_dna_revisions", "creative_briefs",
@@ -31,6 +31,7 @@ def main() -> None:
         )).one()
         assert status == "SUCCEEDED" and owner is None
         assert result == {"synthetic": True}
+        assert connection.scalar(text("SELECT cancel_requested FROM jobs")) is False
         assert connection.execute(text(
             "SELECT revision, decision, video_sha256 FROM motion_artifact_reviews"
         )).one() == (1, "REQUEST_REVIEW", "c"*64)
