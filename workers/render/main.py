@@ -18,7 +18,7 @@ from sqlalchemy import or_, select
 from apps.api.asr_words import transcribe_words
 from apps.api.captions import group_words, probe_media, validate_timing
 from apps.api.config import get_settings
-from apps.api.creative.local_agents import exclusive_ai_slot, run_agent
+from apps.api.creative.local_agents import GenerationCancelled, exclusive_ai_slot, run_agent
 from apps.api.creative.motion import motion_output
 from apps.api.database import SessionLocal
 from apps.api.edl_v2 import EDLV2, scene_projection
@@ -542,6 +542,14 @@ def media_one() -> bool:
             if staged_artifact is None and staged_voice is None and staged_proxy is None:
                 record_event(db, f"{job.job_type}_FINISHED", "job", job.id,
                              after=job.result)
+        except GenerationCancelled as exc:
+            job.status = JobStatus.CANCELLED.value
+            job.error = str(exc)
+            job.result = None
+            record_event(
+                db, "CREATIVE_AI_CANCELLED", "job", job.id,
+                after={"error": job.error},
+            )
         except (OSError, ValueError, RuntimeError, ImportError, KeyError, httpx.HTTPError,
                 subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
             job.status = JobStatus.FAILED.value

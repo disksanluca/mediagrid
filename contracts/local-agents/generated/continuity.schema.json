@@ -1,4 +1,69 @@
 {
+  "$defs": {
+    "EnvironmentBible": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 360,
+          "minLength": 12,
+          "title": "Description",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 60,
+          "minLength": 2,
+          "title": "Id",
+          "type": "string"
+        },
+        "layers": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 3,
+          "title": "Layers",
+          "type": "array"
+        },
+        "lighting": {
+          "maxLength": 160,
+          "minLength": 3,
+          "title": "Lighting",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "description",
+        "layers",
+        "lighting"
+      ],
+      "title": "EnvironmentBible",
+      "type": "object"
+    },
+    "PropState": {
+      "additionalProperties": false,
+      "properties": {
+        "beat_id": {
+          "maxLength": 40,
+          "minLength": 2,
+          "title": "Beat Id",
+          "type": "string"
+        },
+        "phone_state": {
+          "maxLength": 200,
+          "minLength": 5,
+          "title": "Phone State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "beat_id",
+        "phone_state"
+      ],
+      "title": "PropState",
+      "type": "object"
+    }
+  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
@@ -22,13 +87,40 @@
       "title": "Conflicts",
       "type": "array"
     },
-    "locations": {
+    "expressions": {
       "items": {
         "type": "string"
       },
       "maxItems": 12,
-      "minItems": 1,
+      "minItems": 4,
+      "title": "Expressions",
+      "type": "array"
+    },
+    "identity_markers": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 10,
+      "minItems": 4,
+      "title": "Identity Markers",
+      "type": "array"
+    },
+    "locations": {
+      "items": {
+        "$ref": "#/$defs/EnvironmentBible"
+      },
+      "maxItems": 12,
+      "minItems": 3,
       "title": "Locations",
+      "type": "array"
+    },
+    "prop_states": {
+      "items": {
+        "$ref": "#/$defs/PropState"
+      },
+      "maxItems": 12,
+      "minItems": 6,
+      "title": "Prop States",
       "type": "array"
     },
     "props": {
@@ -37,6 +129,15 @@
       },
       "maxItems": 20,
       "title": "Props",
+      "type": "array"
+    },
+    "required_poses": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 12,
+      "minItems": 4,
+      "title": "Required Poses",
       "type": "array"
     },
     "schema_version": {
@@ -50,13 +151,27 @@
       "minLength": 3,
       "title": "Wardrobe",
       "type": "string"
+    },
+    "wardrobe_palette": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 6,
+      "minItems": 2,
+      "title": "Wardrobe Palette",
+      "type": "array"
     }
   },
   "required": [
     "character_id",
     "appearance",
     "wardrobe",
-    "locations"
+    "identity_markers",
+    "wardrobe_palette",
+    "locations",
+    "prop_states",
+    "required_poses",
+    "expressions"
   ],
   "title": "ContinuityDraft",
   "type": "object"

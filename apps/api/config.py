@@ -18,6 +18,14 @@ class Settings(BaseSettings):
     ollama_model: str = "llama3.2"
     mediagrid_agents_enabled: bool = False
     mediagrid_agents_model: str = "qwen3:4b-instruct"
+    mediagrid_agents_min_free_ram_mb: int = Field(default=4096, ge=1024, le=32768)
+    mediagrid_agents_min_free_vram_mb: int = Field(default=1800, ge=0, le=16384)
+    mediagrid_tts_provider: str = "windows"
+    mediagrid_kokoro_python: Path | None = None
+    mediagrid_kokoro_model_dir: Path | None = None
+    mediagrid_kokoro_voice: str = "pm_alex"
+    mediagrid_kokoro_speed: float = Field(default=1.0, ge=0.75, le=1.35)
+    mediagrid_kokoro_offline: bool = True
     whisper_model_path: Path | None = None
     mediagrid_asr_model_dir: Path | None = None
     whisper_cli_path: str = "whisper-cli"

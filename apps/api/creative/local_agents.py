@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import time
 from contextlib import contextmanager
 from datetime import UTC, datetime
@@ -16,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
+from ..database import SessionLocal
 from ..models import (
     CreativeBriefRevision,
     CreativeDNARevision,
@@ -34,25 +36,38 @@ from .contracts import (
 from .hashing import content_sha256
 from .service import latest
 
-PROMPT_VERSION = "local_creative_v1.0.5"
+PROMPT_VERSION = "local_creative_v1.1.0"
 TASKS = ("script", "directions", "storyboard", "continuity", "references", "motion", "qa")
 TASK_RULES = {
-    "script": ("Write six distinct beats with one stable character_id and location IDs. "
-               "Narration is second person. Keep each beat under 220 characters, "
+    "script": ("Write exactly output_requirements.expected_scene_count distinct beats "
+               "with one stable character_id and at least three environment IDs. "
+               "Narration is second person in grammatical Brazilian Portuguese. "
+               "Keep each beat between 55 and 120 characters, "
                "with complete sentences. Preserve a causal sequence: setup, obstacle, "
                "attempt, consequence, resolution, reflection. Do not claim an event "
                "before a beat depicts it or duplicate an object in two places. "
+               "Describe the character action and the prop state in every beat. "
+               "Set arc_stage in this exact order for an eight-beat story: setup, "
+               "inspection, purchase, discovery, evidence, negotiation, resolution, "
+               "lesson. The phone must look promising before purchase, reveal a problem "
+               "after purchase, then lead to evidence, calm negotiation, a repair "
+               "decision and a practical lesson. Do not add prices, percentages, legal warranty "
+               "periods, real marketplaces, real apps or unexplained repairs. "
                "Honor all brief restrictions. Fiction has no real-world claims "
                "or real commercial brands."),
     "directions": ("Create exactly three different visual directions with unique IDs. "
                    "Use complete descriptions, six-digit hex colors and concrete "
                    "typography, rhythm and motion."),
-    "storyboard": ("Create exactly six shot ideas from the script beats, in order. "
+    "storyboard": ("Create one shot idea per script beat, in order. Use at least four "
+                   "shot sizes, three environments and four camera moves. Never repeat "
+                   "the same shot size and camera move in consecutive shots. "
                    "Each on_screen_text is an original two-to-five-word title, "
                    "not a truncated narration or paragraph. Do not provide timing; "
                    "the application assigns exact frame durations."),
-    "continuity": ("Describe the existing character, wardrobe, places and props. "
-                   "Flag contradictions; do not claim images were generated."),
+    "continuity": ("Create a production bible for the existing character, wardrobe, "
+                   "poses, expressions, places and the phone's state across beats. "
+                   "Use stable visual signatures and flag contradictions. "
+                   "Do not claim images were generated."),
     "references": ("Analyze only supplied brief and DNA text as inspiration. "
                    "Do not claim web search or verified licenses. "
                    "State no external reference was fetched. Use six-digit hex colors."),
@@ -60,7 +75,8 @@ TASK_RULES = {
                "matches the approved storyboard and whose canvas_format matches "
                "the brief. Do not recommend a mismatched recipe. This is a "
                "suggestion, not a compiled composition or render."),
-    "qa": ("Flag legibility, timing, rights and continuity issues. "
+    "qa": ("Flag grammar, legibility, timing, rights, repeated framing, object-state "
+           "and character-continuity issues. "
            "Keep human_review_required=true. Never approve publication."),
 }
 
@@ -75,6 +91,13 @@ class ScriptBeat(Strict):
     visual: str = Field(min_length=8, max_length=360)
     location_id: str = Field(min_length=2, max_length=40)
     character_id: str = Field(min_length=2, max_length=40)
+    character_action: str = Field(min_length=5, max_length=220)
+    prop_state: list[str] = Field(min_length=1, max_length=8)
+    narration_target_ms: int = Field(ge=2500, le=6500)
+    arc_stage: Literal[
+        "setup", "inspection", "purchase", "discovery", "evidence",
+        "negotiation", "resolution", "lesson",
+    ]
 
 
 class ScriptDraft(Strict):
@@ -96,6 +119,43 @@ class ScriptDraft(Strict):
         if any(not beat.narration.rstrip().endswith((".", "!", "?", "…", '"', "'"))
                for beat in self.beats):
             raise ValueError("Narration beat ends mid-sentence")
+        if any(not 45 <= len(beat.narration) <= 125 for beat in self.beats):
+            raise ValueError("Narration beats need 45..125 characters for voice timing")
+        if len({beat.location_id for beat in self.beats}) < 3:
+            raise ValueError("Narrative needs at least three distinct environments")
+        required_arc = [
+            "setup", "inspection", "purchase", "discovery", "evidence",
+            "negotiation", "resolution", "lesson",
+        ]
+        if len(self.beats) == 8 and [beat.arc_stage for beat in self.beats] != required_arc:
+            raise ValueError("Eight-beat narrative has an invalid causal arc")
+        if len({beat.arc_stage for beat in self.beats}) != len(self.beats):
+            raise ValueError("Narrative repeats or omits a causal arc stage")
+        narrations = [re.sub(r"\W+", "", beat.narration).casefold() for beat in self.beats]
+        visuals = [re.sub(r"\W+", "", beat.visual).casefold() for beat in self.beats]
+        if len(set(narrations)) != len(narrations) or len(set(visuals)) != len(visuals):
+            raise ValueError("Narrative repeats a beat or visual composition")
+        joined = " ".join(beat.narration for beat in self.beats)
+        if re.search(r"\b[oO] primeiro venda\b|\b[aA] primeiro compra\b", joined):
+            raise ValueError("Brazilian Portuguese agreement error")
+        factual_shortcuts = re.compile(
+            r"R\$|\b\d+\s*(?:reais?|dias?)\b|\b\d+\s*%|\bgarantia\b|"
+            r"\b(?:mercado\s*livre|whatsapp|instagram|iphone|samsung)\b",
+            re.IGNORECASE,
+        )
+        full_text = " ".join(
+            [self.title, self.character_description, joined]
+            + [
+                beat.visual + " " + beat.location_id + " " + " ".join(beat.prop_state)
+                for beat in self.beats
+            ]
+        )
+        forbidden = sorted({match.group(0) for match in factual_shortcuts.finditer(full_text)})
+        if self.fictional and forbidden:
+            raise ValueError(
+                "Fictional script introduced forbidden factual shortcuts: "
+                + ", ".join(forbidden)
+            )
         return self
 
 
@@ -106,11 +166,42 @@ class ShotIdea(Strict):
     camera_intent: str = Field(min_length=2, max_length=160)
     motion_intent: str = Field(min_length=2, max_length=160)
     audio_cue: str = Field(default="", max_length=160)
+    environment_id: str = Field(min_length=2, max_length=60)
+    shot_size: Literal[
+        "establishing", "wide", "medium", "close_up", "extreme_close_up",
+        "pov", "over_shoulder", "insert",
+    ]
+    camera_move: Literal[
+        "locked", "push_in", "pull_out", "pan", "tilt", "track", "handheld",
+        "rack_focus",
+    ]
+    character_pose: str = Field(min_length=3, max_length=160)
+    expression: str = Field(min_length=3, max_length=120)
+    interface_action: str = Field(default="", max_length=200)
+    sfx_cues: list[str] = Field(default_factory=list, max_length=8)
 
 
 class ShotIdeas(Strict):
     schema_version: Literal["local_shot_ideas_v1"] = "local_shot_ideas_v1"
     shots: list[ShotIdea] = Field(min_length=6, max_length=12)
+
+    @model_validator(mode="after")
+    def visual_variety(self):
+        if len({shot.shot_size for shot in self.shots}) < 4:
+            raise ValueError("Storyboard needs at least four shot sizes")
+        if len({shot.environment_id for shot in self.shots}) < 3:
+            raise ValueError("Storyboard needs at least three environments")
+        for before, after in zip(self.shots, self.shots[1:], strict=False):
+            if (before.shot_size, before.camera_move) == (
+                after.shot_size, after.camera_move
+            ):
+                raise ValueError("Consecutive shots repeat framing and camera move")
+        signatures = [
+            re.sub(r"\W+", "", shot.visual_description).casefold() for shot in self.shots
+        ]
+        if len(signatures) != len(set(signatures)):
+            raise ValueError("Storyboard repeats a visual description")
+        return self
 
 
 class AgentDirections(CreativeDirectionSet):
@@ -122,14 +213,38 @@ class AgentDirections(CreativeDirectionSet):
         return self
 
 
+class EnvironmentBible(Strict):
+    id: str = Field(min_length=2, max_length=60)
+    description: str = Field(min_length=12, max_length=360)
+    layers: list[str] = Field(min_length=3, max_length=8)
+    lighting: str = Field(min_length=3, max_length=160)
+
+
+class PropState(Strict):
+    beat_id: str = Field(min_length=2, max_length=40)
+    phone_state: str = Field(min_length=5, max_length=200)
+
+
 class ContinuityDraft(Strict):
     schema_version: Literal["local_continuity_v1"] = "local_continuity_v1"
     character_id: str = Field(min_length=2, max_length=40)
     appearance: str = Field(min_length=12, max_length=400)
     wardrobe: str = Field(min_length=3, max_length=240)
-    locations: list[str] = Field(min_length=1, max_length=12)
+    identity_markers: list[str] = Field(min_length=4, max_length=10)
+    wardrobe_palette: list[str] = Field(min_length=2, max_length=6)
+    locations: list[EnvironmentBible] = Field(min_length=3, max_length=12)
     props: list[str] = Field(default_factory=list, max_length=20)
+    prop_states: list[PropState] = Field(min_length=6, max_length=12)
+    required_poses: list[str] = Field(min_length=4, max_length=12)
+    expressions: list[str] = Field(min_length=4, max_length=12)
     conflicts: list[str] = Field(default_factory=list, max_length=20)
+
+    @model_validator(mode="after")
+    def valid_palette(self):
+        if any(not re.fullmatch(r"#[0-9a-fA-F]{6}", color)
+               for color in self.wardrobe_palette):
+            raise ValueError("Wardrobe palette needs six-digit hex colors")
+        return self
 
 
 class ReferenceNotes(Strict):
@@ -150,7 +265,7 @@ class ReferenceNotes(Strict):
 class MotionSuggestion(Strict):
     schema_version: Literal["local_motion_suggestion_v1"] = "local_motion_suggestion_v1"
     recipe_id: Literal["sports.depth-impact", "music.orbital-sleeve", "geo.route-explainer",
-                       "pov.first-sale"]
+                       "pov.first-sale", "pov.webtoon-cutout"]
     rationale: str = Field(min_length=12, max_length=400)
     timing_notes: str = Field(min_length=5, max_length=400)
 
@@ -159,6 +274,10 @@ class QualityNotes(Strict):
     schema_version: Literal["local_qa_notes_v1"] = "local_qa_notes_v1"
     issues: list[str] = Field(default_factory=list, max_length=20)
     revisions: list[str] = Field(default_factory=list, max_length=20)
+    grammar_issues: list[str] = Field(default_factory=list, max_length=20)
+    continuity_issues: list[str] = Field(default_factory=list, max_length=20)
+    repeated_compositions: list[str] = Field(default_factory=list, max_length=20)
+    narration_timing_issues: list[str] = Field(default_factory=list, max_length=20)
     human_review_required: Literal[True] = True
 
 
@@ -167,6 +286,76 @@ SCHEMAS = {
     "storyboard": ShotIdeas, "continuity": ContinuityDraft,
     "references": ReferenceNotes, "motion": MotionSuggestion, "qa": QualityNotes,
 }
+
+
+class GenerationCancelled(RuntimeError):
+    """The user requested cancellation while Ollama was streaming."""
+
+
+def _free_ram_mb() -> int | None:
+    try:
+        if os.name == "nt":
+            import ctypes
+
+            class MemoryStatus(ctypes.Structure):
+                _fields_ = [
+                    ("length", ctypes.c_ulong), ("load", ctypes.c_ulong),
+                    ("total_phys", ctypes.c_ulonglong), ("avail_phys", ctypes.c_ulonglong),
+                    ("total_page", ctypes.c_ulonglong), ("avail_page", ctypes.c_ulonglong),
+                    ("total_virtual", ctypes.c_ulonglong),
+                    ("avail_virtual", ctypes.c_ulonglong),
+                    ("avail_extended", ctypes.c_ulonglong),
+                ]
+
+            status = MemoryStatus()
+            status.length = ctypes.sizeof(MemoryStatus)
+            if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+                return None
+            return round(status.avail_phys / 1024 / 1024)
+        pages = os.sysconf("SC_AVPHYS_PAGES")
+        size = os.sysconf("SC_PAGE_SIZE")
+        return round(pages * size / 1024 / 1024)
+    except (AttributeError, OSError, ValueError):
+        return None
+
+
+def _free_vram_mb() -> int | None:
+    try:
+        result = subprocess.run(
+            ["nvidia-smi", "--query-gpu=memory.free",
+             "--format=csv,noheader,nounits"],
+            check=True, capture_output=True, text=True, timeout=5,
+        )
+        values = [int(line.strip()) for line in result.stdout.splitlines() if line.strip()]
+        return max(values) if values else None
+    except (OSError, ValueError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return None
+
+
+def resource_snapshot() -> dict:
+    return {"free_ram_mb": _free_ram_mb(), "free_vram_mb": _free_vram_mb()}
+
+
+def ensure_resource_budget() -> dict:
+    snapshot = resource_snapshot()
+    settings = get_settings()
+    if (
+        snapshot["free_ram_mb"] is not None
+        and snapshot["free_ram_mb"] < settings.mediagrid_agents_min_free_ram_mb
+    ):
+        raise RuntimeError("RESOURCE_BUSY: insufficient free RAM for a MediaGrid agent")
+    if (
+        snapshot["free_vram_mb"] is not None
+        and snapshot["free_vram_mb"] < settings.mediagrid_agents_min_free_vram_mb
+    ):
+        raise RuntimeError("RESOURCE_BUSY: insufficient free VRAM; retry after Biu is idle")
+    return snapshot
+
+
+def cancellation_requested(job_id: str) -> bool:
+    with SessionLocal() as cancellation_db:
+        value = cancellation_db.get(Job, job_id)
+        return bool(value and value.cancel_requested)
 
 
 @contextmanager
@@ -220,10 +409,11 @@ def provider_status() -> dict:
         state = "LOCAL" if any(x.get("name") == model for x in tags) else "MODEL_UNAVAILABLE"
         return {"state": state,
                 "model": model, "models": [x.get("name") for x in tags],
-                "loaded_models": [x.get("name") for x in loaded]}
+                "loaded_models": [x.get("name") for x in loaded],
+                "resources": resource_snapshot()}
     except (ValueError, httpx.HTTPError, KeyError):
         return {"state": "OFFLINE", "model": get_settings().mediagrid_agents_model,
-                "models": [], "loaded_models": []}
+                "models": [], "loaded_models": [], "resources": resource_snapshot()}
 
 
 def _prompt(task: str, brief: CreativeBrief, dna: CreativeDNA, context: dict) -> tuple[str, str]:
@@ -234,8 +424,17 @@ def _prompt(task: str, brief: CreativeBrief, dna: CreativeDNA, context: dict) ->
               "licenses, rights, or approvals. No code, URLs, tools or publication. "
               "For fictional POV, write original second-person narration in pt-BR. "
               "Every proposal is a draft for human review. " + TASK_RULES[task])
-    data = {"task": task, "brief": brief.model_dump(mode="json"),
-            "creative_dna": dna.model_dump(mode="json"), "context": context}
+    expected_scene_count = max(6, min(12, round(brief.duration_ms / 7000)))
+    data = {
+        "task": task,
+        "output_requirements": {
+            "expected_scene_count": expected_scene_count,
+            "language": brief.language,
+            "per_scene_narration_duration_ms": [2500, 6500],
+        },
+        "brief": brief.model_dump(mode="json"),
+        "creative_dna": dna.model_dump(mode="json"), "context": context,
+    }
     return system, json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
 
@@ -255,6 +454,10 @@ def _storyboard(ideas: ShotIdeas, brief: CreativeBrief, direction_id: str,
         start = round(cursor * 1000 / brief.fps)
         shot_content = idea.model_dump()
         shot_content["beat"] = script.beats[index].narration
+        shot_content["narration_start_ms"] = 350
+        shot_content["narration_duration_ms"] = min(
+            script.beats[index].narration_target_ms, end-start-350
+        )
         shots.append(StoryboardShot(id=f"ai-shot-{index+1:02d}", start_ms=start,
                                     duration_ms=end-start, **shot_content,
                                     asset_ids=[], claim_ids=[]))
@@ -270,8 +473,8 @@ def motion_compatibility(brief: CreativeBrief, storyboard: CreativeStoryboard,
     blockers = []
     if len(storyboard.shots) != len(recipe.scenes):
         blockers.append("Recipe scene count differs from approved storyboard")
-    if storyboard.duration_ms > 30000:
-        blockers.append("Storyboard exceeds the M4 30-second composition limit")
+    if storyboard.duration_ms > 60000:
+        blockers.append("Storyboard exceeds the M4 60-second composition limit")
     aspect = "vertical" if recipe.canvas.height > recipe.canvas.width else (
         "square" if recipe.canvas.height == recipe.canvas.width else "horizontal"
     )
@@ -316,6 +519,7 @@ def run_agent(db: Session, job: Job) -> dict:
     base = loopback_url()
     model = get_settings().mediagrid_agents_model
     started = time.monotonic()
+    resource_before = ensure_resource_budget()
     with httpx.Client(timeout=httpx.Timeout(150, connect=2), trust_env=False) as client:
         tags = client.get(f"{base}/api/tags")
         tags.raise_for_status()
@@ -331,27 +535,50 @@ def run_agent(db: Session, job: Job) -> dict:
                     {"role": "user", "content": user}]
         prompt_tokens = response_tokens = 0
         for attempt in range(3):
-            response = client.post(f"{base}/api/chat", json={
+            if cancellation_requested(job.id):
+                raise GenerationCancelled("CANCELLED: creative AI generation was cancelled")
+            chunks = []
+            raw = {}
+            with client.stream("POST", f"{base}/api/chat", json={
                 "model": model, "messages": messages,
-                "format": schema.model_json_schema(), "stream": False, "think": False,
+                "format": schema.model_json_schema(), "stream": True, "think": False,
                 "keep_alive": "30s", "options": {"temperature": 0.2, "seed": 17,
-                                              "num_ctx": 4096, "num_predict": 1800},
-            })
-            response.raise_for_status()
-            raw = response.json()
+                                              "num_ctx": 8192, "num_predict": 3000},
+            }) as response:
+                response.raise_for_status()
+                for line in response.iter_lines():
+                    if cancellation_requested(job.id):
+                        raise GenerationCancelled(
+                            "CANCELLED: creative AI generation was cancelled"
+                        )
+                    if not line:
+                        continue
+                    event = json.loads(line)
+                    if event.get("error"):
+                        raise RuntimeError(f"Ollama failed: {event['error']}")
+                    chunks.append(event.get("message", {}).get("content", ""))
+                    raw = event
             prompt_tokens += raw.get("prompt_eval_count") or 0
             response_tokens += raw.get("eval_count") or 0
-            output = raw.get("message", {}).get("content", "")
-            if len(output.encode("utf-8")) > 16 * 1024:
-                raise ValueError("CONTRACT_INVALID: output exceeds 16 KiB")
+            output = "".join(chunks)
+            if len(output.encode("utf-8")) > 24 * 1024:
+                raise ValueError("CONTRACT_INVALID: output exceeds 24 KiB")
             try:
                 parsed = schema.model_validate_json(output)
+                if task == "script":
+                    expected = max(6, min(12, round(brief.duration_ms / 7000)))
+                    if len(parsed.beats) != expected:
+                        raise ValueError(
+                            f"Script requires exactly {expected} beats for this duration"
+                        )
                 if task == "motion" and parsed.recipe_id not in context["compatible_recipe_ids"]:
                     raise ValueError("Recipe ID is incompatible with approved storyboard")
                 break
             except (ValidationError, ValueError) as exc:
                 if attempt == 2:
-                    raise ValueError("CONTRACT_INVALID: two repairs exhausted") from exc
+                    raise ValueError(
+                        "CONTRACT_INVALID: two repairs exhausted; " + str(exc)[:600]
+                    ) from exc
                 messages.append({"role": "assistant", "content": output[:4000]})
                 messages.append({"role": "user", "content":
                                  "Repair only the JSON contract errors: " + str(exc)[:1200]})
@@ -370,7 +597,10 @@ def run_agent(db: Session, job: Job) -> dict:
     motion_readiness = None
     motion_blockers = []
     if task == "motion":
-        recipe = load_recipe(parsed.recipe_id, "1.2.0")
+        catalog = next(
+            item for item in context["recipe_catalog"] if item["id"] == parsed.recipe_id
+        )
+        recipe = load_recipe(parsed.recipe_id, catalog["version"])
         content["recipe_version"] = recipe.version
         content["recipe_sha256"] = recipe.sha256
         content["asset_slots_required"] = recipe.asset_slots
@@ -404,6 +634,8 @@ def run_agent(db: Session, job: Job) -> dict:
             "prompt_tokens": prompt_tokens,
             "response_tokens": response_tokens,
             "repair_count": attempt,
+            "resources_before": resource_before,
+            "resources_after": resource_snapshot(),
             "brief_sha256": brief_row.sha256, "dna_sha256": dna_row.sha256,
             "review_status": "NEEDS_REVIEW"}
     if motion_readiness:

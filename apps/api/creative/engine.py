@@ -53,7 +53,11 @@ def recipes_read() -> dict:
                     {"slot": s.shot_slot, "reference_duration_ms": s.required_duration_ms}
                     for s in r.scenes
                 ],
-                "status": "SUPPORTED" if r.version in {"1.1.0", "1.2.0"} else "CONTRACT_REFERENCE",
+                "status": (
+                    "SUPPORTED"
+                    if r.version in {"1.1.0", "1.2.0", "1.3.0"}
+                    else "CONTRACT_REFERENCE"
+                ),
             }
             for r in recipes
         ],
@@ -213,7 +217,10 @@ def derive_engine(db: Session, project_id: str, request: EngineRequest) -> dict:
     identity = CreativeDNA.model_validate(dna.payload)
     try:
         template = load_recipe(request.recipe.id, request.recipe.version)
-        if template.version not in {"1.1.0", "1.2.0"} or template.sha256 != request.recipe.sha256:
+        if (
+            template.version not in {"1.1.0", "1.2.0", "1.3.0"}
+            or template.sha256 != request.recipe.sha256
+        ):
             raise ValueError("RECIPE_NOT_SUPPORTED or recipe hash changed")
         if any(f not in FONTS for f in (identity.font_display, identity.font_body)):
             raise ValueError("FONT_UNSUPPORTED: use bundled fonts from capabilities in DNA")
@@ -290,11 +297,12 @@ def derive_engine(db: Session, project_id: str, request: EngineRequest) -> dict:
                 if node.type != "text":
                     continue
                 binding = node.params.text
-                text = (
-                    shot_text(binding, shot.on_screen_text)
-                    if binding.kind == "shot_field"
-                    else claims[binding.claim_id][binding.field]
-                )
+                if binding.kind == "shot_field":
+                    text = shot_text(binding, getattr(shot, binding.field))
+                elif binding.kind == "literal":
+                    text = shot_text(binding, "")
+                else:
+                    text = claims[binding.claim_id][binding.field]
                 texts[node.id], measurements[f"{shot.id}/{node.id}"] = layout_text(
                     text,
                     node.params.size,

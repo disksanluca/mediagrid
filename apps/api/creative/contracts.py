@@ -91,6 +91,21 @@ class StoryboardShot(StrictModel):
     camera_intent: str = Field(default="Static", min_length=2, max_length=200)
     motion_intent: str = Field(default="Static", min_length=2, max_length=200)
     audio_cue: str = Field(default="", max_length=200)
+    environment_id: str = Field(default="unspecified", min_length=2, max_length=60)
+    shot_size: Literal[
+        "establishing", "wide", "medium", "close_up", "extreme_close_up",
+        "pov", "over_shoulder", "insert",
+    ] = "medium"
+    camera_move: Literal[
+        "locked", "push_in", "pull_out", "pan", "tilt", "track", "handheld",
+        "rack_focus",
+    ] = "locked"
+    character_pose: str = Field(default="neutral", min_length=2, max_length=160)
+    expression: str = Field(default="neutral", min_length=2, max_length=120)
+    interface_action: str = Field(default="", max_length=200)
+    narration_start_ms: int = Field(default=0, ge=0)
+    narration_duration_ms: int = Field(default=1, gt=0)
+    sfx_cues: list[str] = Field(default_factory=list, max_length=8)
     asset_ids: list[str] = Field(default_factory=list, max_length=20)
     claim_ids: list[str] = Field(default_factory=list, max_length=20)
 
@@ -113,6 +128,8 @@ class CreativeStoryboard(StrictModel):
                 raise ValueError(f"shot {shot.id} repeats an asset")
             if len(shot.claim_ids) != len(set(shot.claim_ids)):
                 raise ValueError(f"shot {shot.id} repeats a claim")
+            if shot.narration_start_ms + shot.narration_duration_ms > shot.duration_ms:
+                raise ValueError(f"shot {shot.id} narration exceeds its duration")
             seen.add(shot.id)
             if shot.start_ms != cursor:
                 raise ValueError(f"shot {shot.id} must start at {cursor} ms")

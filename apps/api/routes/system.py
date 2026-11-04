@@ -124,8 +124,12 @@ def voice_status() -> dict:
         raise HTTPException(403, "Voice selection is local-desktop only")
     voice, rate = voice_choice()
     options = installed_portuguese_voices()
-    return {"available": bool(options) and (voice is None or voice in options),
-            "voices": list(options), "voice_name": voice, "rate": rate}
+    provider = get_settings().mediagrid_tts_provider
+    return {"available": voice_available(),
+            "provider": provider,
+            "voices": list(options), "voice_name": (
+                get_settings().mediagrid_kokoro_voice if provider == "kokoro" else voice
+            ), "rate": rate}
 
 
 @router.put("/voice")

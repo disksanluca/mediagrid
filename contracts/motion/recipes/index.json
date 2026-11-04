@@ -50,6 +50,11 @@
       "id": "pov.first-sale",
       "version": "1.2.0",
       "sha256": "5614b79ee9b93e147e6d488fe8bcdeab8bb54a1cf1f467a42847fde0543d34e9"
+    },
+    {
+      "id": "pov.webtoon-cutout",
+      "version": "1.3.0",
+      "sha256": "5a0124607cab185b8856d6ee62650efa2e095eb3f8e8f7b5366dbf4c625f5ce8"
     }
   ]
 }

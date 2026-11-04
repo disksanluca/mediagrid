@@ -2,6 +2,22 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "continuity_issues": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Continuity Issues",
+      "type": "array"
+    },
+    "grammar_issues": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Grammar Issues",
+      "type": "array"
+    },
     "human_review_required": {
       "const": true,
       "default": true,
@@ -14,6 +30,22 @@
       },
       "maxItems": 20,
       "title": "Issues",
+      "type": "array"
+    },
+    "narration_timing_issues": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Narration Timing Issues",
+      "type": "array"
+    },
+    "repeated_compositions": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Repeated Compositions",
       "type": "array"
     },
     "revisions": {

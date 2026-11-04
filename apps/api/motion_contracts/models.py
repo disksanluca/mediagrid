@@ -15,7 +15,8 @@ Number = Annotated[float, Field(ge=-8192, le=8192)]
 Unit = Annotated[float, Field(ge=0, le=1)]
 ScaleNumber = Annotated[float, Field(ge=0.05, le=8)]
 Angle = Annotated[float, Field(ge=-360, le=360)]
-Millis = Annotated[int, Field(ge=0, le=30000)]
+MAX_MOTION_DURATION_MS = 60000
+Millis = Annotated[int, Field(ge=0, le=MAX_MOTION_DURATION_MS)]
 
 
 def valid_position(value):
@@ -45,7 +46,7 @@ class Contract(BaseModel):
 
 class ShotText(Contract):
     kind: Literal["shot_field"]
-    field: Literal["on_screen_text"]
+    field: Literal["on_screen_text", "beat"]
     line_index: int | None = Field(default=None, ge=0, le=5, exclude_if=lambda v: v is None)
 
 
@@ -55,7 +56,12 @@ class ClaimText(Contract):
     field: Literal["text", "source_label"]
 
 
-TextBinding = Annotated[ShotText | ClaimText, Field(discriminator="kind")]
+class LiteralText(Contract):
+    kind: Literal["literal"]
+    value: str = Field(min_length=1, max_length=160)
+
+
+TextBinding = Annotated[ShotText | ClaimText | LiteralText, Field(discriminator="kind")]
 
 
 class PaletteBinding(Contract):
@@ -76,7 +82,9 @@ class AbsoluteTime(Contract):
 class CueTime(Contract):
     kind: Literal["cue"]
     cue_ref: Identifier
-    offset_ms: int = Field(default=0, ge=-30000, le=30000)
+    offset_ms: int = Field(
+        default=0, ge=-MAX_MOTION_DURATION_MS, le=MAX_MOTION_DURATION_MS
+    )
 
 
 TimeRef = Annotated[AbsoluteTime | CueTime, Field(discriminator="kind")]
@@ -357,7 +365,7 @@ class SafeArea(Contract):
 class SoundCue(Contract):
     asset_binding: Identifier
     source_in_ms: int = Field(default=0, ge=0, le=600000)
-    duration_ms: int = Field(gt=0, le=30000)
+    duration_ms: int = Field(gt=0, le=MAX_MOTION_DURATION_MS)
     gain: float = Field(default=1, gt=0, le=1)
     fade_in_ms: Millis = 0
     fade_out_ms: Millis = 0
@@ -408,7 +416,7 @@ class Expected(Contract):
     storyboard_revision: int = Field(ge=1)
     snapshot_sha256: Digest
     canvas: MotionCanvas
-    duration_ms: int = Field(ge=3000, le=30000)
+    duration_ms: int = Field(ge=3000, le=MAX_MOTION_DURATION_MS)
 
 
 class RecipeRef(Contract):
@@ -475,7 +483,7 @@ class MotionComposition(Contract):
 class RecipeScene(Contract):
     shot_slot: Identifier
     # An assertion for binding to the EDL, not a second editable timeline.
-    required_duration_ms: int = Field(ge=67, le=30000)
+    required_duration_ms: int = Field(ge=67, le=MAX_MOTION_DURATION_MS)
     graph: MotionScene
 
 

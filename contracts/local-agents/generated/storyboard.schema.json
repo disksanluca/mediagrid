@@ -21,6 +21,44 @@
           "title": "Camera Intent",
           "type": "string"
         },
+        "camera_move": {
+          "enum": [
+            "locked",
+            "push_in",
+            "pull_out",
+            "pan",
+            "tilt",
+            "track",
+            "handheld",
+            "rack_focus"
+          ],
+          "title": "Camera Move",
+          "type": "string"
+        },
+        "character_pose": {
+          "maxLength": 160,
+          "minLength": 3,
+          "title": "Character Pose",
+          "type": "string"
+        },
+        "environment_id": {
+          "maxLength": 60,
+          "minLength": 2,
+          "title": "Environment Id",
+          "type": "string"
+        },
+        "expression": {
+          "maxLength": 120,
+          "minLength": 3,
+          "title": "Expression",
+          "type": "string"
+        },
+        "interface_action": {
+          "default": "",
+          "maxLength": 200,
+          "title": "Interface Action",
+          "type": "string"
+        },
         "motion_intent": {
           "maxLength": 160,
           "minLength": 2,
@@ -31,6 +69,28 @@
           "default": "",
           "maxLength": 60,
           "title": "On Screen Text",
+          "type": "string"
+        },
+        "sfx_cues": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Sfx Cues",
+          "type": "array"
+        },
+        "shot_size": {
+          "enum": [
+            "establishing",
+            "wide",
+            "medium",
+            "close_up",
+            "extreme_close_up",
+            "pov",
+            "over_shoulder",
+            "insert"
+          ],
+          "title": "Shot Size",
           "type": "string"
         },
         "visual_description": {
@@ -44,7 +104,12 @@
         "beat",
         "visual_description",
         "camera_intent",
-        "motion_intent"
+        "motion_intent",
+        "environment_id",
+        "shot_size",
+        "camera_move",
+        "character_pose",
+        "expression"
       ],
       "title": "ShotIdea",
       "type": "object"

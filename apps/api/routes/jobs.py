@@ -35,13 +35,24 @@ def cancel_queued_job(job_id: str, db: Session = Depends(get_db)) -> Job:
         raise HTTPException(status_code=404, detail="Job not found")
     if job.status == JobStatus.CANCELLED.value:
         return job
+    if job.status == JobStatus.RUNNING.value and job.job_type == "CREATIVE_AI":
+        if not job.cancel_requested:
+            job.cancel_requested = True
+            record_event(
+                db, "JOB_CANCEL_REQUESTED", "job", job_id,
+                before={"cancel_requested": False},
+                after={"cancel_requested": True},
+            )
+            db.commit()
+            db.refresh(job)
+        return job
     cancellable = (JobStatus.QUEUED.value, JobStatus.WAITING_FOR_WORKER.value)
     if job.status not in cancellable:
         raise HTTPException(status_code=409, detail="Only jobs still waiting can be cancelled")
     previous = job.status
     result = db.execute(update(Job).where(
         Job.id == job_id, Job.status.in_(cancellable),
-    ).values(status=JobStatus.CANCELLED.value, finished_at=now(),
+    ).values(status=JobStatus.CANCELLED.value, finished_at=now(), cancel_requested=True,
              lease_owner=None, lease_expires_at=None),
         execution_options={"synchronize_session": False})
     if result.rowcount != 1:
@@ -75,7 +86,7 @@ def retry_job(job_id: str, db: Session = Depends(get_db)) -> Job:
         Job.id == job_id, Job.status == previous,
     ).values(status=next_status, error=None, progress=0, result=None,
              started_at=None, finished_at=None, heartbeat_at=None,
-             lease_owner=None, lease_expires_at=None),
+             lease_owner=None, lease_expires_at=None, cancel_requested=False),
         execution_options={"synchronize_session": False})
     if result.rowcount != 1:
         db.rollback()

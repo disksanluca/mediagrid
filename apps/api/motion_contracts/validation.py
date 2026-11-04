@@ -7,6 +7,7 @@ from apps.api.creative.contracts import CreativeDNA, CreativeStoryboard
 from apps.api.edl_v2 import EDLV2
 
 from .models import (
+    MAX_MOTION_DURATION_MS,
     AssetBinding,
     Contract,
     MotionComposition,
@@ -36,10 +37,12 @@ def resolve_time(time, cues):
 
 def animation_times(animation, cues):
     times = [resolve_time(k.time, cues) for k in animation.keyframes]
-    if any(t < 0 or t > 30000 for t in times) or any(
+    if any(t < 0 or t > MAX_MOTION_DURATION_MS for t in times) or any(
         b <= a for a, b in zip(times, times[1:], strict=False)
     ):
-        raise ValueError("Keyframe times must increase within [0, 30000]")
+        raise ValueError(
+            f"Keyframe times must increase within [0, {MAX_MOTION_DURATION_MS}]"
+        )
     return times
 
 
@@ -270,8 +273,8 @@ def validate_envelope(composition: MotionComposition):
 def validate_recipe(recipe: MotionRecipe):
     unique([s.shot_slot for s in recipe.scenes], "recipe shot slot")
     duration = sum(s.required_duration_ms for s in recipe.scenes)
-    if not 3000 <= duration <= 30000:
-        raise ValueError("Recipe duration assertions must total 3..30 seconds")
+    if not 3000 <= duration <= MAX_MOTION_DURATION_MS:
+        raise ValueError("Recipe duration assertions must total 3..60 seconds")
     total_budget([s.graph for s in recipe.scenes])
     validate_slots([s.graph for s in recipe.scenes], recipe.asset_slots)
     cursor = 0
@@ -287,6 +290,7 @@ def bindings_in(value):
             "dna_palette",
             "shot_field",
             "approved_claim_field",
+            "literal",
         }:
             yield value
         else:
@@ -298,6 +302,8 @@ def bindings_in(value):
 
 
 def shot_text(binding, text):
+    if binding.kind == "literal":
+        return binding.value
     if binding.line_index is None:
         return text
     lines = text.splitlines()
@@ -368,11 +374,12 @@ def validate_binding(
         for node in scene.graph.nodes:
             if node.type == "text":
                 binding = node.params.text
-                text = (
-                    shot_text(binding, shot.on_screen_text)
-                    if binding.kind == "shot_field"
-                    else (approved_claims[binding.claim_id].get(binding.field))
-                )
+                if binding.kind == "shot_field":
+                    text = shot_text(binding, getattr(shot, binding.field))
+                elif binding.kind == "literal":
+                    text = shot_text(binding, "")
+                else:
+                    text = approved_claims[binding.claim_id].get(binding.field)
                 if (
                     not isinstance(text, str)
                     or not text.strip()

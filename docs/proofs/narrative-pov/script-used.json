@@ -1,0 +1,123 @@
+{
+  "schema_version": "local_script_v1",
+  "title": "O celular usado e a negociação sem pressa",
+  "pov_second_person": true,
+  "fictional": true,
+  "character_id": "caio",
+  "character_description": "Caio é um jovem de cabelo preto ondulado, moletom mostarda, olhar atento e gestos contidos.",
+  "beats": [
+    {
+      "id": "beat-01",
+      "arc_stage": "setup",
+      "narration": "Você encontra um celular usado que parece bem cuidado e combina de vê-lo pessoalmente.",
+      "visual": "Quarto em camadas; Caio compara o anúncio ficcional na tela.",
+      "location_id": "quarto-anuncio",
+      "character_id": "caio",
+      "character_action": "Caio se inclina para a tela e observa o anúncio com curiosidade.",
+      "prop_state": [
+        "celular anunciado: aparência externa limpa",
+        "moletom: mostarda"
+      ],
+      "narration_target_ms": 5200
+    },
+    {
+      "id": "beat-02",
+      "arc_stage": "inspection",
+      "narration": "No caminho, a pressa fala mais alto, e você pensa em terminar o encontro rapidamente.",
+      "visual": "Ônibus em movimento; cidade passa em três planos pela janela.",
+      "location_id": "onibus-cidade",
+      "character_id": "caio",
+      "character_action": "Caio segura o próprio celular e confirma o encontro por uma interface fictícia.",
+      "prop_state": [
+        "celular anunciado: ainda não examinado",
+        "mensagem: encontro confirmado"
+      ],
+      "narration_target_ms": 5000
+    },
+    {
+      "id": "beat-03",
+      "arc_stage": "purchase",
+      "narration": "Você olha a câmera e a carcaça, mas deixa o toque e a bateria para depois.",
+      "visual": "Café; plano sobre o ombro alterna Caio, vendedor e aparelho.",
+      "location_id": "cafe-encontro",
+      "character_id": "caio",
+      "character_action": "Caio verifica a lente e a carcaça antes de concluir a compra fictícia.",
+      "prop_state": [
+        "celular comprado: carcaça limpa",
+        "tela e bateria: ainda não testadas"
+      ],
+      "narration_target_ms": 4900
+    },
+    {
+      "id": "beat-04",
+      "arc_stage": "discovery",
+      "narration": "Em casa, o toque começa a falhar e a carga cai rápido. O bom negócio vira preocupação.",
+      "visual": "POV das mãos; falha de toque e alerta de bateria aparecem na interface.",
+      "location_id": "quarto-inspecao",
+      "character_id": "caio",
+      "character_action": "Caio testa a tela com as duas mãos e reconhece a falha.",
+      "prop_state": [
+        "celular comprado: toque falhando",
+        "bateria: comportamento instável"
+      ],
+      "narration_target_ms": 5300
+    },
+    {
+      "id": "beat-05",
+      "arc_stage": "evidence",
+      "narration": "Você grava o defeito, fotografa o aparelho e reúne as mensagens que descreviam seu estado.",
+      "visual": "Quarto chuvoso; close alterna expressão frustrada e registros do defeito.",
+      "location_id": "quarto-chuva",
+      "character_id": "caio",
+      "character_action": "Caio respira, apoia o aparelho e registra a falha sem alterar o estado dele.",
+      "prop_state": [
+        "celular comprado: falha documentada",
+        "evidências: vídeo, fotos e mensagens"
+      ],
+      "narration_target_ms": 5300
+    },
+    {
+      "id": "beat-06",
+      "arc_stage": "negotiation",
+      "narration": "Em vez de discutir, você explica o problema com calma e mostra cada registro ao vendedor.",
+      "visual": "Tela dividida; Caio e mensagens fictícias reagem às provas anexadas.",
+      "location_id": "conversa-remota",
+      "character_id": "caio",
+      "character_action": "Caio envia os registros e espera a resposta antes de propor uma solução.",
+      "prop_state": [
+        "celular comprado: guardado durante a conversa",
+        "evidências: enviadas ao vendedor"
+      ],
+      "narration_target_ms": 5200
+    },
+    {
+      "id": "beat-07",
+      "arc_stage": "resolution",
+      "narration": "Vocês combinam o reparo por escrito, e uma assistência confirma o que precisa ser corrigido.",
+      "visual": "Assistência; técnico testa tela, bateria e câmeras diante de Caio.",
+      "location_id": "assistencia",
+      "character_id": "caio",
+      "character_action": "Caio acompanha os testes e confere a solução registrada na conversa.",
+      "prop_state": [
+        "celular comprado: em diagnóstico",
+        "acordo: registrado por escrito"
+      ],
+      "narration_target_ms": 5200
+    },
+    {
+      "id": "beat-08",
+      "arc_stage": "lesson",
+      "narration": "Da próxima vez, você testa, registra e negocia antes de pagar. A pressa dá lugar ao cuidado.",
+      "visual": "Composição final; Caio apresenta uma lista simples de verificação.",
+      "location_id": "estudio-licao",
+      "character_id": "caio",
+      "character_action": "Caio guarda a lista e encara a câmera com segurança tranquila.",
+      "prop_state": [
+        "celular comprado: solução encaminhada",
+        "lista: testar, registrar e negociar"
+      ],
+      "narration_target_ms": 5400
+    }
+  ],
+  "claims_to_verify": []
+}

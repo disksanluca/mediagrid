@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -75,9 +76,35 @@ def windows_speech_features() -> tuple[bool, bool]:
 
 
 def voice_available() -> bool:
+    if get_settings().mediagrid_tts_provider == "kokoro":
+        return kokoro_available()
     selected, _ = voice_choice()
     voices = installed_portuguese_voices()
     return bool(voices) and (selected is None or selected in voices)
+
+
+@lru_cache(maxsize=1)
+def kokoro_available() -> bool:
+    settings = get_settings()
+    executable = settings.mediagrid_kokoro_python
+    cache = settings.mediagrid_kokoro_model_dir
+    if (
+        executable is None
+        or not executable.is_absolute()
+        or not executable.is_file()
+        or cache is None
+        or not cache.is_absolute()
+        or not cache.is_dir()
+    ):
+        return False
+    try:
+        result = subprocess.run(
+            [str(executable), "-c", "import kokoro, soundfile; print(kokoro.__version__)"],
+            check=True, capture_output=True, text=True, timeout=30,
+        )
+        return bool(result.stdout.strip())
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        return False
 
 
 @lru_cache(maxsize=1)
@@ -117,7 +144,17 @@ def voice_choice() -> tuple[str | None, int]:
 
 def voice_configuration_digest() -> str:
     voice, rate = voice_choice()
-    value = json.dumps({"voice": voice, "rate": rate}, sort_keys=True, separators=(",", ":"))
+    settings = get_settings()
+    value = json.dumps({
+        "provider": settings.mediagrid_tts_provider,
+        "voice": (
+            settings.mediagrid_kokoro_voice
+            if settings.mediagrid_tts_provider == "kokoro"
+            else voice
+        ),
+        "rate": rate,
+        "kokoro_speed": settings.mediagrid_kokoro_speed,
+    }, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
@@ -131,7 +168,10 @@ def transcription_available() -> bool:
 
 def synthesize_voice(text: str, output: Path) -> None:
     if not voice_available():
-        raise RuntimeError("Windows speech synthesis is unavailable")
+        raise RuntimeError("Configured local speech synthesis is unavailable")
+    if get_settings().mediagrid_tts_provider == "kokoro":
+        synthesize_kokoro(text, output)
+        return
     output.parent.mkdir(parents=True, exist_ok=True)
     source = output.with_suffix(".txt")
     source.write_text(text, encoding="utf-8")
@@ -160,6 +200,40 @@ def synthesize_voice(text: str, output: Path) -> None:
         )
         if not output.is_file() or output.stat().st_size == 0:
             raise RuntimeError("Speech synthesis produced no audio")
+    finally:
+        source.unlink(missing_ok=True)
+
+
+def synthesize_kokoro(text: str, output: Path) -> None:
+    settings = get_settings()
+    executable = settings.mediagrid_kokoro_python
+    cache = settings.mediagrid_kokoro_model_dir
+    if executable is None or cache is None or not kokoro_available():
+        raise RuntimeError("Configured Kokoro runtime is unavailable")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    source = output.with_suffix(".txt")
+    source.write_text(text, encoding="utf-8")
+    environment = os.environ.copy()
+    environment.update({
+        "HF_HOME": str(cache),
+        "CUDA_VISIBLE_DEVICES": "",
+        "HF_HUB_DISABLE_SYMLINKS_WARNING": "1",
+    })
+    if settings.mediagrid_kokoro_offline:
+        environment["HF_HUB_OFFLINE"] = "1"
+        environment["TRANSFORMERS_OFFLINE"] = "1"
+    try:
+        subprocess.run(
+            [
+                str(executable), str(ROOT / "scripts" / "kokoro_tts.py"),
+                "--text-file", str(source), "--output", str(output),
+                "--voice", settings.mediagrid_kokoro_voice,
+                "--speed", str(settings.mediagrid_kokoro_speed),
+            ],
+            check=True, capture_output=True, text=True, timeout=900, env=environment,
+        )
+        if not output.is_file() or output.stat().st_size == 0:
+            raise RuntimeError("Kokoro produced no audio")
     finally:
         source.unlink(missing_ok=True)
 

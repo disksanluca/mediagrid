@@ -62,9 +62,10 @@ def main() -> None:
     command.upgrade(_config(), "head")
     with engine.connect() as connection:
         assert connection.scalar(text("SELECT version_num FROM alembic_version")) == (
-            "0013_motion_artifact_review"
+            "0014_creative_ai_cancellation"
         )
-        assert {"lease_owner", "lease_expires_at", "heartbeat_at"} <= {
+        assert {"lease_owner", "lease_expires_at", "heartbeat_at",
+                "cancel_requested"} <= {
             column["name"] for column in inspect(connection).get_columns("jobs")
         }
         claim_columns = {
@@ -111,7 +112,7 @@ def main() -> None:
         ))
         db.commit()
 
-    print("PostgreSQL 16: legacy data, Alembic 0001→0013, SKIP LOCKED and lease passed")
+    print("PostgreSQL 16: legacy data, Alembic 0001→0014, SKIP LOCKED and lease passed")
 
 
 if __name__ == "__main__":

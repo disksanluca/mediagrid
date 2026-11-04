@@ -4,13 +4,15 @@ import os
 import sqlite3
 import subprocess
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
+from uuid import uuid4
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
 from apps.api.backup import create_backup, restore_backup
-from apps.api.models import Channel, Job, MotionArtifactReview, Project
+from apps.api.models import Channel, MotionArtifactReview, Project
 
 
 def test_motion_review_upgrade_backup_restore_and_guarded_downgrade(tmp_path):
@@ -56,10 +58,19 @@ def test_motion_review_upgrade_backup_restore_and_guarded_downgrade(tmp_path):
         )
         db.add(project)
         db.flush()
-        job = Job(project_id=project.id, job_type="CREATIVE_MOTION")
-        db.add(job)
         db.commit()
-        project_id, job_id = project.id, job.id
+        project_id = project.id
+    job_id = str(uuid4())
+    created_at = datetime.now(UTC)
+    with isolated.begin() as connection:
+        connection.execute(text("""
+            INSERT INTO jobs
+            (id, project_id, job_type, status, priority, attempt, max_attempts,
+             progress, payload, created_at, updated_at)
+            VALUES
+            (:id, :project_id, 'CREATIVE_MOTION', 'QUEUED', 100, 0, 3,
+             0, '{}', :created_at, :created_at)
+        """), {"id": job_id, "project_id": project_id, "created_at": created_at})
     migrate("upgrade", "head")
     with Session(isolated) as db:
         db.add(
@@ -97,7 +108,7 @@ def test_motion_review_upgrade_backup_restore_and_guarded_downgrade(tmp_path):
             "c" * 64,
         )
         assert db.execute("SELECT version_num FROM alembic_version").fetchone() == (
-            "0013_motion_artifact_review",
+            "0014_creative_ai_cancellation",
         )
     blocked = migrate("downgrade", "0012_creative_direction", check=False)
     assert blocked.returncode != 0 and "human review history" in blocked.stderr
